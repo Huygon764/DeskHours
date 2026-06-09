@@ -1,0 +1,234 @@
+<script lang="ts">
+  import { authItem, blocklistItem } from '@/lib/storage';
+  import { keyFromPassword, syncUnmaskedDomains } from '@/lib/blocklist-session';
+  import { verifyPassword, deriveKey } from '@/lib/crypto';
+  import {
+    addPattern,
+    domainPatternFromUrl,
+    pageBlockStatus,
+    pathPatternFromUrl,
+    toggleEntry,
+    type PageBlockStatus,
+  } from '@/lib/popup-tab';
+  import { cloneBlocklist, normalizeEntry } from '@/lib/blocklist';
+  import type { BlockEntry } from '@/lib/types';
+
+  let { blockingNow = false }: { blockingNow?: boolean } = $props();
+
+  let tabUrl = $state('');
+  let entries = $state<BlockEntry[]>([]);
+  let status = $state<PageBlockStatus>({ kind: 'none' });
+  let cryptoKey = $state<CryptoKey | null>(null);
+  let unlocked = $state(false);
+  let pw = $state('');
+  let unlockError = $state('');
+  let actionError = $state('');
+  let loading = $state(true);
+  let busy = $state(false);
+
+  const locked = $derived(blockingNow && !unlocked);
+  const domainPattern = $derived(tabUrl ? domainPatternFromUrl(tabUrl) : '');
+  const pathPattern = $derived(tabUrl ? pathPatternFromUrl(tabUrl) : null);
+
+  $effect(() => {
+    void load();
+    const unwatch = blocklistItem.watch((v) => {
+      entries = cloneBlocklist(v).map(normalizeEntry);
+      void refreshStatus();
+    });
+    return () => unwatch();
+  });
+
+  async function load() {
+    loading = true;
+    try {
+      const [tabs] = await browser.tabs.query({ active: true, currentWindow: true });
+      tabUrl = tabs?.url && tabs.url.startsWith('http') ? tabs.url : '';
+      entries = cloneBlocklist(await blocklistItem.getValue()).map(normalizeEntry);
+      await refreshStatus();
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function refreshStatus() {
+    if (!tabUrl) {
+      status = { kind: 'none' };
+      return;
+    }
+    status = await pageBlockStatus(tabUrl, entries, cryptoKey);
+  }
+
+  async function unlock() {
+    unlockError = '';
+    const auth = await authItem.getValue();
+    if (!auth) return;
+    if (!(await verifyPassword(pw, auth))) {
+      unlockError = 'Wrong password';
+      return;
+    }
+    cryptoKey = await deriveKey(pw, auth.salt);
+    unlocked = true;
+    pw = '';
+    await refreshStatus();
+  }
+
+  async function withAuth(action: () => Promise<void>) {
+    actionError = '';
+    if (locked) {
+      actionError = 'Enter your password to edit the blocklist.';
+      return;
+    }
+    busy = true;
+    try {
+      await action();
+      entries = cloneBlocklist(await blocklistItem.getValue()).map(normalizeEntry);
+      if (cryptoKey) await syncUnmaskedDomains(entries, cryptoKey);
+      await refreshStatus();
+    } catch (err) {
+      console.error('popup blocklist action failed:', err);
+      actionError = 'Action failed. Try again.';
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function blockDomain() {
+    await withAuth(() => addPattern(domainPattern, false, cryptoKey));
+  }
+
+  async function blockPath() {
+    if (!pathPattern) return;
+    await withAuth(() => addPattern(pathPattern, false, cryptoKey));
+  }
+
+  async function flipEnabled(enabled: boolean) {
+    if (status.kind !== 'listed-disabled' && status.kind !== 'listed-enabled') return;
+    await withAuth(() => toggleEntry(status.entry.id, enabled));
+  }
+</script>
+
+<section class="current-page">
+  <h2 class="text-label section-label">This page</h2>
+
+  {#if loading}
+    <p class="msg-muted">Loading tab…</p>
+  {:else if !tabUrl}
+    <p class="msg-muted">Open a website tab to block it from here.</p>
+  {:else}
+    <p class="page-url" title={tabUrl}>{domainPattern}{new URL(tabUrl).pathname}</p>
+
+    {#if locked}
+      <div class="lock-row">
+        <input class="input" type="password" bind:value={pw} placeholder="Password" />
+        <button type="button" class="btn btn-primary btn-sm" onclick={unlock}>Unlock</button>
+      </div>
+      {#if unlockError}<p class="msg-error">{unlockError}</p>{/if}
+    {/if}
+
+    {#if status.kind === 'listed-enabled'}
+      <p class="status-on">
+        {#if blockingNow}Blocked{:else}On list{/if}: <strong>{status.pattern}</strong>
+      </p>
+      <label class="toggle-row">
+        <input
+          type="checkbox"
+          checked={true}
+          disabled={locked || busy}
+          onchange={() => flipEnabled(false)}
+        />
+        Blocking enabled
+      </label>
+    {:else if status.kind === 'listed-disabled'}
+      <p class="status-off">On list (paused): <strong>{status.pattern}</strong></p>
+      <label class="toggle-row">
+        <input
+          type="checkbox"
+          checked={false}
+          disabled={locked || busy}
+          onchange={() => flipEnabled(true)}
+        />
+        Blocking enabled
+      </label>
+    {:else}
+      <p class="status-off">Not on your blocklist</p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary btn-sm" disabled={locked || busy} onclick={blockDomain}>
+          Block {domainPattern}
+        </button>
+        {#if pathPattern}
+          <button type="button" class="btn btn-outline btn-sm" disabled={locked || busy} onclick={blockPath}>
+            Block {pathPattern}
+          </button>
+        {/if}
+      </div>
+    {/if}
+
+    {#if actionError}<p class="msg-error">{actionError}</p>{/if}
+  {/if}
+</section>
+
+<style>
+  .current-page {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-variant);
+  }
+
+  .section-label {
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .page-url {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-strong);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lock-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .lock-row .input {
+    flex: 1;
+  }
+
+  .status-on {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--amber-text);
+  }
+
+  .status-off {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .toggle-row input {
+    accent-color: var(--primary);
+  }
+</style>

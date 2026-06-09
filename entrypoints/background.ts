@@ -22,7 +22,7 @@ export default defineBackground(() => {
           console.error(`[site-blocker] ${BG_MESSAGE.SYNC_BLOCKER} failed:`, err),
         );
       case BG_MESSAGE.GRANT_UNBLOCK:
-        return unblockMinutesItem.getValue().then((m) => grantUnblock(message.domain, m));
+        return unblockMinutesItem.getValue().then((m) => grantUnblock(message.pattern, m));
       case BG_MESSAGE.POMODORO_START:
         return startPomodoro();
       case BG_MESSAGE.POMODORO_STOP:

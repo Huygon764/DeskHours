@@ -14,7 +14,7 @@ export const OFFSCREEN_MESSAGE = {
 /** Messages sent TO the background worker. */
 export type BgMessage =
   | { type: typeof BG_MESSAGE.SYNC_BLOCKER }
-  | { type: typeof BG_MESSAGE.GRANT_UNBLOCK; domain: string }
+  | { type: typeof BG_MESSAGE.GRANT_UNBLOCK; pattern: string }
   | { type: typeof BG_MESSAGE.POMODORO_START }
   | { type: typeof BG_MESSAGE.POMODORO_STOP };
 

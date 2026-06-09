@@ -15,6 +15,14 @@ describe('buildRedirectRules', () => {
     expect(rules[1].condition.requestDomains).toEqual(['youtube.com']);
   });
 
+  it('builds urlFilter rules for path patterns', () => {
+    const rules = buildRedirectRules(['youtube.com/shorts/*']);
+    expect(rules).toHaveLength(1);
+    expect(rules[0].condition.urlFilter).toBe('*://*.youtube.com/shorts/*');
+    expect(rules[0].condition.isUrlFilterCaseSensitive).toBe(false);
+    expect(rules[0].condition.requestDomains).toBeUndefined();
+  });
+
   it('returns empty array for no domains', () => {
     expect(buildRedirectRules([])).toEqual([]);
   });

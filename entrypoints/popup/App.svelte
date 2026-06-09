@@ -4,6 +4,7 @@
   import { isBlockingActive } from '@/lib/schedule';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
   import type { PomodoroState } from '@/lib/types';
+  import CurrentPage from './CurrentPage.svelte';
 
   let state = $state<PomodoroState | null>(null);
   let now = $state(Date.now());
@@ -65,6 +66,8 @@
   </header>
 
   <div class="popup-body">
+    <CurrentPage {blockingNow} />
+
     {#if !state}
       <p class="msg-muted loading">Loading…</p>
     {:else if idle}

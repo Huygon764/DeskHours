@@ -1,17 +1,20 @@
 <script lang="ts">
-  import { authItem } from '@/lib/storage';
+  import { authItem, blocklistItem } from '@/lib/storage';
   import { verifyPassword } from '@/lib/crypto';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
+  import { cloneBlocklist, normalizeEntry } from '@/lib/blocklist';
+  import { findMatchingPattern } from '@/lib/pattern-match';
 
-  function referrerHost(): string {
+  function referrerUrl(): string {
     try {
-      return document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : '';
+      return document.referrer || '';
     } catch {
       return '';
     }
   }
 
-  let domain = $state(referrerHost());
+  let pageUrl = $state(referrerUrl());
+  let blockPattern = $state('');
   let confirmed = $state(false);
   let countdown = $state(0);
   let password = $state('');
@@ -19,6 +22,32 @@
   let busy = $state(false);
 
   const WAIT_SECONDS = 30;
+
+  const headline = $derived.by(() => {
+    if (blockPattern) return `${blockPattern} is blocked`;
+    if (pageUrl) {
+      try {
+        return `${new URL(pageUrl).hostname} is blocked`;
+      } catch {
+        return 'This site is blocked';
+      }
+    }
+    return 'This site is blocked';
+  });
+
+  $effect(() => {
+    void resolvePattern();
+  });
+
+  async function resolvePattern() {
+    if (!pageUrl) return;
+    const entries = cloneBlocklist(await blocklistItem.getValue()).map(normalizeEntry);
+    const patterns: string[] = [];
+    for (const e of entries) {
+      if (!e.masked) patterns.push(e.domain);
+    }
+    blockPattern = findMatchingPattern(pageUrl, patterns) ?? '';
+  }
 
   function startCountdown() {
     confirmed = true;
@@ -31,8 +60,12 @@
 
   async function submit() {
     error = '';
-    if (!domain) {
-      error = 'Enter the domain to unblock';
+    if (!pageUrl) {
+      error = 'Enter the URL to unblock';
+      return;
+    }
+    if (!blockPattern) {
+      error = 'Could not determine which rule blocked this page.';
       return;
     }
     busy = true;
@@ -47,9 +80,8 @@
         error = 'Wrong password';
         return;
       }
-      const bare = domain.replace(/^www\./, '');
-      await sendBg({ type: BG_MESSAGE.GRANT_UNBLOCK, domain: bare });
-      window.location.href = `https://${bare}`;
+      await sendBg({ type: BG_MESSAGE.GRANT_UNBLOCK, pattern: blockPattern });
+      window.location.href = pageUrl;
     } finally {
       busy = false;
     }
@@ -63,7 +95,7 @@
     </div>
 
     <div class="content">
-      <h1 class="headline">{domain || 'This site'} is blocked</h1>
+      <h1 class="headline">{headline}</h1>
       <p class="text-body-muted subtext">
         Your schedule is active. You chose to block this site.
       </p>
@@ -97,25 +129,18 @@
               <input id="unblock-pw" class="input" type="password" bind:value={password} />
             </div>
             <button type="button" class="btn btn-primary btn-block" onclick={submit} disabled={busy}>
-              Unblock for 5 minutes
+              Unblock {blockPattern || 'temporarily'}
             </button>
             <p class="step-hint italic">Blocking resumes automatically.</p>
           {:else}
             <input class="input" type="password" disabled placeholder="Master password" />
-            <button type="button" class="btn btn-primary btn-block" disabled>Unblock for 5 minutes</button>
+            <button type="button" class="btn btn-primary btn-block" disabled>Unblock temporarily</button>
             <p class="step-hint italic">Blocking resumes automatically.</p>
           {/if}
         </div>
       </div>
 
       {#if error}<p class="msg-error">{error}</p>{/if}
-
-      {#if !domain}
-        <div class="field domain-field">
-          <label class="field-label" for="domain-input">Domain</label>
-          <input id="domain-input" class="input" bind:value={domain} placeholder="youtube.com" />
-        </div>
-      {/if}
     </div>
   </div>
 </div>
@@ -233,10 +258,5 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--amber-text);
-  }
-
-  .domain-field {
-    margin-top: 16px;
-    text-align: left;
   }
 </style>

@@ -8,19 +8,21 @@ export interface ScheduleWindow {
   end: string;
 }
 
-/** One blocked site. `domain` is plaintext for normal entries; for masked
- *  entries it holds the AES-GCM ciphertext and plaintext lives only in memory. */
+/** One blocked site or URL path pattern. `domain` is plaintext for normal entries;
+ *  for masked entries it holds the AES-GCM ciphertext and plaintext lives only in memory. */
 export interface BlockEntry {
   id: string;
-  /** Bare registrable domain, e.g. "facebook.com" (no scheme/www/path).
+  /** Domain or path pattern, e.g. "facebook.com" or "youtube.com/shorts/*".
    *  When `masked` is true this is the encrypted payload string instead. */
   domain: string;
   masked: boolean;
+  /** When false the entry stays in the list but is not enforced. Defaults to true. */
+  enabled?: boolean;
 }
 
-/** A temporary password-granted unblock for one domain. */
+/** A temporary password-granted unblock for one pattern. */
 export interface TempUnblock {
-  domain: string;
+  pattern: string;
   /** epoch ms when the unblock expires. */
   expiresAt: number;
 }

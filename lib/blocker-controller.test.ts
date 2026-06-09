@@ -12,8 +12,8 @@ describe('syncBlocker', () => {
     setupDnrMock();
     vi.spyOn(Date, 'now').mockReturnValue(MON_1030);
     await blocklistItem.setValue([
-      { id: '1', domain: 'facebook.com', masked: false },
-      { id: '2', domain: 'youtube.com', masked: false },
+      { id: '1', domain: 'facebook.com', masked: false, enabled: true },
+      { id: '2', domain: 'youtube.com', masked: false, enabled: true },
     ]);
   });
 
@@ -29,21 +29,38 @@ describe('syncBlocker', () => {
     expect(getDynamicRulesForTest()).toEqual([]);
   });
 
-  it('excludes a domain with an active temp unblock', async () => {
-    await tempUnblocksItem.setValue([{ domain: 'facebook.com', expiresAt: MON_1030 + 60_000 }]);
+  it('excludes a pattern with an active temp unblock', async () => {
+    await tempUnblocksItem.setValue([{ pattern: 'facebook.com', expiresAt: MON_1030 + 60_000 }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
     expect(rules.map((r) => r.condition.requestDomains?.[0])).toEqual(['youtube.com']);
   });
 
   it('ignores an expired temp unblock', async () => {
-    await tempUnblocksItem.setValue([{ domain: 'facebook.com', expiresAt: MON_1030 - 1 }]);
+    await tempUnblocksItem.setValue([{ pattern: 'facebook.com', expiresAt: MON_1030 - 1 }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
     expect(rules.map((r) => r.condition.requestDomains?.[0]).sort()).toEqual(['facebook.com', 'youtube.com']);
   });
 
-  it('blocks session-unmasked domains during an active window', async () => {
+  it('skips disabled blocklist entries', async () => {
+    await blocklistItem.setValue([
+      { id: '1', domain: 'facebook.com', masked: false, enabled: false },
+      { id: '2', domain: 'youtube.com', masked: false, enabled: true },
+    ]);
+    await syncBlocker();
+    const rules = getDynamicRulesForTest();
+    expect(rules.map((r) => r.condition.requestDomains?.[0])).toEqual(['youtube.com']);
+  });
+
+  it('applies path rules for path patterns', async () => {
+    await blocklistItem.setValue([{ id: '1', domain: 'youtube.com/shorts/*', masked: false, enabled: true }]);
+    await syncBlocker();
+    const rules = getDynamicRulesForTest();
+    expect(rules[0].condition.urlFilter).toBe('*://*.youtube.com/shorts/*');
+  });
+
+  it('blocks session-unmasked patterns during an active window', async () => {
     await unmaskedDomainsItem.setValue(['reddit.com']);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
@@ -57,10 +74,10 @@ describe('pruneExpired', () => {
     setupDnrMock();
     vi.spyOn(Date, 'now').mockReturnValue(1000);
     await tempUnblocksItem.setValue([
-      { domain: 'a.com', expiresAt: 500 },
-      { domain: 'b.com', expiresAt: 5000 },
+      { pattern: 'a.com', expiresAt: 500 },
+      { pattern: 'b.com', expiresAt: 5000 },
     ]);
     await pruneExpired();
-    expect(await tempUnblocksItem.getValue()).toEqual([{ domain: 'b.com', expiresAt: 5000 }]);
+    expect(await tempUnblocksItem.getValue()).toEqual([{ pattern: 'b.com', expiresAt: 5000 }]);
   });
 });

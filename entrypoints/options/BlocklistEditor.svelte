@@ -1,12 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { blocklistItem } from '@/lib/storage';
-  import { cloneBlocklist, normalizeDomain } from '@/lib/blocklist';
+  import { cloneBlocklist, normalizePattern } from '@/lib/blocklist';
   import {
-    hasBlockedDomain,
+    hasBlockedPattern,
     keyFromPassword,
     loadBlocklist,
     syncUnmaskedDomains,
+    setEntryEnabled,
   } from '@/lib/blocklist-session';
   import { maskDomain } from '@/lib/masking';
   import { syncBlockerSafe } from '@/lib/messages';
@@ -116,9 +117,9 @@
       addError = 'Unlock with your password above to edit the blocklist.';
       return;
     }
-    const domain = normalizeDomain(newDomain);
+    const domain = normalizePattern(newDomain);
     if (!domain) {
-      addError = 'Enter a domain (e.g. facebook.com).';
+      addError = 'Enter a domain or path (e.g. youtube.com/shorts/*).';
       return;
     }
     try {
@@ -126,7 +127,7 @@
       if (newMasked && !key) return;
 
       const stored = await loadBlocklist();
-      if (await hasBlockedDomain(stored, domain, key)) {
+      if (await hasBlockedPattern(stored, domain, key)) {
         addError = `${domain} is already on the list.`;
         return;
       }
@@ -138,7 +139,7 @@
         domainStored = await maskDomain(domain, key);
       }
 
-      const next = [...cloneBlocklist(entries), { id, domain: domainStored, masked: wasMasked }];
+      const next = [...cloneBlocklist(entries), { id, domain: domainStored, masked: wasMasked, enabled: true }];
       const synced = await persist(next);
       newDomain = '';
       newMasked = false;
@@ -172,6 +173,24 @@
       addError = 'Failed to update blocklist. Try again.';
     }
   }
+
+  async function toggleEnabled(id: string, enabled: boolean) {
+    addError = '';
+    addNotice = '';
+    if (locked) {
+      addError = 'Unlock with your password above to edit the blocklist.';
+      return;
+    }
+    try {
+      const next = await setEntryEnabled(id, enabled);
+      entries = next;
+      if (cryptoKey) await refreshRevealed(cryptoKey);
+      await syncBlockerSafe();
+    } catch (err) {
+      console.error('toggle blocklist entry failed:', err);
+      addError = 'Failed to update blocklist. Try again.';
+    }
+  }
 </script>
 
 <section class="card">
@@ -190,17 +209,27 @@
   {:else}
     <div class="site-list">
       {#each entries as e (e.id)}
-        <div class="list-row">
+        <div class="list-row" class:row-disabled={e.enabled === false}>
           <div class="list-row-left">
             {#if e.masked}
               <span class="lock-icon" aria-hidden="true">&#x1F512;</span>
             {:else}
-              <span class="status-dot"></span>
+              <span class="status-dot" class:dot-off={e.enabled === false}></span>
             {/if}
             <span class="domain">{display(e)}</span>
             {#if e.masked}<span class="tag">Masked</span>{/if}
+            {#if e.enabled === false}<span class="tag">Paused</span>{/if}
           </div>
-          <button
+          <div class="row-actions">
+            <label class="toggle-inline" title="Blocking enabled">
+              <input
+                type="checkbox"
+                checked={e.enabled !== false}
+                disabled={locked || (e.masked && !cryptoKey)}
+                onchange={(ev) => toggleEnabled(e.id, (ev.currentTarget as HTMLInputElement).checked)}
+              />
+            </label>
+            <button
             type="button"
             class="btn-icon"
             onclick={() => remove(e.id)}
@@ -209,6 +238,7 @@
           >
             &#x2715;
           </button>
+          </div>
         </div>
       {/each}
     </div>
@@ -217,7 +247,7 @@
   <div class="add-form">
     <div class="field">
       <label class="field-label" for="new-domain">Add site</label>
-      <input id="new-domain" class="input" bind:value={newDomain} placeholder="youtube.com" disabled={locked} />
+      <input id="new-domain" class="input" bind:value={newDomain} placeholder="youtube.com or youtube.com/shorts/*" disabled={locked} />
     </div>
 
     <label class="check-row">
@@ -286,5 +316,23 @@
   .hint-inline {
     margin: 0;
     font-size: 12px;
+  }
+
+  .row-disabled .domain {
+    opacity: 0.55;
+  }
+
+  .dot-off {
+    background: var(--text-subtle);
+  }
+
+  .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .toggle-inline input {
+    accent-color: var(--primary);
   }
 </style>
