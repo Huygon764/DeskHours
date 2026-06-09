@@ -1,53 +1,39 @@
 <script lang="ts">
   import { pomodoroItem, scheduleItem } from '@/lib/storage';
-  import { isPaused, remainingMs, withDurations } from '@/lib/pomodoro';
+  import { isPaused, remainingMs } from '@/lib/pomodoro';
   import { isBlockingActive } from '@/lib/schedule';
-  import { pausePomodoro, resumePomodoro } from '@/lib/pomodoro-controller';
-  import { BG_MESSAGE, sendBg } from '@/lib/messages';
   import type { PomodoroState } from '@/lib/types';
   import CurrentPage from './CurrentPage.svelte';
+  import FocusPanel from './FocusPanel.svelte';
 
-  let state = $state<PomodoroState | null>(null);
+  type PopupTab = 'block' | 'focus';
+
+  let activeTab = $state<PopupTab>('block');
+  let pomodoroState = $state<PomodoroState | null>(null);
   let now = $state(Date.now());
   let blockingNow = $state(false);
 
   $effect(() => {
-    const unwatch = pomodoroItem.watch((v) => (state = v));
-    void pomodoroItem.getValue().then((v) => (state = v));
+    const unwatchPomodoro = pomodoroItem.watch((v) => (pomodoroState = v));
+    void pomodoroItem.getValue().then((v) => (pomodoroState = v));
     void scheduleItem.getValue().then((s) => (blockingNow = isBlockingActive(s, Date.now())));
     const id = setInterval(() => (now = Date.now()), 1000);
     return () => {
-      unwatch();
+      unwatchPomodoro();
       clearInterval(id);
     };
   });
 
-  const remaining = $derived(state ? remainingMs(state, now) : 0);
-  const mmss = $derived.by(() => {
-    const total = Math.ceil(remaining / 1000);
+  const timerRunning = $derived(pomodoroState != null && pomodoroState.phase !== 'idle');
+  const timerLabel = $derived.by(() => {
+    if (!pomodoroState || pomodoroState.phase === 'idle') return '';
+    const total = Math.ceil(remainingMs(pomodoroState, now) / 1000);
     const m = String(Math.floor(total / 60)).padStart(2, '0');
     const s = String(total % 60).padStart(2, '0');
-    return `${m}:${s}`;
+    const phase = pomodoroState.phase === 'work' ? 'Work' : 'Rest';
+    const suffix = isPaused(pomodoroState) ? ' (paused)' : '';
+    return `${phase} ${m}:${s}${suffix}`;
   });
-
-  const idle = $derived(state?.phase === 'idle');
-  const running = $derived(state != null && state.phase !== 'idle');
-  const paused = $derived(state != null && isPaused(state));
-
-  async function setDurations(workMinutes: number, restMinutes: number) {
-    const current = await pomodoroItem.getValue();
-    if (current.phase !== 'idle') return;
-    await pomodoroItem.setValue(withDurations(current, workMinutes, restMinutes));
-  }
-
-  async function bump(field: 'workMinutes' | 'restMinutes', delta: number) {
-    if (!state || !idle) return;
-    const next = state[field] + delta;
-    await setDurations(
-      field === 'workMinutes' ? next : state.workMinutes,
-      field === 'restMinutes' ? next : state.restMinutes,
-    );
-  }
 
   function openOptions() {
     browser.runtime.openOptionsPage();
@@ -67,77 +53,43 @@
     {/if}
   </header>
 
+  <nav class="popup-tabs" aria-label="Popup sections">
+    <button
+      type="button"
+      class="tab"
+      class:active={activeTab === 'block'}
+      onclick={() => (activeTab = 'block')}
+    >
+      Block
+    </button>
+    <button
+      type="button"
+      class="tab"
+      class:active={activeTab === 'focus'}
+      onclick={() => (activeTab = 'focus')}
+    >
+      Focus
+      {#if timerRunning}<span class="tab-live" aria-hidden="true"></span>{/if}
+    </button>
+  </nav>
+
   <div class="popup-body">
-    <CurrentPage {blockingNow} />
-
-    {#if !state}
-      <p class="msg-muted loading">Loading…</p>
-    {:else if idle}
-      <div class="timer-section">
-        <div class="text-timer idle-preview">{String(state.workMinutes).padStart(2, '0')}:00</div>
-        <button class="btn btn-primary btn-block" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_START })}>
-          Start focus
-        </button>
-      </div>
-
-      <div class="duration-grid">
-        <div class="duration-col">
-          <span class="text-label">Work</span>
-          <div class="stepper">
-            <button class="stepper-btn" onclick={() => bump('workMinutes', -1)} disabled={!idle} aria-label="Decrease work">−</button>
-            <span class="stepper-value">{state.workMinutes}</span>
-            <button class="stepper-btn" onclick={() => bump('workMinutes', 1)} disabled={!idle} aria-label="Increase work">+</button>
-          </div>
-        </div>
-        <div class="duration-col">
-          <span class="text-label">Rest</span>
-          <div class="stepper">
-            <button class="stepper-btn" onclick={() => bump('restMinutes', -1)} disabled={!idle} aria-label="Decrease rest">−</button>
-            <span class="stepper-value">{state.restMinutes}</span>
-            <button class="stepper-btn" onclick={() => bump('restMinutes', 1)} disabled={!idle} aria-label="Increase rest">+</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="presets">
-        <button class="btn btn-outline btn-sm preset" onclick={() => setDurations(1, 1)} disabled={!idle}>Test: 1m / 1m</button>
-        <button class="btn btn-outline btn-sm preset" onclick={() => setDurations(25, 5)} disabled={!idle}>Reset: 25m / 5m</button>
-      </div>
-    {:else if running}
-      <div class="timer-section">
-        <p class="phase-label">
-          {#if paused}Paused — {state.phase === 'work' ? 'Work' : 'Rest'}{:else}{state.phase === 'work' ? 'Work' : 'Rest'}{/if}
-        </p>
-        <div class="text-timer" class:timer-paused={paused}>{mmss}</div>
-      </div>
+    {#if activeTab === 'block'}
+      <CurrentPage {blockingNow} />
+    {:else}
+      <FocusPanel />
     {/if}
   </div>
 
-  {#if running && state}
-    <div class="running-bar">
-      <div class="running-meta">
-        <span class="text-label">
-          {#if paused}Paused{:else}{state.phase === 'work' ? 'Work session' : 'Rest break'}{/if}
-        </span>
-        <span class="text-timer-sm">{mmss}</span>
-      </div>
-      {#if paused}
-        <button class="btn btn-primary btn-block" onclick={() => void resumePomodoro()}>
-          Resume
-        </button>
-      {:else}
-        <button class="btn btn-outline btn-block" onclick={() => void pausePomodoro()}>
-          Pause
-        </button>
-      {/if}
-      <button class="btn btn-danger-outline btn-block end-btn" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_STOP })}>
-        End session
-      </button>
+  {#if timerRunning && activeTab === 'block'}
+    <div class="timer-hint">
+      <span class="text-label">{timerLabel}</span>
+      <button type="button" class="link-btn" onclick={() => (activeTab = 'focus')}>Open Focus →</button>
     </div>
   {/if}
 
   <footer class="popup-footer">
-    <button class="link-btn" onclick={openOptions}>Open settings →</button>
+    <button type="button" class="link-btn" onclick={openOptions}>Open settings →</button>
   </footer>
 </div>
 
@@ -176,77 +128,55 @@
     color: var(--text-strong);
   }
 
+  .popup-tabs {
+    display: flex;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border-variant);
+  }
+
+  .popup-tabs .tab {
+    flex: 1;
+    text-align: center;
+    position: relative;
+  }
+
+  .tab-live {
+    position: absolute;
+    top: 10px;
+    right: calc(50% - 28px);
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--amber);
+  }
+
   .popup-body {
     padding: 20px;
   }
 
-  .timer-section {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .idle-preview {
-    margin-bottom: 16px;
-  }
-
-  .phase-label {
-    margin: 0 0 8px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-  }
-
-  .duration-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .duration-col {
+  .timer-hint {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .presets {
-    display: flex;
-    gap: 8px;
-  }
-
-  .preset {
-    flex: 1;
-  }
-
-  .running-bar {
-    padding: 16px 20px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 20px;
     background: var(--surface-low);
     border-top: 1px solid var(--border-variant);
   }
 
-  .running-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-
-  .timer-paused {
-    opacity: 0.55;
-  }
-
-  .running-bar .btn-block + .btn-block {
-    margin-top: 8px;
-  }
-
-  .end-btn {
-    margin-top: 8px;
+  .timer-hint .link-btn {
+    flex-shrink: 0;
+    font-size: 12px;
   }
 
   .popup-footer {
     padding: 12px 20px 16px;
     text-align: center;
+    border-top: 1px solid var(--border-variant);
+  }
+
+  .timer-hint + .popup-footer {
+    border-top: none;
+    padding-top: 8px;
   }
 </style>
