@@ -59,7 +59,6 @@
     void refreshRevealed(key);
   });
 
-  /** Update UI labels for masked entries; never clear session unmasked list when locked. */
   async function refreshRevealed(key: CryptoKey | null) {
     if (!key) {
       revealed = {};
@@ -82,7 +81,7 @@
 
   function display(e: BlockEntry): string {
     if (!e.masked) return e.domain;
-    return revealed[e.id] ?? '•••• (locked)';
+    return revealed[e.id] ?? '••••••••••••';
   }
 
   async function resolveKey(): Promise<CryptoKey | null> {
@@ -175,52 +174,117 @@
   }
 </script>
 
-<section>
-  <h2>Blocked sites</h2>
+<section class="card">
+  <h2 class="text-headline-md section-title">Blocked sites</h2>
+
   {#if locked}
-    <p class="hint">Blocklist is locked while a schedule window is active. Enter your password above to add or remove sites.</p>
+    <p class="hint-banner">Blocklist is locked while a schedule window is active. Enter your password above to add or remove sites.</p>
   {/if}
+
   {#if loading}
-    <p class="muted">Loading blocklist…</p>
+    <p class="msg-muted">Loading blocklist…</p>
   {:else if loadError}
-    <p class="error">{loadError}</p>
+    <p class="msg-error">{loadError}</p>
   {:else if entries.length === 0}
-    <p class="empty">No sites blocked yet.</p>
+    <p class="empty-state">No sites blocked yet.</p>
   {:else}
-    <ul>
+    <div class="site-list">
       {#each entries as e (e.id)}
-        <li>
-          {display(e)} {#if e.masked}<em>(masked)</em>{/if}
-          <button onclick={() => remove(e.id)} disabled={locked || (e.masked && !cryptoKey)}>Remove</button>
-        </li>
+        <div class="list-row">
+          <div class="list-row-left">
+            {#if e.masked}
+              <span class="lock-icon" aria-hidden="true">&#x1F512;</span>
+            {:else}
+              <span class="status-dot"></span>
+            {/if}
+            <span class="domain">{display(e)}</span>
+            {#if e.masked}<span class="tag">Masked</span>{/if}
+          </div>
+          <button
+            type="button"
+            class="btn-icon"
+            onclick={() => remove(e.id)}
+            disabled={locked || (e.masked && !cryptoKey)}
+            aria-label="Remove {display(e)}"
+          >
+            &#x2715;
+          </button>
+        </div>
       {/each}
-    </ul>
+    </div>
   {/if}
-  <input bind:value={newDomain} placeholder="youtube.com" disabled={locked} />
-  <label><input type="checkbox" bind:checked={newMasked} disabled={locked} /> Masked (hidden name)</label>
-  {#if newMasked && !cryptoKey}
-    <label class="mask-pw">Password to enable masking + blocking
-      <input type="password" bind:value={maskPassword} disabled={locked} />
+
+  <div class="add-form">
+    <div class="field">
+      <label class="field-label" for="new-domain">Add site</label>
+      <input id="new-domain" class="input" bind:value={newDomain} placeholder="youtube.com" disabled={locked} />
+    </div>
+
+    <label class="check-row">
+      <input type="checkbox" bind:checked={newMasked} disabled={locked} />
+      Hide site name (masked)
     </label>
-    <p class="hint-inline">Masked sites need your password once so the extension can block them without showing the name.</p>
-  {/if}
-  <button onclick={add} disabled={locked}>
-    {locked ? 'Add (unlock required)' : 'Add'}
-  </button>
-  {#if addError}<p class="error">{addError}</p>{/if}
-  {#if addNotice}<p class="notice">{addNotice}</p>{/if}
+
+    {#if newMasked && !cryptoKey}
+      <div class="field">
+        <label class="field-label" for="mask-pw">Password to enable masking + blocking</label>
+        <input id="mask-pw" class="input" type="password" bind:value={maskPassword} disabled={locked} />
+      </div>
+      <p class="text-body-muted hint-inline">Masked sites need your password once per browser session.</p>
+    {/if}
+
+    <button type="button" class="btn btn-primary" onclick={add} disabled={locked}>
+      {locked ? 'Add (unlock required)' : 'Add site'}
+    </button>
+  </div>
+
+  {#if addError}<p class="msg-error">{addError}</p>{/if}
+  {#if addNotice}<p class="msg-success">{addNotice}</p>{/if}
 </section>
 
 <style>
-  ul { list-style: none; padding: 0; }
-  li { margin: 0.5rem 0; }
-  input[type='text'] { padding: 0.4rem; margin-right: 0.5rem; }
-  .mask-pw { display: block; margin: 0.5rem 0; }
-  .mask-pw input { display: block; margin-top: 0.25rem; padding: 0.4rem; width: 100%; max-width: 20rem; box-sizing: border-box; }
-  .error { color: #c0392b; margin-top: 0.5rem; }
-  .notice { color: #1e7e34; margin-top: 0.5rem; }
-  .muted { color: #666; font-style: italic; }
-  .hint { color: #856404; background: #fff3cd; padding: 0.5rem 0.75rem; border-radius: 4px; }
-  .hint-inline { color: #666; font-size: 0.85rem; margin: 0.25rem 0 0.5rem; }
-  .empty { color: #666; font-style: italic; }
+  .section-title {
+    margin: 0 0 20px;
+  }
+
+  .hint-banner {
+    margin: 0 0 16px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    font-size: 14px;
+  }
+
+  .site-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .domain {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lock-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .hint-inline {
+    margin: 0;
+    font-size: 12px;
+  }
 </style>

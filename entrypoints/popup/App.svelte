@@ -29,6 +29,7 @@
   });
 
   const idle = $derived(state?.phase === 'idle');
+  const running = $derived(state != null && state.phase !== 'idle');
 
   async function setDurations(workMinutes: number, restMinutes: number) {
     const current = await pomodoroItem.getValue();
@@ -50,55 +51,172 @@
   }
 </script>
 
-<main>
-  <p>Blocking: <strong>{blockingNow ? 'ON (scheduled)' : 'off'}</strong></p>
-
-  <section>
-    <h2>Pomodoro</h2>
-    {#if state && state.phase !== 'idle'}
-      <p class="phase">{state.phase === 'work' ? 'Work' : 'Rest'}</p>
-      <p class="time">{mmss}</p>
-      <button onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_STOP })}>Stop</button>
+<div class="popup">
+  <header class="popup-header">
+    <div class="brand">
+      <span class="shield" aria-hidden="true">&#x1F6E1;</span>
+      <span class="brand-name">Site Blocker</span>
+    </div>
+    {#if blockingNow}
+      <span class="badge badge-on">Blocking on</span>
     {:else}
-      <button onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_START })}>Start</button>
+      <span class="badge badge-off">Blocking off</span>
     {/if}
+  </header>
 
-    {#if state}
-      <div class="durations" class:disabled={!idle}>
-        <p class="label">{idle ? 'Durations (min)' : 'Stop timer to edit'}</p>
-        <div class="row">
-          <span>Work</span>
-          <button onclick={() => bump('workMinutes', -1)} disabled={!idle}>−</button>
-          <span class="value">{state.workMinutes}</span>
-          <button onclick={() => bump('workMinutes', 1)} disabled={!idle}>+</button>
+  <div class="popup-body">
+    {#if !state}
+      <p class="msg-muted loading">Loading…</p>
+    {:else if idle}
+      <div class="timer-section">
+        <div class="text-timer idle-preview">{String(state.workMinutes).padStart(2, '0')}:00</div>
+        <button class="btn btn-primary btn-block" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_START })}>
+          Start focus
+        </button>
+      </div>
+
+      <div class="duration-grid">
+        <div class="duration-col">
+          <span class="text-label">Work</span>
+          <div class="stepper">
+            <button class="stepper-btn" onclick={() => bump('workMinutes', -1)} disabled={!idle} aria-label="Decrease work">−</button>
+            <span class="stepper-value">{state.workMinutes}</span>
+            <button class="stepper-btn" onclick={() => bump('workMinutes', 1)} disabled={!idle} aria-label="Increase work">+</button>
+          </div>
         </div>
-        <div class="row">
-          <span>Rest</span>
-          <button onclick={() => bump('restMinutes', -1)} disabled={!idle}>−</button>
-          <span class="value">{state.restMinutes}</span>
-          <button onclick={() => bump('restMinutes', 1)} disabled={!idle}>+</button>
+        <div class="duration-col">
+          <span class="text-label">Rest</span>
+          <div class="stepper">
+            <button class="stepper-btn" onclick={() => bump('restMinutes', -1)} disabled={!idle} aria-label="Decrease rest">−</button>
+            <span class="stepper-value">{state.restMinutes}</span>
+            <button class="stepper-btn" onclick={() => bump('restMinutes', 1)} disabled={!idle} aria-label="Increase rest">+</button>
+          </div>
         </div>
-        <button class="preset" onclick={() => setDurations(1, 1)} disabled={!idle}>Test: 1m / 1m</button>
-        <button class="preset" onclick={() => setDurations(25, 5)} disabled={!idle}>Reset: 25m / 5m</button>
+      </div>
+
+      <div class="presets">
+        <button class="btn btn-outline btn-sm preset" onclick={() => setDurations(1, 1)} disabled={!idle}>Test: 1m / 1m</button>
+        <button class="btn btn-outline btn-sm preset" onclick={() => setDurations(25, 5)} disabled={!idle}>Reset: 25m / 5m</button>
+      </div>
+    {:else if running}
+      <div class="timer-section">
+        <p class="phase-label">{state.phase === 'work' ? 'Work' : 'Rest'}</p>
+        <div class="text-timer">{mmss}</div>
       </div>
     {/if}
-  </section>
+  </div>
 
-  <button onclick={openOptions}>Settings</button>
-</main>
+  {#if running && state}
+    <div class="running-bar">
+      <div class="running-meta">
+        <span class="text-label">{state.phase === 'work' ? 'Work session' : 'Rest break'}</span>
+        <span class="text-timer-sm">{mmss}</span>
+      </div>
+      <button class="btn btn-danger-outline btn-block" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_STOP })}>
+        Stop focus
+      </button>
+    </div>
+  {/if}
+
+  <footer class="popup-footer">
+    <button class="link-btn" onclick={openOptions}>Open settings →</button>
+  </footer>
+</div>
 
 <style>
-  main { width: 16rem; padding: 1rem; font-family: system-ui; }
-  .phase { text-transform: uppercase; letter-spacing: 0.1em; color: #555; }
-  .time { font-size: 2.5rem; font-variant-numeric: tabular-nums; margin: 0.25rem 0; }
-  h2 { font-size: 1rem; margin: 0.5rem 0; }
-  button { margin-top: 0.25rem; padding: 0.4rem 0.8rem; }
-  .durations { margin-top: 0.75rem; font-size: 0.875rem; }
-  .durations.disabled { opacity: 0.6; }
-  .label { margin: 0 0 0.35rem; color: #555; }
-  .row { display: flex; align-items: center; gap: 0.35rem; margin: 0.25rem 0; }
-  .row span:first-child { width: 2.5rem; }
-  .value { min-width: 1.5rem; text-align: center; font-variant-numeric: tabular-nums; }
-  .row button { margin: 0; padding: 0.15rem 0.5rem; min-width: 1.75rem; }
-  .preset { display: block; width: 100%; margin-top: 0.35rem; font-size: 0.8rem; }
+  .popup {
+    width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border-variant);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-variant);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .shield {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .popup-body {
+    padding: 20px;
+  }
+
+  .timer-section {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .idle-preview {
+    margin-bottom: 16px;
+  }
+
+  .phase-label {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+
+  .duration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .duration-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .presets {
+    display: flex;
+    gap: 8px;
+  }
+
+  .preset {
+    flex: 1;
+  }
+
+  .running-bar {
+    padding: 16px 20px;
+    background: var(--surface-low);
+    border-top: 1px solid var(--border-variant);
+  }
+
+  .running-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .popup-footer {
+    padding: 12px 20px 16px;
+    text-align: center;
+  }
 </style>

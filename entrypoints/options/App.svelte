@@ -7,6 +7,8 @@
   import { isBlockingActive } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
 
+  type Tab = 'schedule' | 'sites' | 'security';
+
   let hasPassword = $state(false);
   let blockingNow = $state(false);
   let unlocked = $state(false);
@@ -14,6 +16,7 @@
   let pw = $state('');
   let unlockError = $state('');
   let unlocking = $state(false);
+  let activeTab = $state<Tab>('schedule');
 
   $effect(() => {
     void init();
@@ -31,6 +34,7 @@
   }
 
   const locked = $derived(blockingNow && !unlocked);
+  const showUnlockBanner = $derived(hasPassword && (locked || !unlocked));
 
   async function unlock() {
     unlockError = '';
@@ -52,35 +56,77 @@
   }
 </script>
 
-<main>
-  <h1>Site Blocker</h1>
+<div class="page">
+  <div class="page-inner">
+    {#if !hasPassword}
+      <header class="page-header">
+        <h1 class="text-headline-lg">Site Blocker</h1>
+        <p class="text-body-muted">Set up your master password to get started.</p>
+      </header>
+      <PasswordSetup onset={init} />
+    {:else}
+      <header class="page-header">
+        <h1 class="text-headline-lg">Site Blocker settings</h1>
+        <p class="text-body-muted">Manage your focus schedule and blocked sites.</p>
+      </header>
 
-  {#if !hasPassword}
-    <PasswordSetup onset={init} />
-  {:else}
-    {#if locked}
-      <section class="lock">
-        <p>Blocking is active. Enter your password to edit settings or reveal masked sites.</p>
-        <input type="password" bind:value={pw} />
-        <button onclick={unlock} disabled={unlocking}>{unlocking ? 'Unlocking…' : 'Unlock'}</button>
-        {#if unlockError}<p class="error">{unlockError}</p>{/if}
-      </section>
-    {:else if !unlocked}
-      <section class="lock">
-        <p>Enter your password to reveal masked sites (optional).</p>
-        <input type="password" bind:value={pw} />
-        <button onclick={unlock} disabled={unlocking}>{unlocking ? 'Unlocking…' : 'Unlock masked'}</button>
-        {#if unlockError}<p class="error">{unlockError}</p>{/if}
-      </section>
+      {#if showUnlockBanner}
+        <div class="banner-lock">
+          <p>
+            {#if locked}
+              Blocking is active. Enter your password to edit.
+            {:else}
+              Enter your password to reveal masked sites.
+            {/if}
+          </p>
+          <div class="banner-lock-actions">
+            <input class="input" type="password" bind:value={pw} placeholder="Password" />
+            <button class="btn btn-primary btn-sm" onclick={unlock} disabled={unlocking}>
+              {unlocking ? 'Unlocking…' : 'Unlock'}
+            </button>
+          </div>
+          {#if unlockError}<p class="msg-error banner-error">{unlockError}</p>{/if}
+        </div>
+      {/if}
+
+      <nav class="tabs" aria-label="Settings sections">
+        <button class="tab" class:active={activeTab === 'schedule'} onclick={() => (activeTab = 'schedule')}>
+          Schedule
+        </button>
+        <button class="tab" class:active={activeTab === 'sites'} onclick={() => (activeTab = 'sites')}>
+          Blocked sites
+        </button>
+        <button class="tab" class:active={activeTab === 'security'} onclick={() => (activeTab = 'security')}>
+          Security
+        </button>
+      </nav>
+
+      {#if activeTab === 'schedule'}
+        <ScheduleEditor {locked} onsaved={refreshBlocking} />
+      {:else if activeTab === 'sites'}
+        <BlocklistEditor {locked} bind:cryptoKey onUnlocked={() => (unlocked = true)} />
+      {:else}
+        <PasswordSetup readonly={locked} />
+      {/if}
     {/if}
-
-    <ScheduleEditor {locked} onsaved={refreshBlocking} />
-    <BlocklistEditor {locked} bind:cryptoKey onUnlocked={() => (unlocked = true)} />
-  {/if}
-</main>
+  </div>
+</div>
 
 <style>
-  main { max-width: 40rem; margin: 2rem auto; font-family: system-ui; padding: 0 1rem; }
-  .lock { background: #fff3cd; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
-  .error { color: #c0392b; }
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-header h1 {
+    margin: 0 0 4px;
+  }
+
+  .page-header p {
+    margin: 0;
+  }
+
+  .banner-error {
+    width: 100%;
+    margin-top: 4px;
+  }
 </style>
