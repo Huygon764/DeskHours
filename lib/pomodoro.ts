@@ -8,6 +8,22 @@ export const DEFAULT_POMODORO: PomodoroState = {
   pausedRemainingMs: null,
 };
 
+export interface PomodoroPreset {
+  id: 'classic' | 'deep';
+  label: string;
+  workMinutes: number;
+  restMinutes: number;
+}
+
+export const POMODORO_PRESETS: PomodoroPreset[] = [
+  { id: 'classic', label: 'Classic', workMinutes: 25, restMinutes: 5 },
+  { id: 'deep', label: 'Deep', workMinutes: 50, restMinutes: 10 },
+];
+
+export function matchesPreset(state: PomodoroState, preset: PomodoroPreset): boolean {
+  return state.workMinutes === preset.workMinutes && state.restMinutes === preset.restMinutes;
+}
+
 /** Advance to the next phase. idle->work, work->rest, rest->work.
  *  Sets phaseEndsAt = now + duration of the new phase. */
 export function nextPhase(state: PomodoroState, now: number): PomodoroState {
@@ -58,6 +74,14 @@ const MAX_MINUTES = 120;
 
 export function clampMinutes(minutes: number): number {
   return Math.min(MAX_MINUTES, Math.max(MIN_MINUTES, Math.round(minutes)));
+}
+
+export function parseMinutesInput(raw: string, fallback: number): number {
+  const digits = raw.replace(/\D/g, '');
+  if (digits === '') return fallback;
+  const parsed = Number.parseInt(digits, 10);
+  if (Number.isNaN(parsed)) return fallback;
+  return clampMinutes(parsed);
 }
 
 /** Update durations; only allowed while idle (resets phase). */

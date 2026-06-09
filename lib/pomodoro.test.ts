@@ -6,6 +6,9 @@ import {
   resumeState,
   isPaused,
   DEFAULT_POMODORO,
+  POMODORO_PRESETS,
+  matchesPreset,
+  parseMinutesInput,
   withDurations,
 } from './pomodoro';
 import type { PomodoroState } from './types';
@@ -94,6 +97,34 @@ describe('DEFAULT_POMODORO', () => {
       phaseEndsAt: null,
       pausedRemainingMs: null,
     });
+  });
+});
+
+describe('POMODORO_PRESETS', () => {
+  it('includes classic 25/5 and deep 50/10', () => {
+    expect(POMODORO_PRESETS).toEqual([
+      { id: 'classic', label: 'Classic', workMinutes: 25, restMinutes: 5 },
+      { id: 'deep', label: 'Deep', workMinutes: 50, restMinutes: 10 },
+    ]);
+  });
+
+  it('matchesPreset compares work and rest minutes', () => {
+    const deep = POMODORO_PRESETS[1];
+    expect(matchesPreset({ ...base, workMinutes: 50, restMinutes: 10 }, deep)).toBe(true);
+    expect(matchesPreset(base, deep)).toBe(false);
+  });
+});
+
+describe('parseMinutesInput', () => {
+  it('parses digits and clamps to 1..120', () => {
+    expect(parseMinutesInput('50', 25)).toBe(50);
+    expect(parseMinutesInput('999', 25)).toBe(120);
+    expect(parseMinutesInput('0', 25)).toBe(1);
+  });
+
+  it('returns fallback for empty or invalid input', () => {
+    expect(parseMinutesInput('', 25)).toBe(25);
+    expect(parseMinutesInput('abc', 5)).toBe(5);
   });
 });
 

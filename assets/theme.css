@@ -407,11 +407,30 @@ textarea {
   background: var(--surface-muted);
 }
 
-.stepper-value {
+.stepper-value,
+.stepper-input {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   min-width: 24px;
   text-align: center;
+}
+
+.stepper-input {
+  width: 3ch;
+  border: none;
+  background: transparent;
+  color: var(--text-strong);
+  padding: 0;
+  outline: none;
+}
+
+.stepper-input:focus {
+  color: var(--primary);
+}
+
+.stepper-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* List rows */

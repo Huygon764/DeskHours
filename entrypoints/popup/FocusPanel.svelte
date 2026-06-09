@@ -1,12 +1,14 @@
 <script lang="ts">
   import { pomodoroItem } from '@/lib/storage';
-  import { isPaused, remainingMs, withDurations } from '@/lib/pomodoro';
+  import { isPaused, remainingMs, matchesPreset, parseMinutesInput, POMODORO_PRESETS, withDurations } from '@/lib/pomodoro';
   import { pausePomodoro, resumePomodoro } from '@/lib/pomodoro-controller';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
   import type { PomodoroState } from '@/lib/types';
 
   let state = $state<PomodoroState | null>(null);
   let now = $state(Date.now());
+  let editingField = $state<'workMinutes' | 'restMinutes' | null>(null);
+  let fieldDraft = $state('');
 
   $effect(() => {
     const unwatch = pomodoroItem.watch((v) => (state = v));
@@ -44,6 +46,47 @@
       field === 'restMinutes' ? next : state.restMinutes,
     );
   }
+
+  async function commitField(field: 'workMinutes' | 'restMinutes', raw: string) {
+    if (!state || !idle) return;
+    const value = parseMinutesInput(raw, state[field]);
+    await setDurations(
+      field === 'workMinutes' ? value : state.workMinutes,
+      field === 'restMinutes' ? value : state.restMinutes,
+    );
+  }
+
+  function fieldValue(field: 'workMinutes' | 'restMinutes'): string {
+    if (editingField === field) return fieldDraft;
+    return String(state?.[field] ?? '');
+  }
+
+  function startFieldEdit(field: 'workMinutes' | 'restMinutes', event: FocusEvent) {
+    if (!state || !idle) return;
+    editingField = field;
+    fieldDraft = String(state[field]);
+    (event.currentTarget as HTMLInputElement).select();
+  }
+
+  function onFieldInput(event: Event) {
+    const el = event.currentTarget as HTMLInputElement;
+    fieldDraft = el.value.replace(/\D/g, '').slice(0, 3);
+    el.value = fieldDraft;
+  }
+
+  async function finishFieldEdit(field: 'workMinutes' | 'restMinutes') {
+    if (editingField !== field) return;
+    editingField = null;
+    await commitField(field, fieldDraft);
+  }
+
+  function onFieldKeydown(field: 'workMinutes' | 'restMinutes', event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      void finishFieldEdit(field);
+      (event.currentTarget as HTMLInputElement).blur();
+    }
+  }
 </script>
 
 {#if !state}
@@ -56,12 +99,40 @@
     </button>
   </div>
 
+  <div class="preset-section">
+    <span class="text-label">Preset</span>
+    <div class="presets">
+      {#each POMODORO_PRESETS as preset (preset.id)}
+        <button
+          type="button"
+          class="btn btn-outline btn-sm preset"
+          class:preset-active={matchesPreset(state, preset)}
+          disabled={!idle}
+          onclick={() => setDurations(preset.workMinutes, preset.restMinutes)}
+        >
+          {preset.label} {preset.workMinutes}/{preset.restMinutes}
+        </button>
+      {/each}
+    </div>
+  </div>
+
   <div class="duration-grid">
     <div class="duration-col">
       <span class="text-label">Work</span>
       <div class="stepper">
         <button class="stepper-btn" onclick={() => bump('workMinutes', -1)} disabled={!idle} aria-label="Decrease work">−</button>
-        <span class="stepper-value">{state.workMinutes}</span>
+        <input
+          class="stepper-input"
+          type="text"
+          inputmode="numeric"
+          aria-label="Work minutes"
+          value={fieldValue('workMinutes')}
+          disabled={!idle}
+          onfocus={(event) => startFieldEdit('workMinutes', event)}
+          oninput={onFieldInput}
+          onblur={() => void finishFieldEdit('workMinutes')}
+          onkeydown={(event) => onFieldKeydown('workMinutes', event)}
+        />
         <button class="stepper-btn" onclick={() => bump('workMinutes', 1)} disabled={!idle} aria-label="Increase work">+</button>
       </div>
     </div>
@@ -69,15 +140,21 @@
       <span class="text-label">Rest</span>
       <div class="stepper">
         <button class="stepper-btn" onclick={() => bump('restMinutes', -1)} disabled={!idle} aria-label="Decrease rest">−</button>
-        <span class="stepper-value">{state.restMinutes}</span>
+        <input
+          class="stepper-input"
+          type="text"
+          inputmode="numeric"
+          aria-label="Rest minutes"
+          value={fieldValue('restMinutes')}
+          disabled={!idle}
+          onfocus={(event) => startFieldEdit('restMinutes', event)}
+          oninput={onFieldInput}
+          onblur={() => void finishFieldEdit('restMinutes')}
+          onkeydown={(event) => onFieldKeydown('restMinutes', event)}
+        />
         <button class="stepper-btn" onclick={() => bump('restMinutes', 1)} disabled={!idle} aria-label="Increase rest">+</button>
       </div>
     </div>
-  </div>
-
-  <div class="presets">
-    <button class="btn btn-outline btn-sm preset" onclick={() => setDurations(1, 1)} disabled={!idle}>Test: 1m / 1m</button>
-    <button class="btn btn-outline btn-sm preset" onclick={() => setDurations(25, 5)} disabled={!idle}>Reset: 25m / 5m</button>
   </div>
 {:else if running}
   <div class="timer-section">
@@ -134,13 +211,13 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    margin-bottom: 16px;
   }
 
-  .duration-col {
+  .preset-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 16px;
   }
 
   .presets {
@@ -150,6 +227,18 @@
 
   .preset {
     flex: 1;
+  }
+
+  .preset-active {
+    border-color: var(--amber);
+    color: var(--text-strong);
+    background: var(--surface-low);
+  }
+
+  .duration-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .running-bar {

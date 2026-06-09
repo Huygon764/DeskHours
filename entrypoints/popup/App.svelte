@@ -19,9 +19,14 @@
   $effect(() => {
     const unwatchPomodoro = pomodoroItem.watch((v) => (pomodoroState = v));
     const unwatchTimer = timerItem.watch((v) => (countdownState = v));
-    void pomodoroItem.getValue().then((v) => (pomodoroState = v));
-    void timerItem.getValue().then((v) => (countdownState = v));
-    void scheduleItem.getValue().then((s) => (blockingNow = isBlockingActive(s, Date.now())));
+    void Promise.all([pomodoroItem.getValue(), timerItem.getValue(), scheduleItem.getValue()]).then(
+      ([pomo, timer, schedule]) => {
+        pomodoroState = pomo;
+        countdownState = timer;
+        blockingNow = isBlockingActive(schedule, Date.now());
+        if (pomo.phase !== 'idle') activeTab = 'focus';
+      },
+    );
     const id = setInterval(() => (now = Date.now()), 1000);
     return () => {
       unwatchPomodoro();
