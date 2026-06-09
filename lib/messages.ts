@@ -11,6 +11,7 @@ export const BG_MESSAGE = {
 /** Offscreen document message type literals. */
 export const OFFSCREEN_MESSAGE = {
   PLAY_SOUND: 'PLAY_SOUND',
+  STOP_SOUND: 'STOP_SOUND',
 } as const;
 
 /** Messages sent TO the background worker. */
@@ -23,10 +24,14 @@ export type BgMessage =
   | { type: typeof BG_MESSAGE.POMODORO_RESUME };
 
 /** Messages sent TO the offscreen document. */
-export type OffscreenMessage = {
-  type: typeof OFFSCREEN_MESSAGE.PLAY_SOUND;
-  sound: 'work-start' | 'rest-start';
-};
+export type OffscreenMessage =
+  | {
+      type: typeof OFFSCREEN_MESSAGE.PLAY_SOUND;
+      sound: 'work-start' | 'rest-start';
+      /** How many times to play the sound in sequence. Defaults to 1. */
+      repeats?: number;
+    }
+  | { type: typeof OFFSCREEN_MESSAGE.STOP_SOUND };
 
 export async function sendBg(msg: BgMessage): Promise<void> {
   await browser.runtime.sendMessage(msg);

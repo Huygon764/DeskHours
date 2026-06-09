@@ -7,6 +7,12 @@ import {
   stopPomodoro,
   POMODORO_ALARM,
 } from '@/lib/pomodoro-controller';
+import {
+  onTimerAlarm,
+  onTimerNotificationClick,
+  TIMER_ALARM,
+  TIMER_NOTIFICATION_ID,
+} from '@/lib/timer-controller';
 import { unblockMinutesItem } from '@/lib/storage';
 import { BG_MESSAGE, type BgMessage } from '@/lib/messages';
 
@@ -20,6 +26,11 @@ export default defineBackground(() => {
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SCHEDULER_ALARM) void syncBlocker();
     else if (alarm.name === POMODORO_ALARM) void onPhaseAlarm();
+    else if (alarm.name === TIMER_ALARM) void onTimerAlarm();
+  });
+
+  browser.notifications.onClicked.addListener((notificationId) => {
+    if (notificationId === TIMER_NOTIFICATION_ID) void onTimerNotificationClick();
   });
 
   browser.runtime.onMessage.addListener((message: BgMessage) => {

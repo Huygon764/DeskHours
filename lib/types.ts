@@ -53,3 +53,17 @@ export interface PomodoroState {
   /** ms left when paused; null while the countdown is running. */
   pausedRemainingMs: number | null;
 }
+
+export interface CountdownTimerState {
+  /** Preset length in seconds while idle. */
+  durationSeconds: number;
+  /** True while counting down (including when paused). */
+  active: boolean;
+  /** True after the countdown ends until the user resets. */
+  finished: boolean;
+  /** epoch ms when the countdown ends; null when idle or paused. */
+  endsAt: number | null;
+  /** ms left when paused; null while the countdown is running. */
+  pausedRemainingMs: number | null;
+  soundEnabled: boolean;
+}

@@ -1,38 +1,54 @@
 <script lang="ts">
-  import { pomodoroItem, scheduleItem } from '@/lib/storage';
+  import { pomodoroItem, scheduleItem, timerItem } from '@/lib/storage';
   import { isPaused, remainingMs } from '@/lib/pomodoro';
+  import { formatHhMmSs, isTimerFinished, isTimerRunning, timerRemainingMs } from '@/lib/timer';
   import { isBlockingActive } from '@/lib/schedule';
-  import type { PomodoroState } from '@/lib/types';
+  import type { CountdownTimerState, PomodoroState } from '@/lib/types';
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
+  import TimerPanel from './TimerPanel.svelte';
 
-  type PopupTab = 'block' | 'focus';
+  type PopupTab = 'block' | 'focus' | 'timer';
 
   let activeTab = $state<PopupTab>('block');
   let pomodoroState = $state<PomodoroState | null>(null);
+  let countdownState = $state<CountdownTimerState | null>(null);
   let now = $state(Date.now());
   let blockingNow = $state(false);
 
   $effect(() => {
     const unwatchPomodoro = pomodoroItem.watch((v) => (pomodoroState = v));
+    const unwatchTimer = timerItem.watch((v) => (countdownState = v));
     void pomodoroItem.getValue().then((v) => (pomodoroState = v));
+    void timerItem.getValue().then((v) => (countdownState = v));
     void scheduleItem.getValue().then((s) => (blockingNow = isBlockingActive(s, Date.now())));
     const id = setInterval(() => (now = Date.now()), 1000);
     return () => {
       unwatchPomodoro();
+      unwatchTimer();
       clearInterval(id);
     };
   });
 
-  const timerRunning = $derived(pomodoroState != null && pomodoroState.phase !== 'idle');
-  const timerLabel = $derived.by(() => {
+  const focusRunning = $derived(pomodoroState != null && pomodoroState.phase !== 'idle');
+  const countdownRunning = $derived(countdownState != null && isTimerRunning(countdownState));
+  const countdownDone = $derived(countdownState != null && isTimerFinished(countdownState));
+  const countdownLive = $derived(countdownRunning || countdownDone);
+
+  const focusLabel = $derived.by(() => {
     if (!pomodoroState || pomodoroState.phase === 'idle') return '';
     const total = Math.ceil(remainingMs(pomodoroState, now) / 1000);
     const m = String(Math.floor(total / 60)).padStart(2, '0');
     const s = String(total % 60).padStart(2, '0');
-    const phase = pomodoroState.phase === 'work' ? 'Work' : 'Rest';
+    const phase = pomodoroState.phase === 'work' ? 'Focus' : 'Rest';
     const suffix = isPaused(pomodoroState) ? ' (paused)' : '';
     return `${phase} ${m}:${s}${suffix}`;
+  });
+
+  const countdownLabel = $derived.by(() => {
+    if (!countdownState || !isTimerRunning(countdownState)) return '';
+    const suffix = countdownState.pausedRemainingMs != null ? ' (paused)' : '';
+    return `Timer ${formatHhMmSs(Math.ceil(timerRemainingMs(countdownState, now) / 1000))}${suffix}`;
   });
 
   function openOptions() {
@@ -69,22 +85,48 @@
       onclick={() => (activeTab = 'focus')}
     >
       Focus
-      {#if timerRunning}<span class="tab-live" aria-hidden="true"></span>{/if}
+      {#if focusRunning}<span class="tab-live" aria-hidden="true"></span>{/if}
+    </button>
+    <button
+      type="button"
+      class="tab"
+      class:active={activeTab === 'timer'}
+      onclick={() => (activeTab = 'timer')}
+    >
+      Timer
+      {#if countdownLive}<span class="tab-live" aria-hidden="true"></span>{/if}
     </button>
   </nav>
 
   <div class="popup-body">
     {#if activeTab === 'block'}
       <CurrentPage {blockingNow} />
-    {:else}
+    {:else if activeTab === 'focus'}
       <FocusPanel />
+    {:else}
+      <TimerPanel />
     {/if}
   </div>
 
-  {#if timerRunning && activeTab === 'block'}
-    <div class="timer-hint">
-      <span class="text-label">{timerLabel}</span>
-      <button type="button" class="link-btn" onclick={() => (activeTab = 'focus')}>Open Focus →</button>
+  {#if activeTab === 'block' && (focusRunning || countdownLive)}
+    <div class="timer-hints">
+      {#if focusRunning}
+        <div class="timer-hint">
+          <span class="text-label">{focusLabel}</span>
+          <button type="button" class="link-btn" onclick={() => (activeTab = 'focus')}>Open Focus →</button>
+        </div>
+      {/if}
+      {#if countdownDone}
+        <div class="timer-hint">
+          <span class="text-label">Timer — time's up</span>
+          <button type="button" class="link-btn" onclick={() => (activeTab = 'timer')}>Open Timer →</button>
+        </div>
+      {:else if countdownRunning}
+        <div class="timer-hint">
+          <span class="text-label">{countdownLabel}</span>
+          <button type="button" class="link-btn" onclick={() => (activeTab = 'timer')}>Open Timer →</button>
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -130,7 +172,7 @@
 
   .popup-tabs {
     display: flex;
-    padding: 0 20px;
+    padding: 0 12px;
     border-bottom: 1px solid var(--border-variant);
   }
 
@@ -138,12 +180,14 @@
     flex: 1;
     text-align: center;
     position: relative;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
   .tab-live {
     position: absolute;
     top: 10px;
-    right: calc(50% - 28px);
+    right: 8px;
     width: 6px;
     height: 6px;
     border-radius: 999px;
@@ -154,13 +198,20 @@
     padding: 20px;
   }
 
+  .timer-hints {
+    border-top: 1px solid var(--border-variant);
+    background: var(--surface-low);
+  }
+
   .timer-hint {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 10px 20px;
-    background: var(--surface-low);
+  }
+
+  .timer-hint + .timer-hint {
     border-top: 1px solid var(--border-variant);
   }
 
@@ -175,7 +226,7 @@
     border-top: 1px solid var(--border-variant);
   }
 
-  .timer-hint + .popup-footer {
+  .timer-hints + .popup-footer {
     border-top: none;
     padding-top: 8px;
   }

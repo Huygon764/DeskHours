@@ -1,9 +1,8 @@
 import { pomodoroItem } from './storage';
 import { isPaused, nextPhase, remainingMs, resumeState } from './pomodoro';
-import { OFFSCREEN_MESSAGE, type OffscreenMessage } from './messages';
+import { playAlertSound } from './alert-sound';
 
 export const POMODORO_ALARM = 'pomodoro-phase-end';
-const OFFSCREEN_URL = 'offscreen.html';
 
 async function scheduleAlarm(at: number): Promise<void> {
   await browser.alarms.create(POMODORO_ALARM, { when: at });
@@ -63,7 +62,7 @@ export async function onPhaseAlarm(): Promise<void> {
 
 async function alert(sound: 'work-start' | 'rest-start'): Promise<void> {
   await showNotification(sound);
-  await playSound(sound);
+  await playAlertSound(sound);
 }
 
 async function showNotification(sound: 'work-start' | 'rest-start'): Promise<void> {
@@ -76,14 +75,3 @@ async function showNotification(sound: 'work-start' | 'rest-start'): Promise<voi
   });
 }
 
-async function playSound(sound: 'work-start' | 'rest-start'): Promise<void> {
-  if (!(await browser.offscreen.hasDocument())) {
-    await browser.offscreen.createDocument({
-      url: OFFSCREEN_URL,
-      reasons: ['AUDIO_PLAYBACK'],
-      justification: 'Play Pomodoro session-change alarm',
-    });
-  }
-  const msg: OffscreenMessage = { type: OFFSCREEN_MESSAGE.PLAY_SOUND, sound };
-  await browser.runtime.sendMessage(msg);
-}

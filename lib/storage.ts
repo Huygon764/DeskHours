@@ -1,7 +1,15 @@
 import { storage } from '#imports';
-import type { AuthRecord, BlockEntry, PomodoroState, ScheduleWindow, TempUnblock } from './types';
+import type {
+  AuthRecord,
+  BlockEntry,
+  CountdownTimerState,
+  PomodoroState,
+  ScheduleWindow,
+  TempUnblock,
+} from './types';
 import { DEFAULT_SCHEDULE } from './schedule';
 import { DEFAULT_POMODORO } from './pomodoro';
+import { DEFAULT_TIMER } from './timer';
 
 export const blocklistItem = storage.defineItem<BlockEntry[]>('local:blocklist', {
   fallback: [],
@@ -13,6 +21,10 @@ export const scheduleItem = storage.defineItem<ScheduleWindow[]>('local:schedule
 
 export const pomodoroItem = storage.defineItem<PomodoroState>('local:pomodoro', {
   fallback: DEFAULT_POMODORO,
+});
+
+export const timerItem = storage.defineItem<CountdownTimerState>('local:countdownTimer', {
+  fallback: DEFAULT_TIMER,
 });
 
 export const tempUnblocksItem = storage.defineItem<TempUnblock[]>('local:tempUnblocks', {
