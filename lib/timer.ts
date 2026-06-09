@@ -1,3 +1,4 @@
+import { endAtFromDuration } from './pomodoro';
 import type { CountdownTimerState } from './types';
 
 export const DEFAULT_TIMER: CountdownTimerState = {
@@ -119,7 +120,7 @@ export function resumeTimerState(state: CountdownTimerState, now: number): Count
   if (!isTimerPaused(state) || state.pausedRemainingMs == null) return state;
   return {
     ...state,
-    endsAt: now + state.pausedRemainingMs,
+    endsAt: endAtFromDuration(now, state.pausedRemainingMs),
     pausedRemainingMs: null,
   };
 }

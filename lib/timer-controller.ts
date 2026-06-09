@@ -1,3 +1,4 @@
+import { endAtFromDuration } from './pomodoro';
 import { timerItem } from './storage';
 import {
   isTimerPaused,
@@ -30,7 +31,8 @@ export async function startTimer(): Promise<void> {
   }
   const durationMs = current.durationSeconds * 1000;
   if (durationMs <= 0) return;
-  const endsAt = Date.now() + durationMs;
+  const now = Date.now();
+  const endsAt = endAtFromDuration(now, durationMs);
   await timerItem.setValue({
     ...current,
     active: true,

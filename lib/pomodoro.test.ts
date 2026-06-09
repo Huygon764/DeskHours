@@ -6,6 +6,8 @@ import {
   resumeState,
   isPaused,
   DEFAULT_POMODORO,
+  displaySecondsFromMs,
+  endAtFromDuration,
   POMODORO_PRESETS,
   matchesPreset,
   parseMinutesInput,
@@ -41,8 +43,35 @@ describe('nextPhase', () => {
     expect(s.phaseEndsAt).toBe(now + 25 * 60_000);
   });
   it('respects custom durations', () => {
-    const s = nextPhase({ ...base, workMinutes: 50, phase: 'idle' }, 0);
+    const s = nextPhase({ ...base, workMinutes: 50, phase: 'idle' }, 50);
     expect(s.phaseEndsAt).toBe(50 * 60_000);
+  });
+
+  it('aligns phaseEndsAt when now is mid-second', () => {
+    const s = nextPhase(base, 1_000_050);
+    expect(s.phaseEndsAt).toBe(2_500_000);
+    expect(displaySecondsFromMs(s.phaseEndsAt - 1_000_050)).toBe(25 * 60);
+  });
+});
+
+describe('endAtFromDuration', () => {
+  it('aligns end time to whole seconds', () => {
+    expect(endAtFromDuration(1_000_050, 25 * 60_000)).toBe(2_500_000);
+    expect(endAtFromDuration(1_000_000, 25 * 60_000)).toBe(2_500_000);
+  });
+});
+
+describe('displaySecondsFromMs', () => {
+  it('shows full duration at start without rounding up', () => {
+    expect(displaySecondsFromMs(25 * 60_000)).toBe(25 * 60);
+    expect(displaySecondsFromMs(25 * 60_000 - 1)).toBe(25 * 60);
+  });
+
+  it('ticks down at second boundaries', () => {
+    expect(displaySecondsFromMs(25 * 60_000 - 1000)).toBe(25 * 60 - 1);
+    expect(displaySecondsFromMs(1000)).toBe(1);
+    expect(displaySecondsFromMs(999)).toBe(1);
+    expect(displaySecondsFromMs(0)).toBe(0);
   });
 });
 

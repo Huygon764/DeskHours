@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { displaySecondsFromMs } from '@/lib/pomodoro';
   import { timerItem } from '@/lib/storage';
   import {
     addDurationSeconds,
@@ -30,11 +31,13 @@
   $effect(() => {
     const unwatch = timerItem.watch((raw) => {
       state = normalizeTimerState(raw);
+      now = Date.now();
     });
     void timerItem.getValue().then((raw) => {
       state = normalizeTimerState(raw);
+      now = Date.now();
     });
-    const id = setInterval(() => (now = Date.now()), 1000);
+    const id = setInterval(() => (now = Date.now()), 250);
     return () => {
       unwatch();
       clearInterval(id);
@@ -50,7 +53,7 @@
     if (!state) return 0;
     if (idle) return state.durationSeconds;
     if (finished) return 0;
-    return Math.ceil(timerRemainingMs(state, now) / 1000);
+    return displaySecondsFromMs(timerRemainingMs(state, now));
   });
 
   const hhmmss = $derived(formatHhMmSs(displaySeconds));

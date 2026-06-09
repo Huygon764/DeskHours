@@ -1,6 +1,6 @@
 <script lang="ts">
   import { pomodoroItem, scheduleItem, timerItem } from '@/lib/storage';
-  import { isPaused, remainingMs } from '@/lib/pomodoro';
+  import { isPaused, remainingMs, displaySecondsFromMs } from '@/lib/pomodoro';
   import { formatHhMmSs, isTimerFinished, isTimerRunning, timerRemainingMs } from '@/lib/timer';
   import { isBlockingActive } from '@/lib/schedule';
   import type { CountdownTimerState, PomodoroState } from '@/lib/types';
@@ -17,8 +17,14 @@
   let blockingNow = $state(false);
 
   $effect(() => {
-    const unwatchPomodoro = pomodoroItem.watch((v) => (pomodoroState = v));
-    const unwatchTimer = timerItem.watch((v) => (countdownState = v));
+    const unwatchPomodoro = pomodoroItem.watch((v) => {
+      pomodoroState = v;
+      now = Date.now();
+    });
+    const unwatchTimer = timerItem.watch((v) => {
+      countdownState = v;
+      now = Date.now();
+    });
     void Promise.all([pomodoroItem.getValue(), timerItem.getValue(), scheduleItem.getValue()]).then(
       ([pomo, timer, schedule]) => {
         pomodoroState = pomo;
@@ -27,7 +33,7 @@
         if (pomo.phase !== 'idle') activeTab = 'focus';
       },
     );
-    const id = setInterval(() => (now = Date.now()), 1000);
+    const id = setInterval(() => (now = Date.now()), 250);
     return () => {
       unwatchPomodoro();
       unwatchTimer();
@@ -42,7 +48,7 @@
 
   const focusLabel = $derived.by(() => {
     if (!pomodoroState || pomodoroState.phase === 'idle') return '';
-    const total = Math.ceil(remainingMs(pomodoroState, now) / 1000);
+    const total = displaySecondsFromMs(remainingMs(pomodoroState, now));
     const m = String(Math.floor(total / 60)).padStart(2, '0');
     const s = String(total % 60).padStart(2, '0');
     const phase = pomodoroState.phase === 'work' ? 'Focus' : 'Rest';
@@ -53,7 +59,7 @@
   const countdownLabel = $derived.by(() => {
     if (!countdownState || !isTimerRunning(countdownState)) return '';
     const suffix = countdownState.pausedRemainingMs != null ? ' (paused)' : '';
-    return `Timer ${formatHhMmSs(Math.ceil(timerRemainingMs(countdownState, now) / 1000))}${suffix}`;
+    return `Timer ${formatHhMmSs(displaySecondsFromMs(timerRemainingMs(countdownState, now)))}${suffix}`;
   });
 
   function openOptions() {

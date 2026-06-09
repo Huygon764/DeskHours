@@ -24,15 +24,21 @@ export function matchesPreset(state: PomodoroState, preset: PomodoroPreset): boo
   return state.workMinutes === preset.workMinutes && state.restMinutes === preset.restMinutes;
 }
 
+/** Wall-clock end time on a whole-second boundary for stable countdown display. */
+export function endAtFromDuration(now: number, durationMs: number): number {
+  const durationSec = Math.ceil(durationMs / 1000);
+  return (Math.floor(now / 1000) + durationSec) * 1000;
+}
+
 /** Advance to the next phase. idle->work, work->rest, rest->work.
- *  Sets phaseEndsAt = now + duration of the new phase. */
+ *  Sets phaseEndsAt on a whole-second boundary. */
 export function nextPhase(state: PomodoroState, now: number): PomodoroState {
   const newPhase = state.phase === 'work' ? 'rest' : 'work';
   const minutes = newPhase === 'work' ? state.workMinutes : state.restMinutes;
   return {
     ...state,
     phase: newPhase,
-    phaseEndsAt: now + minutes * 60_000,
+    phaseEndsAt: endAtFromDuration(now, minutes * 60_000),
     pausedRemainingMs: null,
   };
 }
@@ -43,6 +49,11 @@ export function remainingMs(state: PomodoroState, now: number): number {
   if (state.pausedRemainingMs != null) return state.pausedRemainingMs;
   if (state.phaseEndsAt == null) return 0;
   return Math.max(0, state.phaseEndsAt - now);
+}
+
+/** Whole seconds for mm:ss display; rounds up partial seconds without +1s at start. */
+export function displaySecondsFromMs(remainingMs: number): number {
+  return Math.max(0, Math.floor((remainingMs + 999) / 1000));
 }
 
 export function isPaused(state: PomodoroState): boolean {
@@ -64,7 +75,7 @@ export function resumeState(state: PomodoroState, now: number): PomodoroState {
   if (!isPaused(state) || state.pausedRemainingMs == null) return state;
   return {
     ...state,
-    phaseEndsAt: now + state.pausedRemainingMs,
+    phaseEndsAt: endAtFromDuration(now, state.pausedRemainingMs),
     pausedRemainingMs: null,
   };
 }

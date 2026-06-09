@@ -1,6 +1,6 @@
 <script lang="ts">
   import { pomodoroItem } from '@/lib/storage';
-  import { isPaused, remainingMs, matchesPreset, parseMinutesInput, POMODORO_PRESETS, withDurations } from '@/lib/pomodoro';
+  import { isPaused, remainingMs, displaySecondsFromMs, matchesPreset, parseMinutesInput, POMODORO_PRESETS, withDurations } from '@/lib/pomodoro';
   import { pausePomodoro, resumePomodoro } from '@/lib/pomodoro-controller';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
   import type { PomodoroState } from '@/lib/types';
@@ -11,9 +11,15 @@
   let fieldDraft = $state('');
 
   $effect(() => {
-    const unwatch = pomodoroItem.watch((v) => (state = v));
-    void pomodoroItem.getValue().then((v) => (state = v));
-    const id = setInterval(() => (now = Date.now()), 1000);
+    const unwatch = pomodoroItem.watch((v) => {
+      state = v;
+      now = Date.now();
+    });
+    void pomodoroItem.getValue().then((v) => {
+      state = v;
+      now = Date.now();
+    });
+    const id = setInterval(() => (now = Date.now()), 250);
     return () => {
       unwatch();
       clearInterval(id);
@@ -22,7 +28,7 @@
 
   const remaining = $derived(state ? remainingMs(state, now) : 0);
   const mmss = $derived.by(() => {
-    const total = Math.ceil(remaining / 1000);
+    const total = displaySecondsFromMs(remaining);
     const m = String(Math.floor(total / 60)).padStart(2, '0');
     const s = String(total % 60).padStart(2, '0');
     return `${m}:${s}`;
