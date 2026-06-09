@@ -12,6 +12,7 @@
   } from '@/lib/popup-tab';
   import { cloneBlocklist, normalizeEntry } from '@/lib/blocklist';
   import type { BlockEntry } from '@/lib/types';
+  import Toggle from '@/components/Toggle.svelte';
 
   let { blockingNow = false }: { blockingNow?: boolean } = $props();
 
@@ -130,26 +131,20 @@
       <p class="status-on">
         {#if blockingNow}Blocked{:else}On list{/if}: <strong>{status.pattern}</strong>
       </p>
-      <label class="toggle-row">
-        <input
-          type="checkbox"
-          checked={true}
-          disabled={locked || busy}
-          onchange={() => flipEnabled(false)}
-        />
-        Blocking enabled
-      </label>
+      <Toggle
+        checked={true}
+        disabled={locked || busy}
+        label="Blocking enabled"
+        onchange={(enabled) => { if (!enabled) void flipEnabled(false); }}
+      />
     {:else if status.kind === 'listed-disabled'}
       <p class="status-off">On list (paused): <strong>{status.pattern}</strong></p>
-      <label class="toggle-row">
-        <input
-          type="checkbox"
-          checked={false}
-          disabled={locked || busy}
-          onchange={() => flipEnabled(true)}
-        />
-        Blocking enabled
-      </label>
+      <Toggle
+        checked={false}
+        disabled={locked || busy}
+        label="Blocking enabled"
+        onchange={(enabled) => { if (enabled) void flipEnabled(true); }}
+      />
     {:else}
       <p class="status-off">Not on your blocklist</p>
       <div class="actions">
@@ -217,18 +212,5 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-  }
-
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text);
-    cursor: pointer;
-  }
-
-  .toggle-row input {
-    accent-color: var(--primary);
   }
 </style>

@@ -12,6 +12,7 @@
   import { maskDomain } from '@/lib/masking';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry } from '@/lib/types';
+  import Toggle from '@/components/Toggle.svelte';
 
   let {
     locked = false,
@@ -221,14 +222,12 @@
             {#if e.enabled === false}<span class="tag">Paused</span>{/if}
           </div>
           <div class="row-actions">
-            <label class="toggle-inline" title="Blocking enabled">
-              <input
-                type="checkbox"
-                checked={e.enabled !== false}
-                disabled={locked || (e.masked && !cryptoKey)}
-                onchange={(ev) => toggleEnabled(e.id, (ev.currentTarget as HTMLInputElement).checked)}
-              />
-            </label>
+            <Toggle
+              checked={e.enabled !== false}
+              disabled={locked || (e.masked && !cryptoKey)}
+              ariaLabel="Blocking enabled for {display(e)}"
+              onchange={(enabled) => toggleEnabled(e.id, enabled)}
+            />
             <button
             type="button"
             class="btn-icon"
@@ -329,10 +328,6 @@
   .row-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
-  }
-
-  .toggle-inline input {
-    accent-color: var(--primary);
+    gap: 8px;
   }
 </style>
