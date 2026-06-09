@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
-import { startPomodoro, stopPomodoro, onPhaseAlarm, POMODORO_ALARM } from './pomodoro-controller';
+import {
+  startPomodoro,
+  stopPomodoro,
+  pausePomodoro,
+  resumePomodoro,
+  onPhaseAlarm,
+  POMODORO_ALARM,
+} from './pomodoro-controller';
 import { pomodoroItem } from './storage';
 import { setupOffscreenMock } from './test-setup';
 
@@ -37,6 +44,31 @@ describe('pomodoro controller', () => {
     const state = await pomodoroItem.getValue();
     expect(state.phase).toBe('idle');
     expect(state.phaseEndsAt).toBeNull();
+    expect(state.pausedRemainingMs).toBeNull();
     expect(await fakeBrowser.alarms.get(POMODORO_ALARM)).toBeFalsy();
+  });
+
+  it('pause stores remaining time and clears the alarm', async () => {
+    await startPomodoro();
+    vi.spyOn(Date, 'now').mockReturnValue(1_000_000 + 5 * 60_000);
+    await pausePomodoro();
+    const state = await pomodoroItem.getValue();
+    expect(state.phase).toBe('work');
+    expect(state.pausedRemainingMs).toBe(20 * 60_000);
+    expect(state.phaseEndsAt).toBeNull();
+    expect(await fakeBrowser.alarms.get(POMODORO_ALARM)).toBeFalsy();
+  });
+
+  it('resume restores countdown and reschedules alarm', async () => {
+    await startPomodoro();
+    vi.spyOn(Date, 'now').mockReturnValue(1_000_000 + 5 * 60_000);
+    await pausePomodoro();
+    vi.spyOn(Date, 'now').mockReturnValue(2_000_000);
+    await resumePomodoro();
+    const state = await pomodoroItem.getValue();
+    expect(state.pausedRemainingMs).toBeNull();
+    expect(state.phaseEndsAt).toBe(2_000_000 + 20 * 60_000);
+    const alarm = await fakeBrowser.alarms.get(POMODORO_ALARM);
+    expect(alarm?.scheduledTime).toBe(state.phaseEndsAt);
   });
 });

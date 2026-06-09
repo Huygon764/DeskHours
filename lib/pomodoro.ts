@@ -5,6 +5,7 @@ export const DEFAULT_POMODORO: PomodoroState = {
   restMinutes: 5,
   phase: 'idle',
   phaseEndsAt: null,
+  pausedRemainingMs: null,
 };
 
 /** Advance to the next phase. idle->work, work->rest, rest->work.
@@ -12,13 +13,44 @@ export const DEFAULT_POMODORO: PomodoroState = {
 export function nextPhase(state: PomodoroState, now: number): PomodoroState {
   const newPhase = state.phase === 'work' ? 'rest' : 'work';
   const minutes = newPhase === 'work' ? state.workMinutes : state.restMinutes;
-  return { ...state, phase: newPhase, phaseEndsAt: now + minutes * 60_000 };
+  return {
+    ...state,
+    phase: newPhase,
+    phaseEndsAt: now + minutes * 60_000,
+    pausedRemainingMs: null,
+  };
 }
 
 /** Milliseconds left in the current phase, clamped at 0; 0 when idle. */
 export function remainingMs(state: PomodoroState, now: number): number {
-  if (state.phase === 'idle' || state.phaseEndsAt == null) return 0;
+  if (state.phase === 'idle') return 0;
+  if (state.pausedRemainingMs != null) return state.pausedRemainingMs;
+  if (state.phaseEndsAt == null) return 0;
   return Math.max(0, state.phaseEndsAt - now);
+}
+
+export function isPaused(state: PomodoroState): boolean {
+  return state.pausedRemainingMs != null;
+}
+
+/** Freeze the countdown and store time left. */
+export function pauseState(state: PomodoroState, now: number): PomodoroState {
+  if (state.phase === 'idle' || isPaused(state)) return state;
+  return {
+    ...state,
+    phaseEndsAt: null,
+    pausedRemainingMs: remainingMs(state, now),
+  };
+}
+
+/** Resume a paused phase from stored time left. */
+export function resumeState(state: PomodoroState, now: number): PomodoroState {
+  if (!isPaused(state) || state.pausedRemainingMs == null) return state;
+  return {
+    ...state,
+    phaseEndsAt: now + state.pausedRemainingMs,
+    pausedRemainingMs: null,
+  };
 }
 
 const MIN_MINUTES = 1;
@@ -39,5 +71,6 @@ export function withDurations(
     restMinutes: clampMinutes(restMinutes),
     phase: 'idle',
     phaseEndsAt: null,
+    pausedRemainingMs: null,
   };
 }

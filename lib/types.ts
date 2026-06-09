@@ -48,6 +48,8 @@ export interface PomodoroState {
   workMinutes: number;
   restMinutes: number;
   phase: PomodoroPhase;
-  /** epoch ms when the current phase ends; null when idle. */
+  /** epoch ms when the current phase ends; null when idle or paused. */
   phaseEndsAt: number | null;
+  /** ms left when paused; null while the countdown is running. */
+  pausedRemainingMs: number | null;
 }

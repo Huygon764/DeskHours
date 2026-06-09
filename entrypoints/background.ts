@@ -1,5 +1,12 @@
 import { syncBlocker, grantUnblock } from '@/lib/blocker-controller';
-import { onPhaseAlarm, startPomodoro, stopPomodoro, POMODORO_ALARM } from '@/lib/pomodoro-controller';
+import {
+  onPhaseAlarm,
+  pausePomodoro,
+  resumePomodoro,
+  startPomodoro,
+  stopPomodoro,
+  POMODORO_ALARM,
+} from '@/lib/pomodoro-controller';
 import { unblockMinutesItem } from '@/lib/storage';
 import { BG_MESSAGE, type BgMessage } from '@/lib/messages';
 
@@ -27,6 +34,10 @@ export default defineBackground(() => {
         return startPomodoro();
       case BG_MESSAGE.POMODORO_STOP:
         return stopPomodoro();
+      case BG_MESSAGE.POMODORO_PAUSE:
+        return pausePomodoro();
+      case BG_MESSAGE.POMODORO_RESUME:
+        return resumePomodoro();
     }
   });
 });

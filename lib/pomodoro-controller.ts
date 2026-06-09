@@ -1,5 +1,5 @@
 import { pomodoroItem } from './storage';
-import { nextPhase } from './pomodoro';
+import { isPaused, nextPhase, remainingMs, resumeState } from './pomodoro';
 import { OFFSCREEN_MESSAGE, type OffscreenMessage } from './messages';
 
 export const POMODORO_ALARM = 'pomodoro-phase-end';
@@ -20,14 +20,41 @@ export async function startPomodoro(): Promise<void> {
 /** Reset to idle, clear the alarm. */
 export async function stopPomodoro(): Promise<void> {
   const current = await pomodoroItem.getValue();
-  await pomodoroItem.setValue({ ...current, phase: 'idle', phaseEndsAt: null });
+  await pomodoroItem.setValue({
+    ...current,
+    phase: 'idle',
+    phaseEndsAt: null,
+    pausedRemainingMs: null,
+  });
   await browser.alarms.clear(POMODORO_ALARM);
+}
+
+/** Pause the current phase and keep remaining time. */
+export async function pausePomodoro(): Promise<void> {
+  const current = await pomodoroItem.getValue();
+  if (current.phase === 'idle' || isPaused(current)) return;
+  const now = Date.now();
+  await pomodoroItem.setValue({
+    ...current,
+    phaseEndsAt: null,
+    pausedRemainingMs: remainingMs(current, now),
+  });
+  await browser.alarms.clear(POMODORO_ALARM);
+}
+
+/** Resume a paused phase from stored remaining time. */
+export async function resumePomodoro(): Promise<void> {
+  const current = await pomodoroItem.getValue();
+  if (!isPaused(current)) return;
+  const resumed = resumeState(current, Date.now());
+  await pomodoroItem.setValue(resumed);
+  if (resumed.phaseEndsAt) await scheduleAlarm(resumed.phaseEndsAt);
 }
 
 /** Called when the phase-end alarm fires: advance, alert, reschedule. */
 export async function onPhaseAlarm(): Promise<void> {
   const current = await pomodoroItem.getValue();
-  if (current.phase === 'idle') return;
+  if (current.phase === 'idle' || current.pausedRemainingMs != null) return;
   const advanced = nextPhase(current, Date.now());
   await pomodoroItem.setValue(advanced);
   await alert(advanced.phase === 'work' ? 'work-start' : 'rest-start');

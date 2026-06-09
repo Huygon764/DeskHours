@@ -1,8 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { nextPhase, remainingMs, DEFAULT_POMODORO, withDurations } from './pomodoro';
+import {
+  nextPhase,
+  remainingMs,
+  pauseState,
+  resumeState,
+  isPaused,
+  DEFAULT_POMODORO,
+  withDurations,
+} from './pomodoro';
 import type { PomodoroState } from './types';
 
-const base: PomodoroState = { workMinutes: 25, restMinutes: 5, phase: 'idle', phaseEndsAt: null };
+const base: PomodoroState = {
+  workMinutes: 25,
+  restMinutes: 5,
+  phase: 'idle',
+  phaseEndsAt: null,
+  pausedRemainingMs: null,
+};
 
 describe('nextPhase', () => {
   it('idle -> work, sets phaseEndsAt 25min ahead', () => {
@@ -39,16 +53,60 @@ describe('remainingMs', () => {
   });
 });
 
+describe('pauseState / resumeState', () => {
+  it('stores remaining time and clears phaseEndsAt', () => {
+    const running = { ...base, phase: 'work' as const, phaseEndsAt: 10_000 };
+    const paused = pauseState(running, 4000);
+    expect(paused.pausedRemainingMs).toBe(6000);
+    expect(paused.phaseEndsAt).toBeNull();
+    expect(isPaused(paused)).toBe(true);
+  });
+
+  it('resumes from stored remaining time', () => {
+    const paused = {
+      ...base,
+      phase: 'work' as const,
+      phaseEndsAt: null,
+      pausedRemainingMs: 6000,
+    };
+    const resumed = resumeState(paused, 50_000);
+    expect(resumed.phaseEndsAt).toBe(56_000);
+    expect(resumed.pausedRemainingMs).toBeNull();
+  });
+
+  it('returns frozen remaining while paused', () => {
+    const paused = {
+      ...base,
+      phase: 'rest' as const,
+      phaseEndsAt: null,
+      pausedRemainingMs: 90_000,
+    };
+    expect(remainingMs(paused, 999_999)).toBe(90_000);
+  });
+});
+
 describe('DEFAULT_POMODORO', () => {
   it('is idle 25/5', () => {
-    expect(DEFAULT_POMODORO).toEqual({ workMinutes: 25, restMinutes: 5, phase: 'idle', phaseEndsAt: null });
+    expect(DEFAULT_POMODORO).toEqual({
+      workMinutes: 25,
+      restMinutes: 5,
+      phase: 'idle',
+      phaseEndsAt: null,
+      pausedRemainingMs: null,
+    });
   });
 });
 
 describe('withDurations', () => {
   it('updates minutes and keeps idle', () => {
     const s = withDurations({ ...base, phase: 'work', phaseEndsAt: 999 }, 1, 2);
-    expect(s).toEqual({ workMinutes: 1, restMinutes: 2, phase: 'idle', phaseEndsAt: null });
+    expect(s).toEqual({
+      workMinutes: 1,
+      restMinutes: 2,
+      phase: 'idle',
+      phaseEndsAt: null,
+      pausedRemainingMs: null,
+    });
   });
   it('clamps to 1..120', () => {
     expect(withDurations(base, 0, 200).workMinutes).toBe(1);

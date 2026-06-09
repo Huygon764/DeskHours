@@ -4,6 +4,8 @@ export const BG_MESSAGE = {
   GRANT_UNBLOCK: 'GRANT_UNBLOCK',
   POMODORO_START: 'POMODORO_START',
   POMODORO_STOP: 'POMODORO_STOP',
+  POMODORO_PAUSE: 'POMODORO_PAUSE',
+  POMODORO_RESUME: 'POMODORO_RESUME',
 } as const;
 
 /** Offscreen document message type literals. */
@@ -16,7 +18,9 @@ export type BgMessage =
   | { type: typeof BG_MESSAGE.SYNC_BLOCKER }
   | { type: typeof BG_MESSAGE.GRANT_UNBLOCK; pattern: string }
   | { type: typeof BG_MESSAGE.POMODORO_START }
-  | { type: typeof BG_MESSAGE.POMODORO_STOP };
+  | { type: typeof BG_MESSAGE.POMODORO_STOP }
+  | { type: typeof BG_MESSAGE.POMODORO_PAUSE }
+  | { type: typeof BG_MESSAGE.POMODORO_RESUME };
 
 /** Messages sent TO the offscreen document. */
 export type OffscreenMessage = {

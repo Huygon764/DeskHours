@@ -1,7 +1,8 @@
 <script lang="ts">
   import { pomodoroItem, scheduleItem } from '@/lib/storage';
-  import { remainingMs, withDurations } from '@/lib/pomodoro';
+  import { isPaused, remainingMs, withDurations } from '@/lib/pomodoro';
   import { isBlockingActive } from '@/lib/schedule';
+  import { pausePomodoro, resumePomodoro } from '@/lib/pomodoro-controller';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
   import type { PomodoroState } from '@/lib/types';
   import CurrentPage from './CurrentPage.svelte';
@@ -31,6 +32,7 @@
 
   const idle = $derived(state?.phase === 'idle');
   const running = $derived(state != null && state.phase !== 'idle');
+  const paused = $derived(state != null && isPaused(state));
 
   async function setDurations(workMinutes: number, restMinutes: number) {
     const current = await pomodoroItem.getValue();
@@ -103,8 +105,10 @@
       </div>
     {:else if running}
       <div class="timer-section">
-        <p class="phase-label">{state.phase === 'work' ? 'Work' : 'Rest'}</p>
-        <div class="text-timer">{mmss}</div>
+        <p class="phase-label">
+          {#if paused}Paused — {state.phase === 'work' ? 'Work' : 'Rest'}{:else}{state.phase === 'work' ? 'Work' : 'Rest'}{/if}
+        </p>
+        <div class="text-timer" class:timer-paused={paused}>{mmss}</div>
       </div>
     {/if}
   </div>
@@ -112,11 +116,22 @@
   {#if running && state}
     <div class="running-bar">
       <div class="running-meta">
-        <span class="text-label">{state.phase === 'work' ? 'Work session' : 'Rest break'}</span>
+        <span class="text-label">
+          {#if paused}Paused{:else}{state.phase === 'work' ? 'Work session' : 'Rest break'}{/if}
+        </span>
         <span class="text-timer-sm">{mmss}</span>
       </div>
-      <button class="btn btn-danger-outline btn-block" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_STOP })}>
-        Stop focus
+      {#if paused}
+        <button class="btn btn-primary btn-block" onclick={() => void resumePomodoro()}>
+          Resume
+        </button>
+      {:else}
+        <button class="btn btn-outline btn-block" onclick={() => void pausePomodoro()}>
+          Pause
+        </button>
+      {/if}
+      <button class="btn btn-danger-outline btn-block end-btn" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_STOP })}>
+        End session
       </button>
     </div>
   {/if}
@@ -216,6 +231,18 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
+  }
+
+  .timer-paused {
+    opacity: 0.55;
+  }
+
+  .running-bar .btn-block + .btn-block {
+    margin-top: 8px;
+  }
+
+  .end-btn {
+    margin-top: 8px;
   }
 
   .popup-footer {
