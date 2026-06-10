@@ -1,8 +1,56 @@
 import type { ScheduleWindow } from './types';
 
-export const DEFAULT_SCHEDULE: ScheduleWindow[] = [
-  { days: [1, 2, 3, 4, 5], start: '09:00', end: '12:00' },
-  { days: [1, 2, 3, 4, 5], start: '13:00', end: '16:00' },
+const WEEKDAYS = [1, 2, 3, 4, 5];
+const WEEKENDS = [6, 7];
+const ALL_DAYS = [1, 2, 3, 4, 5, 6, 7];
+
+export interface SchedulePreset {
+  id: string;
+  label: string;
+  description: string;
+  windows: ScheduleWindow[];
+}
+
+export const SCHEDULE_PRESETS: SchedulePreset[] = [
+  {
+    id: 'office-hours',
+    label: 'Office hours',
+    description: 'Mon–Fri 8–12, 13:30–17',
+    windows: [
+      { days: [...WEEKDAYS], start: '08:00', end: '12:00' },
+      { days: [...WEEKDAYS], start: '13:30', end: '17:00' },
+    ],
+  },
+  {
+    id: 'full-workday',
+    label: 'Full workday',
+    description: 'Mon–Fri 8–17',
+    windows: [{ days: [...WEEKDAYS], start: '08:00', end: '17:00' }],
+  },
+  {
+    id: 'evenings',
+    label: 'Evenings',
+    description: 'Mon–Fri 18–22',
+    windows: [{ days: [...WEEKDAYS], start: '18:00', end: '22:00' }],
+  },
+  {
+    id: 'weekends',
+    label: 'Weekends',
+    description: 'Sat–Sun 8–22',
+    windows: [{ days: [...WEEKENDS], start: '08:00', end: '22:00' }],
+  },
+  {
+    id: 'all-day-weekdays',
+    label: 'All day (weekdays)',
+    description: 'Mon–Fri all day',
+    windows: [{ days: [...WEEKDAYS], start: '00:00', end: '23:59' }],
+  },
+  {
+    id: 'always-on',
+    label: 'Always on',
+    description: 'Every day, all day',
+    windows: [{ days: [...ALL_DAYS], start: '00:00', end: '23:59' }],
+  },
 ];
 
 /** Plain copy for storage — do not structuredClone Svelte $state proxies. */
@@ -12,6 +60,29 @@ export function cloneSchedule(windows: ScheduleWindow[]): ScheduleWindow[] {
     start: w.start.slice(0, 5),
     end: w.end.slice(0, 5),
   }));
+}
+
+export const DEFAULT_SCHEDULE: ScheduleWindow[] = cloneSchedule(SCHEDULE_PRESETS[0].windows);
+
+function normalizeWindow(w: ScheduleWindow): string {
+  const days = [...w.days].sort((a, b) => a - b).join(',');
+  return `${days}|${w.start.slice(0, 5)}|${w.end.slice(0, 5)}`;
+}
+
+/** True when two schedules match after normalizing day order and times. */
+export function schedulesEqual(a: ScheduleWindow[], b: ScheduleWindow[]): boolean {
+  if (a.length !== b.length) return false;
+  const left = a.map(normalizeWindow).sort();
+  const right = b.map(normalizeWindow).sort();
+  return left.every((v, i) => v === right[i]);
+}
+
+/** Preset id when `windows` matches a built-in preset, else null. */
+export function matchingPresetId(windows: ScheduleWindow[]): string | null {
+  for (const preset of SCHEDULE_PRESETS) {
+    if (schedulesEqual(windows, preset.windows)) return preset.id;
+  }
+  return null;
 }
 
 /** Minutes since midnight for "HH:MM". */
