@@ -1,6 +1,6 @@
 import { authItem, blocklistItem, unmaskedDomainsItem } from './storage';
 import { verifyPassword, deriveKey } from './crypto';
-import { revealEntry } from './masking';
+import { isEncryptedMaskedDomain, revealEntry } from './masking';
 import { cloneBlocklist, hasKeywordPattern, hasPlainPattern, normalizeEntry } from './blocklist';
 import type { BlockEntry, BlockEntryKind } from './types';
 
@@ -40,9 +40,13 @@ export async function hasBlockedPattern(
   const normalized = entries.map(normalizeEntry);
   if (kind === 'keyword') return hasKeywordPattern(normalized, pattern);
   if (hasPlainPattern(normalized, pattern)) return true;
+  for (const e of normalized) {
+    if (!e.masked || isEncryptedMaskedDomain(e.domain)) continue;
+    if (e.domain === pattern) return true;
+  }
   if (!key) return false;
   for (const e of normalized) {
-    if (!e.masked) continue;
+    if (!e.masked || !isEncryptedMaskedDomain(e.domain)) continue;
     if ((await revealEntry(e, key)) === pattern) return true;
   }
   return false;

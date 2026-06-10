@@ -2,7 +2,7 @@ import { blocklistItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } fr
 import { isBlockingActive } from './schedule';
 import { buildRedirectRules } from './dnr-rules';
 import { entryToBlockPattern, normalizeEntry, type BlockPattern } from './blocklist';
-import { revealEntry } from './masking';
+import { isEncryptedMaskedDomain, revealEntry } from './masking';
 import type { BlockEntry } from './types';
 
 /** Legacy temp-unblock records used `domain` instead of `pattern`. */
@@ -27,7 +27,13 @@ async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPatt
 
   for (const e of blocklist) {
     if (e.enabled === false) continue;
-    if (!e.masked) patterns.push(entryToBlockPattern(e));
+    if (!e.masked) {
+      patterns.push(entryToBlockPattern(e));
+      continue;
+    }
+    if (!isEncryptedMaskedDomain(e.domain)) {
+      patterns.push(entryToBlockPattern(e));
+    }
   }
 
   for (const p of unmasked) {

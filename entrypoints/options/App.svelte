@@ -12,7 +12,6 @@
   let hasPassword = $state(false);
   let blockingNow = $state(false);
   let unlocked = $state(false);
-  let cryptoKey = $state<CryptoKey | null>(null);
   let pw = $state('');
   let unlockError = $state('');
   let unlocking = $state(false);
@@ -34,7 +33,7 @@
   }
 
   const locked = $derived(blockingNow && !unlocked);
-  const showUnlockBanner = $derived(hasPassword && (locked || !unlocked));
+  const showUnlockBanner = $derived(hasPassword && locked);
 
   async function unlock() {
     unlockError = '';
@@ -46,7 +45,7 @@
         unlockError = 'Wrong password';
         return;
       }
-      cryptoKey = await deriveKey(pw, auth.salt);
+      await deriveKey(pw, auth.salt);
       unlocked = true;
       pw = '';
       await syncBlockerSafe();
@@ -72,13 +71,7 @@
 
       {#if showUnlockBanner}
         <div class="banner-lock">
-          <p>
-            {#if locked}
-              Blocking is active. Enter your password to edit.
-            {:else}
-              Enter your password to reveal masked sites.
-            {/if}
-          </p>
+          <p>Blocking is active. Enter your password to edit the blocklist.</p>
           <div class="banner-lock-actions">
             <input class="input" type="password" bind:value={pw} placeholder="Password" />
             <button class="btn btn-primary btn-sm" onclick={unlock} disabled={unlocking}>
@@ -104,7 +97,7 @@
       {#if activeTab === 'schedule'}
         <ScheduleEditor {locked} onsaved={refreshBlocking} />
       {:else if activeTab === 'sites'}
-        <BlocklistEditor {locked} bind:cryptoKey onUnlocked={() => (unlocked = true)} />
+        <BlocklistEditor {locked} />
       {:else}
         <PasswordSetup readonly={locked} />
       {/if}

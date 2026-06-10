@@ -2,34 +2,18 @@
   import { onMount } from 'svelte';
   import { blocklistItem } from '@/lib/storage';
   import { cloneBlocklist, hasKeywordPattern, normalizeKeyword, normalizePattern } from '@/lib/blocklist';
-  import {
-    hasBlockedPattern,
-    keyFromPassword,
-    loadBlocklist,
-    syncUnmaskedDomains,
-    setEntryEnabled,
-  } from '@/lib/blocklist-session';
-  import { maskDomain } from '@/lib/masking';
+  import { hasBlockedPattern, loadBlocklist, setEntryEnabled } from '@/lib/blocklist-session';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
+  import HiddenSitesEditor from './HiddenSitesEditor.svelte';
 
-  let {
-    locked = false,
-    cryptoKey = $bindable<CryptoKey | null>(null),
-    onUnlocked = () => {},
-  }: {
-    locked?: boolean;
-    cryptoKey?: CryptoKey | null;
-    onUnlocked?: () => void;
-  } = $props();
+  let { locked = false }: { locked?: boolean } = $props();
 
   let entries = $state<BlockEntry[]>([]);
-  let revealed = $state<Record<string, string>>({});
   let newDomain = $state('');
+  let addAsHidden = $state(false);
   let newKeyword = $state('');
-  let newMasked = $state(false);
-  let maskPassword = $state('');
   let addError = $state('');
   let addNotice = $state('');
   let loading = $state(true);
@@ -56,57 +40,10 @@
     }
   }
 
-  $effect(() => {
-    const key = cryptoKey;
-    if (loading) return;
-    void refreshRevealed(key);
-  });
-
-  async function refreshRevealed(key: CryptoKey | null) {
-    if (!key) {
-      revealed = {};
-      return;
-    }
-    try {
-      const { revealEntry } = await import('@/lib/masking');
-      const map: Record<string, string> = {};
-      for (const e of entries) {
-        map[e.id] = e.masked ? await revealEntry(e, key) : e.domain;
-      }
-      revealed = map;
-      await syncUnmaskedDomains(entries, key);
-      await syncBlockerSafe();
-    } catch (err) {
-      console.error('reveal masked entries failed:', err);
-      addError = 'Could not decrypt masked entries. Check your password.';
-    }
-  }
-
-  const siteEntries = $derived(entries.filter((e) => (e.kind ?? 'site') === 'site'));
+  const siteEntries = $derived(
+    entries.filter((e) => !e.masked && (e.kind ?? 'site') === 'site'),
+  );
   const keywordEntries = $derived(entries.filter((e) => e.kind === 'keyword'));
-
-  function display(e: BlockEntry): string {
-    if (!e.masked) return e.domain;
-    return revealed[e.id] ?? '••••••••••••';
-  }
-
-  async function resolveKey(): Promise<CryptoKey | null> {
-    if (cryptoKey) return cryptoKey;
-    if (!newMasked) return null;
-    if (!maskPassword) {
-      addError = 'Enter your password to add a masked site.';
-      return null;
-    }
-    const key = await keyFromPassword(maskPassword);
-    if (!key) {
-      addError = 'Wrong password.';
-      return null;
-    }
-    maskPassword = '';
-    cryptoKey = key;
-    onUnlocked();
-    return key;
-  }
 
   async function persist(next: BlockEntry[]): Promise<boolean> {
     const plain = cloneBlocklist(next);
@@ -128,39 +65,23 @@
       return;
     }
     try {
-      const key = newMasked ? await resolveKey() : cryptoKey;
-      if (newMasked && !key) return;
-
       const stored = await loadBlocklist();
-      if (await hasBlockedPattern(stored, domain, key)) {
+      if (await hasBlockedPattern(stored, domain, null)) {
         addError = `${domain} is already on the list.`;
         return;
       }
 
       const id = crypto.randomUUID();
-      const wasMasked = newMasked;
-      let domainStored = domain;
-      if (wasMasked && key) {
-        domainStored = await maskDomain(domain, key);
-      }
-
       const next = [
         ...cloneBlocklist(entries),
-        { id, domain: domainStored, masked: wasMasked, enabled: true, kind: 'site' as const },
+        { id, domain, masked: addAsHidden, enabled: true, kind: 'site' as const },
       ];
       const synced = await persist(next);
       newDomain = '';
-      newMasked = false;
-
-      if (key) {
-        await syncUnmaskedDomains(next, key);
-        await refreshRevealed(key);
-      }
+      addAsHidden = false;
 
       if (!synced) {
         addNotice = 'Saved. If the site is not blocked yet, reload the extension on brave://extensions.';
-      } else if (wasMasked) {
-        addNotice = 'Masked site saved and blocking is active for this browser session.';
       }
     } catch (err) {
       console.error('add blocklist entry failed:', err);
@@ -209,7 +130,6 @@
     try {
       const next = cloneBlocklist(entries).filter((e) => e.id !== id);
       const synced = await persist(next);
-      if (cryptoKey) await refreshRevealed(cryptoKey);
       if (!synced) addNotice = 'Saved. Block rules will refresh within 1 minute.';
     } catch (err) {
       console.error('remove blocklist entry failed:', err);
@@ -227,7 +147,6 @@
     try {
       const next = await setEntryEnabled(id, enabled);
       entries = next;
-      if (cryptoKey) await refreshRevealed(cryptoKey);
       await syncBlockerSafe();
     } catch (err) {
       console.error('toggle blocklist entry failed:', err);
@@ -254,31 +173,26 @@
       {#each siteEntries as e (e.id)}
         <div class="list-row" class:row-disabled={e.enabled === false}>
           <div class="list-row-left">
-            {#if e.masked}
-              <span class="lock-icon" aria-hidden="true">&#x1F512;</span>
-            {:else}
-              <span class="status-dot" class:dot-off={e.enabled === false}></span>
-            {/if}
-            <span class="domain">{display(e)}</span>
-            {#if e.masked}<span class="tag">Masked</span>{/if}
+            <span class="status-dot" class:dot-off={e.enabled === false}></span>
+            <span class="domain">{e.domain}</span>
             {#if e.enabled === false}<span class="tag">Paused</span>{/if}
           </div>
           <div class="row-actions">
             <Toggle
               checked={e.enabled !== false}
-              disabled={locked || (e.masked && !cryptoKey)}
-              ariaLabel="Blocking enabled for {display(e)}"
+              disabled={locked}
+              ariaLabel="Blocking enabled for {e.domain}"
               onchange={(enabled) => toggleEnabled(e.id, enabled)}
             />
             <button
-            type="button"
-            class="btn-icon"
-            onclick={() => remove(e.id)}
-            disabled={locked || (e.masked && !cryptoKey)}
-            aria-label="Remove {display(e)}"
-          >
-            &#x2715;
-          </button>
+              type="button"
+              class="btn-icon"
+              onclick={() => remove(e.id)}
+              disabled={locked}
+              aria-label="Remove {e.domain}"
+            >
+              &#x2715;
+            </button>
           </div>
         </div>
       {/each}
@@ -291,18 +205,10 @@
       <input id="new-domain" class="input" bind:value={newDomain} placeholder="youtube.com or youtube.com/shorts/*" disabled={locked} />
     </div>
 
-    <label class="check-row">
-      <input type="checkbox" bind:checked={newMasked} disabled={locked} />
-      Hide site name (masked)
+    <label class="hidden-check">
+      <input type="checkbox" bind:checked={addAsHidden} disabled={locked} />
+      <span>Add to hidden list (name hidden in options)</span>
     </label>
-
-    {#if newMasked && !cryptoKey}
-      <div class="field">
-        <label class="field-label" for="mask-pw">Password to enable masking + blocking</label>
-        <input id="mask-pw" class="input" type="password" bind:value={maskPassword} disabled={locked} />
-      </div>
-      <p class="text-body-muted hint-inline">Masked sites need your password once per browser session.</p>
-    {/if}
 
     <button type="button" class="btn btn-primary" onclick={add} disabled={locked}>
       {locked ? 'Add (unlock required)' : 'Add site'}
@@ -331,7 +237,7 @@
         <div class="list-row" class:row-disabled={e.enabled === false}>
           <div class="list-row-left">
             <span class="status-dot" class:dot-off={e.enabled === false}></span>
-            <span class="domain">{display(e)}</span>
+            <span class="domain">{e.domain}</span>
             <span class="tag">Keyword</span>
             {#if e.enabled === false}<span class="tag">Paused</span>{/if}
           </div>
@@ -339,7 +245,7 @@
             <Toggle
               checked={e.enabled !== false}
               disabled={locked}
-              ariaLabel="Blocking enabled for keyword {display(e)}"
+              ariaLabel="Blocking enabled for keyword {e.domain}"
               onchange={(enabled) => toggleEnabled(e.id, enabled)}
             />
             <button
@@ -347,7 +253,7 @@
               class="btn-icon"
               onclick={() => remove(e.id)}
               disabled={locked}
-              aria-label="Remove keyword {display(e)}"
+              aria-label="Remove keyword {e.domain}"
             >
               &#x2715;
             </button>
@@ -373,6 +279,8 @@
     </button>
   </div>
 </section>
+
+<HiddenSitesEditor {locked} />
 
 <style>
   .section-title {
@@ -411,11 +319,6 @@
     white-space: nowrap;
   }
 
-  .lock-icon {
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-
   .add-form {
     display: flex;
     flex-direction: column;
@@ -424,9 +327,17 @@
     border-top: 1px solid var(--border);
   }
 
-  .hint-inline {
+  .hidden-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .hidden-check input {
     margin: 0;
-    font-size: 12px;
   }
 
   .row-disabled .domain {

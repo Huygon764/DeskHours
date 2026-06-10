@@ -75,6 +75,13 @@ describe('syncBlocker', () => {
     const rules = getDynamicRulesForTest();
     expect(rules.map((r) => r.condition.requestDomains?.[0])).toContain('reddit.com');
   });
+
+  it('blocks plaintext hidden sites without session unmask', async () => {
+    await blocklistItem.setValue([{ id: '1', domain: 'reddit.com', masked: true, enabled: true }]);
+    await syncBlocker();
+    const rules = getDynamicRulesForTest();
+    expect(rules.map((r) => r.condition.requestDomains?.[0])).toContain('reddit.com');
+  });
 });
 
 describe('pruneExpired', () => {
