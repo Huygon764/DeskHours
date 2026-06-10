@@ -1,6 +1,7 @@
 import { pomodoroItem } from './storage';
 import { isPaused, nextPhase, remainingMs, resumeState } from './pomodoro';
 import { playAlertSound } from './alert-sound';
+import { translate } from './i18n';
 
 export const POMODORO_ALARM = 'pomodoro-phase-end';
 
@@ -70,8 +71,10 @@ async function showNotification(sound: 'work-start' | 'rest-start'): Promise<voi
   await browser.notifications.create({
     type: 'basic',
     iconUrl: browser.runtime.getURL('/icon/128.png'),
-    title: isWork ? 'Back to work' : 'Time to rest',
-    message: isWork ? 'Work session started.' : 'Take a short break.',
+    title: await translate(isWork ? 'pomodoroBackToWorkTitle' : 'pomodoroRestTitle'),
+    message: await translate(
+      isWork ? 'pomodoroWorkStartedMessage' : 'pomodoroRestStartedMessage',
+    ),
   });
 }
 

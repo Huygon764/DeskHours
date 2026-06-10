@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '@/lib/i18n';
   import { parseHhMmSs, splitHhMmSs } from '@/lib/timer';
 
   type Segment = 'seconds' | 'minutes' | 'hours';
@@ -166,7 +167,7 @@
 <div
   class="time-inputs text-timer text-timer-hms"
   role="group"
-  aria-label="Edit timer duration"
+  aria-label={t('ariaEditDuration')}
   onfocusout={onGroupFocusOut}
 >
   <input
@@ -175,7 +176,7 @@
     class:time-field-active={activeSegment === 'hours'}
     type="text"
     inputmode="numeric"
-    aria-label="Hours"
+    aria-label={t('ariaHours')}
     value={editHours}
     onfocus={() => prepareSegment('hours')}
     oninput={(event) => onSegmentInput('hours', event)}
@@ -188,7 +189,7 @@
     class:time-field-active={activeSegment === 'minutes'}
     type="text"
     inputmode="numeric"
-    aria-label="Minutes"
+    aria-label={t('ariaMinutes')}
     value={editMinutes}
     onfocus={() => prepareSegment('minutes')}
     oninput={(event) => onSegmentInput('minutes', event)}
@@ -201,7 +202,7 @@
     class:time-field-active={activeSegment === 'seconds'}
     type="text"
     inputmode="numeric"
-    aria-label="Seconds"
+    aria-label={t('ariaSeconds')}
     value={editSeconds}
     onfocus={() => prepareSegment('seconds')}
     oninput={(event) => onSegmentInput('seconds', event)}

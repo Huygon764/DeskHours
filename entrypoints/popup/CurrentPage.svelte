@@ -13,6 +13,7 @@
   import { cloneBlocklist, normalizeEntry } from '@/lib/blocklist';
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
+  import { t } from '@/lib/i18n';
 
   let { blockingNow = false }: { blockingNow?: boolean } = $props();
 
@@ -65,7 +66,7 @@
     const auth = await authItem.getValue();
     if (!auth) return;
     if (!(await verifyPassword(pw, auth))) {
-      unlockError = 'Wrong password';
+      unlockError = t('wrongPassword');
       return;
     }
     cryptoKey = await deriveKey(pw, auth.salt);
@@ -77,7 +78,7 @@
   async function withAuth(action: () => Promise<void>) {
     actionError = '';
     if (locked) {
-      actionError = 'Enter your password to edit the blocklist.';
+      actionError = t('enterPasswordToEdit');
       return;
     }
     busy = true;
@@ -88,7 +89,7 @@
       await refreshStatus();
     } catch (err) {
       console.error('popup blocklist action failed:', err);
-      actionError = 'Action failed. Try again.';
+      actionError = t('actionFailed');
     } finally {
       busy = false;
     }
@@ -110,50 +111,50 @@
 </script>
 
 <section class="current-page">
-  <h2 class="text-label section-label">This page</h2>
+  <h2 class="text-label section-label">{t('thisPage')}</h2>
 
   {#if loading}
-    <p class="msg-muted">Loading tab…</p>
+    <p class="msg-muted">{t('loadingTab')}</p>
   {:else if !tabUrl}
-    <p class="msg-muted">Open a website tab to block it from here.</p>
+    <p class="msg-muted">{t('openWebsiteTab')}</p>
   {:else}
     <p class="page-url" title={tabUrl}>{domainPattern}{new URL(tabUrl).pathname}</p>
 
     {#if locked}
       <div class="lock-row">
-        <input class="input" type="password" bind:value={pw} placeholder="Password" />
-        <button type="button" class="btn btn-primary btn-sm" onclick={unlock}>Unlock</button>
+        <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
+        <button type="button" class="btn btn-primary btn-sm" onclick={unlock}>{t('unlock')}</button>
       </div>
       {#if unlockError}<p class="msg-error">{unlockError}</p>{/if}
     {/if}
 
     {#if status.kind === 'listed-enabled'}
       <p class="status-on">
-        {#if blockingNow}Blocked{:else}On list{/if}: <strong>{status.pattern}</strong>
+        {#if blockingNow}{t('blocked')}{:else}{t('onList')}{/if}: <strong>{status.pattern}</strong>
       </p>
       <Toggle
         checked={true}
         disabled={locked || busy}
-        label="Blocking enabled"
+        label={t('blockingEnabled')}
         onchange={(enabled) => { if (!enabled) void flipEnabled(false); }}
       />
     {:else if status.kind === 'listed-disabled'}
-      <p class="status-off">On list (paused): <strong>{status.pattern}</strong></p>
+      <p class="status-off">{t('onListPaused')} <strong>{status.pattern}</strong></p>
       <Toggle
         checked={false}
         disabled={locked || busy}
-        label="Blocking enabled"
+        label={t('blockingEnabled')}
         onchange={(enabled) => { if (enabled) void flipEnabled(true); }}
       />
     {:else}
-      <p class="status-off">Not on your blocklist</p>
+      <p class="status-off">{t('notOnBlocklist')}</p>
       <div class="actions">
         <button type="button" class="btn btn-primary btn-sm" disabled={locked || busy} onclick={blockDomain}>
-          Block {domainPattern}
+          {t('blockPattern', domainPattern)}
         </button>
         {#if pathPattern}
           <button type="button" class="btn btn-outline btn-sm" disabled={locked || busy} onclick={blockPath}>
-            Block {pathPattern}
+            {t('blockPattern', pathPattern)}
           </button>
         {/if}
       </div>

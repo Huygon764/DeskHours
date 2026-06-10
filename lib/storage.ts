@@ -11,6 +11,7 @@ import { DEFAULT_SCHEDULE } from './schedule';
 import { DEFAULT_POMODORO } from './pomodoro';
 import { DEFAULT_TIMER } from './timer';
 import type { ThemePreference } from './theme';
+import type { LocalePreference } from './locale';
 
 export const blocklistItem = storage.defineItem<BlockEntry[]>('local:blocklist', {
   fallback: [],
@@ -48,5 +49,10 @@ export const unmaskedDomainsItem = storage.defineItem<string[]>('session:unmaske
 
 /** UI color scheme preference; system follows OS dark mode. */
 export const themeItem = storage.defineItem<ThemePreference>('local:theme', {
+  fallback: 'system',
+});
+
+/** UI language; system follows the browser locale. */
+export const localeItem = storage.defineItem<LocalePreference>('local:locale', {
   fallback: 'system',
 });

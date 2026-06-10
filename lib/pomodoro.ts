@@ -10,14 +10,13 @@ export const DEFAULT_POMODORO: PomodoroState = {
 
 export interface PomodoroPreset {
   id: 'classic' | 'deep';
-  label: string;
   workMinutes: number;
   restMinutes: number;
 }
 
 export const POMODORO_PRESETS: PomodoroPreset[] = [
-  { id: 'classic', label: 'Classic', workMinutes: 25, restMinutes: 5 },
-  { id: 'deep', label: 'Deep', workMinutes: 50, restMinutes: 10 },
+  { id: 'classic', workMinutes: 25, restMinutes: 5 },
+  { id: 'deep', workMinutes: 50, restMinutes: 10 },
 ];
 
 export function matchesPreset(state: PomodoroState, preset: PomodoroPreset): boolean {

@@ -1,0 +1,705 @@
+{
+  "extName": {
+    "message": "Site Blocker"
+  },
+  "extDescription": {
+    "message": "Chặn trang web gây xao nhãng theo lịch, kèm bộ đếm Pomodoro"
+  },
+  "appName": {
+    "message": "Site Blocker"
+  },
+  "settingsTitle": {
+    "message": "Cài đặt Site Blocker"
+  },
+  "setupSubtitle": {
+    "message": "Thiết lập mật khẩu chính để bắt đầu."
+  },
+  "settingsSubtitle": {
+    "message": "Quản lý lịch tập trung và danh sách trang bị chặn."
+  },
+  "wrongPassword": {
+    "message": "Sai mật khẩu"
+  },
+  "blockingUnlockBanner": {
+    "message": "Đang chặn. Nhập mật khẩu để chỉnh sửa danh sách chặn."
+  },
+  "passwordPlaceholder": {
+    "message": "Mật khẩu"
+  },
+  "unlocking": {
+    "message": "Đang mở khóa…"
+  },
+  "unlock": {
+    "message": "Mở khóa"
+  },
+  "tabSchedule": {
+    "message": "Lịch"
+  },
+  "tabBlockedSites": {
+    "message": "Trang bị chặn"
+  },
+  "tabSettings": {
+    "message": "Cài đặt"
+  },
+  "ariaSettingsSections": {
+    "message": "Các mục cài đặt"
+  },
+  "appearanceTitle": {
+    "message": "Giao diện"
+  },
+  "appearanceIntro": {
+    "message": "Chọn giao diện Site Blocker trong popup, cài đặt và trang chặn."
+  },
+  "languageTitle": {
+    "message": "Ngôn ngữ"
+  },
+  "languageIntro": {
+    "message": "Mặc định theo trình duyệt. Chọn cố định nếu bạn muốn một ngôn ngữ riêng."
+  },
+  "languageSystem": {
+    "message": "Hệ thống"
+  },
+  "languageSystemHint": {
+    "message": "Theo ngôn ngữ trình duyệt (tiếng Anh nếu chưa hỗ trợ)"
+  },
+  "languageEnglish": {
+    "message": "Tiếng Anh"
+  },
+  "languageEnglishHint": {
+    "message": "Luôn hiển thị tiếng Anh"
+  },
+  "languageVietnamese": {
+    "message": "Tiếng Việt"
+  },
+  "languageVietnameseHint": {
+    "message": "Luôn hiển thị tiếng Việt"
+  },
+  "ariaLanguage": {
+    "message": "Tùy chọn ngôn ngữ"
+  },
+  "themeSystem": {
+    "message": "Hệ thống"
+  },
+  "themeSystemHint": {
+    "message": "Theo chế độ sáng/tối của hệ điều hành"
+  },
+  "themeLight": {
+    "message": "Sáng"
+  },
+  "themeLightHint": {
+    "message": "Bảng màu Soft Sand"
+  },
+  "themeDark": {
+    "message": "Tối"
+  },
+  "themeDarkHint": {
+    "message": "Bảng màu than ấm"
+  },
+  "ariaTheme": {
+    "message": "Giao diện"
+  },
+  "masterPasswordTitle": {
+    "message": "Mật khẩu chính"
+  },
+  "masterPasswordIntro": {
+    "message": "Bảo vệ bỏ chặn, chỉnh lịch trong giờ chặn và tên trang ẩn."
+  },
+  "unlockToChangePassword": {
+    "message": "Mở khóa ở trên để đổi mật khẩu."
+  },
+  "newPassword": {
+    "message": "Mật khẩu mới"
+  },
+  "password": {
+    "message": "Mật khẩu"
+  },
+  "confirmPassword": {
+    "message": "Xác nhận mật khẩu"
+  },
+  "strengthWeak": {
+    "message": "Yếu"
+  },
+  "strengthFair": {
+    "message": "Trung bình"
+  },
+  "strengthGood": {
+    "message": "Khá"
+  },
+  "strengthStrong": {
+    "message": "Mạnh"
+  },
+  "strengthFormat": {
+    "message": "Độ mạnh: $1$ ($2$/4)",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Strong"
+      },
+      "2": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "savePassword": {
+    "message": "Lưu mật khẩu"
+  },
+  "passwordSaved": {
+    "message": "Đã lưu mật khẩu."
+  },
+  "passwordsDoNotMatch": {
+    "message": "Mật khẩu không khớp"
+  },
+  "whenToBlock": {
+    "message": "Thời gian chặn"
+  },
+  "loading": {
+    "message": "Đang tải…"
+  },
+  "presetStartFrom": {
+    "message": "Bắt đầu từ mẫu có sẵn"
+  },
+  "presetHint": {
+    "message": "Chọn mẫu sẽ thay thế khung giờ hiện tại. Chỉnh bên dưới rồi lưu."
+  },
+  "addWindow": {
+    "message": "+ Thêm khung giờ"
+  },
+  "saveSchedule": {
+    "message": "Lưu lịch"
+  },
+  "scheduleSaved": {
+    "message": "Đã lưu lịch."
+  },
+  "loadScheduleError": {
+    "message": "Không tải được lịch."
+  },
+  "saveScheduleError": {
+    "message": "Lưu lịch thất bại. Thử lại."
+  },
+  "ariaToggleDay": {
+    "message": "Bật/tắt ngày $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Monday"
+      }
+    }
+  },
+  "ariaRemoveWindow": {
+    "message": "Xóa khung giờ"
+  },
+  "preset_office_hours_label": {
+    "message": "Giờ hành chính"
+  },
+  "preset_office_hours_desc": {
+    "message": "T2–T6 8–12, 13:30–17"
+  },
+  "preset_full_workday_label": {
+    "message": "Cả ngày làm việc"
+  },
+  "preset_full_workday_desc": {
+    "message": "T2–T6 8–17"
+  },
+  "preset_evenings_label": {
+    "message": "Buổi tối"
+  },
+  "preset_evenings_desc": {
+    "message": "T2–T6 18–22"
+  },
+  "preset_weekends_label": {
+    "message": "Cuối tuần"
+  },
+  "preset_weekends_desc": {
+    "message": "T7–CN 8–22"
+  },
+  "preset_all_day_weekdays_label": {
+    "message": "Cả ngày (ngày thường)"
+  },
+  "preset_all_day_weekdays_desc": {
+    "message": "T2–T6 cả ngày"
+  },
+  "preset_always_on_label": {
+    "message": "Luôn bật"
+  },
+  "preset_always_on_desc": {
+    "message": "Mọi ngày, cả ngày"
+  },
+  "blockedSitesTitle": {
+    "message": "Trang bị chặn"
+  },
+  "blocklistLockedHint": {
+    "message": "Danh sách chặn bị khóa khi lịch đang hoạt động. Nhập mật khẩu ở trên để thêm hoặc xóa trang."
+  },
+  "loadingBlocklist": {
+    "message": "Đang tải danh sách chặn…"
+  },
+  "loadBlocklistError": {
+    "message": "Không tải được danh sách chặn."
+  },
+  "noSitesBlocked": {
+    "message": "Chưa chặn trang nào."
+  },
+  "paused": {
+    "message": "Tạm dừng"
+  },
+  "ariaBlockingEnabledFor": {
+    "message": "Bật chặn cho $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "ariaRemoveItem": {
+    "message": "Xóa $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "addSite": {
+    "message": "Thêm trang"
+  },
+  "addSitePlaceholder": {
+    "message": "youtube.com hoặc youtube.com/shorts/*"
+  },
+  "addToHidden": {
+    "message": "Thêm vào danh sách ẩn (tên ẩn trong cài đặt)"
+  },
+  "addUnlockRequired": {
+    "message": "Thêm (cần mở khóa)"
+  },
+  "unlockToEditBlocklist": {
+    "message": "Mở khóa bằng mật khẩu ở trên để chỉnh danh sách chặn."
+  },
+  "enterDomainError": {
+    "message": "Nhập tên miền hoặc đường dẫn (vd. youtube.com/shorts/*)."
+  },
+  "alreadyOnList": {
+    "message": "$1$ đã có trong danh sách.",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "saveBlocklistError": {
+    "message": "Lưu danh sách chặn thất bại. Thử lại."
+  },
+  "savedReloadExtension": {
+    "message": "Đã lưu. Nếu trang chưa bị chặn, tải lại extension tại brave://extensions."
+  },
+  "savedRulesRefresh": {
+    "message": "Đã lưu. Quy tắc chặn sẽ cập nhật trong 1 phút."
+  },
+  "updateBlocklistError": {
+    "message": "Cập nhật danh sách chặn thất bại. Thử lại."
+  },
+  "urlKeywordsTitle": {
+    "message": "Từ khóa URL"
+  },
+  "urlKeywordsHint": {
+    "message": "Chặn mọi trang có chứa chuỗi này trong URL (đường dẫn, query, v.v.)."
+  },
+  "keywordsLockedHint": {
+    "message": "Từ khóa bị khóa khi lịch đang hoạt động. Nhập mật khẩu ở trên để chỉnh."
+  },
+  "noKeywords": {
+    "message": "Chưa có từ khóa URL."
+  },
+  "keywordTag": {
+    "message": "Từ khóa"
+  },
+  "addKeyword": {
+    "message": "Thêm từ khóa"
+  },
+  "addKeywordPlaceholder": {
+    "message": "shorts, /reels/, gambling"
+  },
+  "enterKeywordError": {
+    "message": "Nhập chuỗi khớp trong URL (vd. shorts hoặc /reels/)."
+  },
+  "keywordAlreadyOnList": {
+    "message": "\"$1$\" đã có trong danh sách từ khóa.",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "news"
+      }
+    }
+  },
+  "saveKeywordError": {
+    "message": "Lưu từ khóa thất bại. Thử lại."
+  },
+  "savedReloadUrls": {
+    "message": "Đã lưu. Nếu URL chưa bị chặn, tải lại extension tại brave://extensions."
+  },
+  "hiddenSitesTitle": {
+    "message": "Trang ẩn"
+  },
+  "hiddenSitesHint": {
+    "message": "Thêm trang ẩn bằng checkbox ở trên. Tên sẽ ẩn cho đến khi bạn nhập mật khẩu."
+  },
+  "hiddenKeywordsTitle": {
+    "message": "Từ khóa ẩn"
+  },
+  "hiddenKeywordsHint": {
+    "message": "Thêm từ khóa ẩn bằng checkbox ở trên. Tên sẽ ẩn cho đến khi bạn nhập mật khẩu."
+  },
+  "hiddenCountNoneSites": {
+    "message": "Chưa có trang ẩn."
+  },
+  "hiddenCountOneSite": {
+    "message": "1 trang ẩn"
+  },
+  "hiddenCountSites": {
+    "message": "$1$ trang ẩn",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "hiddenCountNoneKeywords": {
+    "message": "Chưa có từ khóa ẩn."
+  },
+  "hiddenCountOneKeyword": {
+    "message": "1 từ khóa ẩn"
+  },
+  "hiddenCountKeywords": {
+    "message": "$1$ từ khóa ẩn",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "revealPasswordSites": {
+    "message": "Mật khẩu để hiện trang ẩn"
+  },
+  "revealPasswordKeywords": {
+    "message": "Mật khẩu để hiện từ khóa ẩn"
+  },
+  "showHiddenSites": {
+    "message": "Hiện trang ẩn"
+  },
+  "showHiddenKeywords": {
+    "message": "Hiện từ khóa ẩn"
+  },
+  "checking": {
+    "message": "Đang kiểm tra…"
+  },
+  "loadHiddenError": {
+    "message": "Không tải được danh sách ẩn."
+  },
+  "decryptHiddenError": {
+    "message": "Không giải mã được mục ẩn. Kiểm tra mật khẩu."
+  },
+  "setPasswordFirst": {
+    "message": "Hãy đặt mật khẩu chính trong Cài đặt trước."
+  },
+  "showingHiddenCount": {
+    "message": "Đang hiện $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "hideAgain": {
+    "message": "Ẩn lại"
+  },
+  "showToRemove": {
+    "message": "Hiện danh sách ẩn bằng mật khẩu để xóa mục."
+  },
+  "showToChange": {
+    "message": "Hiện danh sách ẩn bằng mật khẩu để chỉnh mục."
+  },
+  "unlockToEditDuringSchedule": {
+    "message": "Mở khóa danh sách chặn ở trên để chỉnh trong giờ chặn."
+  },
+  "updateHiddenError": {
+    "message": "Cập nhật danh sách ẩn thất bại."
+  },
+  "updateHiddenEntryError": {
+    "message": "Cập nhật mục ẩn thất bại."
+  },
+  "blockingOn": {
+    "message": "Đang chặn"
+  },
+  "blockingOff": {
+    "message": "Không chặn"
+  },
+  "ariaPopupSections": {
+    "message": "Các mục popup"
+  },
+  "tabBlock": {
+    "message": "Chặn"
+  },
+  "tabFocus": {
+    "message": "Tập trung"
+  },
+  "tabTimer": {
+    "message": "Hẹn giờ"
+  },
+  "phaseFocus": {
+    "message": "Tập trung"
+  },
+  "phaseRest": {
+    "message": "Nghỉ"
+  },
+  "pausedSuffix": {
+    "message": " (tạm dừng)"
+  },
+  "timerTimesUp": {
+    "message": "Hẹn giờ — hết thời gian"
+  },
+  "openFocus": {
+    "message": "Mở Tập trung →"
+  },
+  "openTimer": {
+    "message": "Mở Hẹn giờ →"
+  },
+  "openSettings": {
+    "message": "Mở cài đặt →"
+  },
+  "thisPage": {
+    "message": "Trang này"
+  },
+  "loadingTab": {
+    "message": "Đang tải tab…"
+  },
+  "openWebsiteTab": {
+    "message": "Mở tab trang web để chặn từ đây."
+  },
+  "blocked": {
+    "message": "Đã chặn"
+  },
+  "onList": {
+    "message": "Trong danh sách"
+  },
+  "onListPaused": {
+    "message": "Trong danh sách (tạm dừng):"
+  },
+  "notOnBlocklist": {
+    "message": "Không có trong danh sách chặn"
+  },
+  "blockingEnabled": {
+    "message": "Bật chặn"
+  },
+  "blockPattern": {
+    "message": "Chặn $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "enterPasswordToEdit": {
+    "message": "Nhập mật khẩu để chỉnh danh sách chặn."
+  },
+  "actionFailed": {
+    "message": "Thao tác thất bại. Thử lại."
+  },
+  "startFocus": {
+    "message": "Bắt đầu tập trung"
+  },
+  "preset": {
+    "message": "Mẫu"
+  },
+  "work": {
+    "message": "Làm việc"
+  },
+  "rest": {
+    "message": "Nghỉ"
+  },
+  "ariaDecreaseWork": {
+    "message": "Giảm thời gian làm việc"
+  },
+  "ariaIncreaseWork": {
+    "message": "Tăng thời gian làm việc"
+  },
+  "ariaWorkMinutes": {
+    "message": "Phút làm việc"
+  },
+  "ariaDecreaseRest": {
+    "message": "Giảm thời gian nghỉ"
+  },
+  "ariaIncreaseRest": {
+    "message": "Tăng thời gian nghỉ"
+  },
+  "ariaRestMinutes": {
+    "message": "Phút nghỉ"
+  },
+  "pausedDash": {
+    "message": "Tạm dừng —"
+  },
+  "workSession": {
+    "message": "Phiên làm việc"
+  },
+  "restBreak": {
+    "message": "Giờ nghỉ"
+  },
+  "resume": {
+    "message": "Tiếp tục"
+  },
+  "pause": {
+    "message": "Tạm dừng"
+  },
+  "endSession": {
+    "message": "Kết thúc phiên"
+  },
+  "pomodoro_preset_classic": {
+    "message": "Cổ điển"
+  },
+  "pomodoro_preset_deep": {
+    "message": "Sâu"
+  },
+  "timesUp": {
+    "message": "Hết thời gian"
+  },
+  "tapToEdit": {
+    "message": "Chạm để chỉnh thời gian"
+  },
+  "countingDown": {
+    "message": "Đang đếm ngược"
+  },
+  "startTimer": {
+    "message": "Bắt đầu hẹn giờ"
+  },
+  "stopAlertHint": {
+    "message": "Chạm thông báo để tắt cảnh báo."
+  },
+  "stopAlert": {
+    "message": "Tắt cảnh báo"
+  },
+  "reset": {
+    "message": "Đặt lại"
+  },
+  "sound": {
+    "message": "Âm thanh"
+  },
+  "ariaEditDuration": {
+    "message": "Chỉnh thời lượng hẹn giờ"
+  },
+  "ariaHours": {
+    "message": "Giờ"
+  },
+  "ariaMinutes": {
+    "message": "Phút"
+  },
+  "ariaSeconds": {
+    "message": "Giây"
+  },
+  "timerNotificationTitle": {
+    "message": "Hết thời gian"
+  },
+  "timerNotificationMessage": {
+    "message": "Chạm để tắt cảnh báo, rồi đặt lại hẹn giờ."
+  },
+  "pomodoroBackToWorkTitle": {
+    "message": "Quay lại làm việc"
+  },
+  "pomodoroRestTitle": {
+    "message": "Đến giờ nghỉ"
+  },
+  "pomodoroWorkStartedMessage": {
+    "message": "Bắt đầu phiên làm việc."
+  },
+  "pomodoroRestStartedMessage": {
+    "message": "Nghỉ ngắn một chút."
+  },
+  "patternBlocked": {
+    "message": "$1$ đã bị chặn",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "hostnameBlocked": {
+    "message": "$1$ đã bị chặn",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "siteBlocked": {
+    "message": "Trang này đã bị chặn"
+  },
+  "blockedSubtext": {
+    "message": "Lịch của bạn đang hoạt động. Bạn đã chọn chặn trang này."
+  },
+  "step1": {
+    "message": "Bước 1"
+  },
+  "step2": {
+    "message": "Bước 2"
+  },
+  "waitPeriod": {
+    "message": "Thời gian chờ"
+  },
+  "authentication": {
+    "message": "Xác thực"
+  },
+  "stillNeedAccess": {
+    "message": "Tôi vẫn cần truy cập"
+  },
+  "wait30Seconds": {
+    "message": "Chờ 30 giây trước khi bỏ chặn."
+  },
+  "waitCountdown": {
+    "message": "Chờ $1$ giây trước khi bỏ chặn…",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "waitComplete": {
+    "message": "Đã chờ xong."
+  },
+  "masterPasswordLabel": {
+    "message": "Mật khẩu chính"
+  },
+  "unblockPattern": {
+    "message": "Bỏ chặn $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "unblockTemporarily": {
+    "message": "Bỏ chặn tạm thời"
+  },
+  "blockingResumes": {
+    "message": "Chặn sẽ tự bật lại."
+  },
+  "enterUrlError": {
+    "message": "Nhập URL để bỏ chặn"
+  },
+  "ruleUnknownError": {
+    "message": "Không xác định được quy tắc đã chặn trang này."
+  },
+  "noPasswordSet": {
+    "message": "Chưa đặt mật khẩu. Đặt trong cài đặt extension."
+  },
+  "temporarily": {
+    "message": "tạm thời"
+  }
+}

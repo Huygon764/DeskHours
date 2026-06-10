@@ -1,14 +1,18 @@
 <script lang="ts">
   import PasswordSetup from './PasswordSetup.svelte';
   import ThemeSettings from './ThemeSettings.svelte';
+  import LanguageSettings from './LanguageSettings.svelte';
   import ScheduleEditor from './ScheduleEditor.svelte';
   import BlocklistEditor from './BlocklistEditor.svelte';
   import { authItem, scheduleItem } from '@/lib/storage';
   import { verifyPassword, deriveKey } from '@/lib/crypto';
   import { isBlockingActive } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
+  import { t, watchLocale } from '@/lib/i18n';
 
   type Tab = 'schedule' | 'sites' | 'settings';
+
+  let localeRevision = $state(0);
 
   let hasPassword = $state(false);
   let blockingNow = $state(false);
@@ -23,6 +27,8 @@
     const id = setInterval(() => void refreshBlocking(), 15_000);
     return () => clearInterval(id);
   });
+
+  $effect(() => watchLocale(() => localeRevision++));
 
   async function init() {
     hasPassword = (await authItem.getValue()) != null;
@@ -43,7 +49,7 @@
       const auth = await authItem.getValue();
       if (!auth) return;
       if (!(await verifyPassword(pw, auth))) {
-        unlockError = 'Wrong password';
+        unlockError = t('wrongPassword');
         return;
       }
       await deriveKey(pw, auth.salt);
@@ -57,41 +63,42 @@
 </script>
 
 <div class="page">
+  {#key localeRevision}
   <div class="page-inner">
     {#if !hasPassword}
       <header class="page-header">
-        <h1 class="text-headline-lg">Site Blocker</h1>
-        <p class="text-body-muted">Set up your master password to get started.</p>
+        <h1 class="text-headline-lg">{t('appName')}</h1>
+        <p class="text-body-muted">{t('setupSubtitle')}</p>
       </header>
       <PasswordSetup onset={init} />
     {:else}
       <header class="page-header">
-        <h1 class="text-headline-lg">Site Blocker settings</h1>
-        <p class="text-body-muted">Manage your focus schedule and blocked sites.</p>
+        <h1 class="text-headline-lg">{t('settingsTitle')}</h1>
+        <p class="text-body-muted">{t('settingsSubtitle')}</p>
       </header>
 
       {#if showUnlockBanner}
         <div class="banner-lock">
-          <p>Blocking is active. Enter your password to edit the blocklist.</p>
+          <p>{t('blockingUnlockBanner')}</p>
           <div class="banner-lock-actions">
-            <input class="input" type="password" bind:value={pw} placeholder="Password" />
+            <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
             <button class="btn btn-primary btn-sm" onclick={unlock} disabled={unlocking}>
-              {unlocking ? 'Unlocking…' : 'Unlock'}
+              {unlocking ? t('unlocking') : t('unlock')}
             </button>
           </div>
           {#if unlockError}<p class="msg-error banner-error">{unlockError}</p>{/if}
         </div>
       {/if}
 
-      <nav class="tabs" aria-label="Settings sections">
+      <nav class="tabs" aria-label={t('ariaSettingsSections')}>
         <button class="tab" class:active={activeTab === 'schedule'} onclick={() => (activeTab = 'schedule')}>
-          Schedule
+          {t('tabSchedule')}
         </button>
         <button class="tab" class:active={activeTab === 'sites'} onclick={() => (activeTab = 'sites')}>
-          Blocked sites
+          {t('tabBlockedSites')}
         </button>
         <button class="tab" class:active={activeTab === 'settings'} onclick={() => (activeTab = 'settings')}>
-          Settings
+          {t('tabSettings')}
         </button>
       </nav>
 
@@ -100,11 +107,13 @@
       {:else if activeTab === 'sites'}
         <BlocklistEditor {locked} />
       {:else}
+        <LanguageSettings />
         <ThemeSettings />
         <PasswordSetup readonly={locked} />
       {/if}
     {/if}
   </div>
+  {/key}
 </div>
 
 <style>

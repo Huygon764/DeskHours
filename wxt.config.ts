@@ -5,6 +5,7 @@ export default defineConfig({
   manifest: {
     name: 'Site Blocker',
     description: 'Block distracting sites on a schedule, with a Pomodoro timer',
+    default_locale: 'en',
     permissions: [
       'storage',
       'alarms',

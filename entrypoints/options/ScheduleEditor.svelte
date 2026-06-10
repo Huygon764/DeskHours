@@ -9,6 +9,7 @@
     SCHEDULE_PRESETS,
     type SchedulePreset,
   } from '@/lib/schedule';
+  import { presetDescription, presetLabel, t } from '@/lib/i18n';
 
   let { locked = false, onsaved = () => {} }: { locked?: boolean; onsaved?: () => void } = $props();
 
@@ -26,7 +27,7 @@
       windows = cloneSchedule(await scheduleItem.getValue());
     } catch (err) {
       console.error('load schedule failed:', err);
-      saveError = 'Could not load schedule.';
+      saveError = t('loadScheduleError');
     } finally {
       loaded = true;
     }
@@ -61,21 +62,21 @@
       saved = true;
       setTimeout(() => (saved = false), 3000);
     } catch {
-      saveError = 'Failed to save schedule. Try again.';
+      saveError = t('saveScheduleError');
     }
   }
 </script>
 
 <section class="card schedule-card">
   <div class="card-header">
-    <h2 class="text-headline-md">When to block</h2>
+    <h2 class="text-headline-md">{t('whenToBlock')}</h2>
   </div>
 
   {#if !loaded}
-    <p class="msg-muted">Loading…</p>
+    <p class="msg-muted">{t('loading')}</p>
   {:else}
     <div class="presets">
-      <p class="text-label presets-label">Start from a preset</p>
+      <p class="text-label presets-label">{t('presetStartFrom')}</p>
       <div class="preset-grid">
         {#each SCHEDULE_PRESETS as preset (preset.id)}
           <button
@@ -85,12 +86,12 @@
             disabled={locked}
             onclick={() => applyPreset(preset)}
           >
-            <span class="preset-name">{preset.label}</span>
-            <span class="preset-desc">{preset.description}</span>
+            <span class="preset-name">{presetLabel(preset.id)}</span>
+            <span class="preset-desc">{presetDescription(preset.id)}</span>
           </button>
         {/each}
       </div>
-      <p class="text-body-muted presets-hint">Choosing a preset replaces your current windows. Tweak below, then save.</p>
+      <p class="text-body-muted presets-hint">{t('presetHint')}</p>
     </div>
 
     {#each windows as w, i}
@@ -103,7 +104,7 @@
               class:selected={w.days.includes(day)}
               disabled={locked}
               onclick={() => toggleDay(i, day)}
-              aria-label="Toggle day {day}"
+              aria-label={t('ariaToggleDay', String(day))}
             >
               {DAYS[di]}
             </button>
@@ -121,8 +122,8 @@
             class="btn-icon"
             onclick={() => removeWindow(i)}
             disabled={locked}
-            aria-label="Remove window"
-            title="Remove window"
+            aria-label={t('ariaRemoveWindow')}
+            title={t('ariaRemoveWindow')}
           >
             &#x2715;
           </button>
@@ -131,11 +132,11 @@
     {/each}
 
     <div class="actions">
-      <button type="button" class="btn btn-outline" onclick={addWindow} disabled={locked}>+ Add window</button>
-      <button type="button" class="btn btn-primary" onclick={save} disabled={locked}>Save schedule</button>
+      <button type="button" class="btn btn-outline" onclick={addWindow} disabled={locked}>{t('addWindow')}</button>
+      <button type="button" class="btn btn-primary" onclick={save} disabled={locked}>{t('saveSchedule')}</button>
     </div>
 
-    {#if saved}<p class="msg-success">Schedule saved.</p>{/if}
+    {#if saved}<p class="msg-success">{t('scheduleSaved')}</p>{/if}
     {#if saveError}<p class="msg-error">{saveError}</p>{/if}
   {/if}
 </section>

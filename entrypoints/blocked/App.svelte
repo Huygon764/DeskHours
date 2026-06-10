@@ -5,6 +5,7 @@
   import { cloneBlocklist, entryToBlockPattern, normalizeEntry } from '@/lib/blocklist';
   import { BLOCKED_URL_PARAM } from '@/lib/keyword-navigation';
   import { findMatchingPattern } from '@/lib/pattern-match';
+  import { t, watchLocale } from '@/lib/i18n';
 
   function initialBlockedUrl(): string {
     try {
@@ -27,20 +28,24 @@
   let password = $state('');
   let error = $state('');
   let busy = $state(false);
+  let localeRevision = $state(0);
 
   const WAIT_SECONDS = 30;
 
   const headline = $derived.by(() => {
-    if (blockPattern) return `${blockPattern} is blocked`;
+    void localeRevision;
+    if (blockPattern) return t('patternBlocked', blockPattern);
     if (pageUrl) {
       try {
-        return `${new URL(pageUrl).hostname} is blocked`;
+        return t('hostnameBlocked', new URL(pageUrl).hostname);
       } catch {
-        return 'This site is blocked';
+        return t('siteBlocked');
       }
     }
-    return 'This site is blocked';
+    return t('siteBlocked');
   });
+
+  $effect(() => watchLocale(() => localeRevision++));
 
   $effect(() => {
     void resolvePattern();
@@ -65,23 +70,23 @@
   async function submit() {
     error = '';
     if (!pageUrl) {
-      error = 'Enter the URL to unblock';
+      error = t('enterUrlError');
       return;
     }
     if (!blockPattern) {
-      error = 'Could not determine which rule blocked this page.';
+      error = t('ruleUnknownError');
       return;
     }
     busy = true;
     try {
       const auth = await authItem.getValue();
       if (!auth) {
-        error = 'No password set. Set one in extension options.';
+        error = t('noPasswordSet');
         return;
       }
       const ok = await verifyPassword(password, auth);
       if (!ok) {
-        error = 'Wrong password';
+        error = t('wrongPassword');
         return;
       }
       await sendBg({ type: BG_MESSAGE.GRANT_UNBLOCK, pattern: blockPattern });
@@ -93,6 +98,7 @@
 </script>
 
 <div class="page">
+  {#key localeRevision}
   <div class="intercept-card">
     <div class="hero">
       <div class="shield-circle" aria-hidden="true">&#x1F6E1;</div>
@@ -101,45 +107,45 @@
     <div class="content">
       <h1 class="headline">{headline}</h1>
       <p class="text-body-muted subtext">
-        Your schedule is active. You chose to block this site.
+        {t('blockedSubtext')}
       </p>
 
       <div class="steps">
         <div class="step" class:step-done={confirmed}>
           <div class="step-header">
-            <span class="text-label">Step 1</span>
-            <span class="step-tag">Wait period</span>
+            <span class="text-label">{t('step1')}</span>
+            <span class="step-tag">{t('waitPeriod')}</span>
           </div>
           {#if !confirmed}
             <button type="button" class="btn btn-outline btn-block" onclick={startCountdown}>
-              I still need access
+              {t('stillNeedAccess')}
             </button>
-            <p class="step-hint">Wait 30 seconds before unblocking.</p>
+            <p class="step-hint">{t('wait30Seconds')}</p>
           {:else if countdown > 0}
-            <p class="countdown">Wait {countdown}s before you can unblock…</p>
+            <p class="countdown">{t('waitCountdown', String(countdown))}</p>
           {:else}
-            <p class="step-hint done">Wait complete.</p>
+            <p class="step-hint done">{t('waitComplete')}</p>
           {/if}
         </div>
 
         <div class="step" class:step-active={confirmed && countdown <= 0} class:step-disabled={!confirmed || countdown > 0}>
           <div class="step-header">
-            <span class="text-label">Step 2</span>
-            <span class="step-tag">Authentication</span>
+            <span class="text-label">{t('step2')}</span>
+            <span class="step-tag">{t('authentication')}</span>
           </div>
           {#if confirmed && countdown <= 0}
             <div class="field">
-              <label class="field-label" for="unblock-pw">Master password</label>
+              <label class="field-label" for="unblock-pw">{t('masterPasswordLabel')}</label>
               <input id="unblock-pw" class="input" type="password" bind:value={password} />
             </div>
             <button type="button" class="btn btn-primary btn-block" onclick={submit} disabled={busy}>
-              Unblock {blockPattern || 'temporarily'}
+              {t('unblockPattern', blockPattern || t('temporarily'))}
             </button>
-            <p class="step-hint italic">Blocking resumes automatically.</p>
+            <p class="step-hint italic">{t('blockingResumes')}</p>
           {:else}
-            <input class="input" type="password" disabled placeholder="Master password" />
-            <button type="button" class="btn btn-primary btn-block" disabled>Unblock temporarily</button>
-            <p class="step-hint italic">Blocking resumes automatically.</p>
+            <input class="input" type="password" disabled placeholder={t('masterPasswordLabel')} />
+            <button type="button" class="btn btn-primary btn-block" disabled>{t('unblockTemporarily')}</button>
+            <p class="step-hint italic">{t('blockingResumes')}</p>
           {/if}
         </div>
       </div>
@@ -147,6 +153,7 @@
       {#if error}<p class="msg-error">{error}</p>{/if}
     </div>
   </div>
+  {/key}
 </div>
 
 <style>

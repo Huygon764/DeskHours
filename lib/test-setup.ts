@@ -1,7 +1,24 @@
 import { vi } from 'vitest';
 import type { RedirectRule } from './dnr-rules';
+import enMessages from '../public/_locales/en/messages.json';
 
 let dynamicRules: RedirectRule[] = [];
+
+function translateMessage(name: string, substitutions?: string | string[]): string {
+  const entry = enMessages[name as keyof typeof enMessages];
+  if (!entry?.message) return name;
+  let msg = entry.message;
+  const subs = substitutions == null ? [] : Array.isArray(substitutions) ? substitutions : [substitutions];
+  subs.forEach((sub, i) => {
+    msg = msg.replace(`$${i + 1}$`, sub);
+  });
+  return msg;
+}
+
+/** Stub chrome.i18n for tests; call after fakeBrowser.reset(). */
+export function setupI18nMock(): void {
+  vi.spyOn(browser.i18n, 'getMessage').mockImplementation(translateMessage);
+}
 
 /** In-memory DNR mock; call after fakeBrowser.reset() in each test file. */
 export function setupDnrMock(): void {

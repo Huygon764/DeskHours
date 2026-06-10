@@ -7,14 +7,19 @@
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
+  import { t, watchLocale } from '@/lib/i18n';
 
   type PopupTab = 'block' | 'focus' | 'timer';
+
+  let localeRevision = $state(0);
 
   let activeTab = $state<PopupTab>('block');
   let pomodoroState = $state<PomodoroState | null>(null);
   let countdownState = $state<CountdownTimerState | null>(null);
   let now = $state(Date.now());
   let blockingNow = $state(false);
+
+  $effect(() => watchLocale(() => localeRevision++));
 
   $effect(() => {
     const unwatchPomodoro = pomodoroItem.watch((v) => {
@@ -47,19 +52,21 @@
   const countdownLive = $derived(countdownRunning || countdownDone);
 
   const focusLabel = $derived.by(() => {
+    void localeRevision;
     if (!pomodoroState || pomodoroState.phase === 'idle') return '';
     const total = displaySecondsFromMs(remainingMs(pomodoroState, now));
     const m = String(Math.floor(total / 60)).padStart(2, '0');
     const s = String(total % 60).padStart(2, '0');
-    const phase = pomodoroState.phase === 'work' ? 'Focus' : 'Rest';
-    const suffix = isPaused(pomodoroState) ? ' (paused)' : '';
+    const phase = pomodoroState.phase === 'work' ? t('phaseFocus') : t('phaseRest');
+    const suffix = isPaused(pomodoroState) ? t('pausedSuffix') : '';
     return `${phase} ${m}:${s}${suffix}`;
   });
 
   const countdownLabel = $derived.by(() => {
+    void localeRevision;
     if (!countdownState || !isTimerRunning(countdownState)) return '';
-    const suffix = countdownState.pausedRemainingMs != null ? ' (paused)' : '';
-    return `Timer ${formatHhMmSs(displaySecondsFromMs(timerRemainingMs(countdownState, now)))}${suffix}`;
+    const suffix = countdownState.pausedRemainingMs != null ? t('pausedSuffix') : '';
+    return `${t('tabTimer')} ${formatHhMmSs(displaySecondsFromMs(timerRemainingMs(countdownState, now)))}${suffix}`;
   });
 
   function openOptions() {
@@ -68,26 +75,27 @@
 </script>
 
 <div class="popup">
+  {#key localeRevision}
   <header class="popup-header">
     <div class="brand">
       <span class="shield" aria-hidden="true">&#x1F6E1;</span>
-      <span class="brand-name">Site Blocker</span>
+      <span class="brand-name">{t('appName')}</span>
     </div>
     {#if blockingNow}
-      <span class="badge badge-on">Blocking on</span>
+      <span class="badge badge-on">{t('blockingOn')}</span>
     {:else}
-      <span class="badge badge-off">Blocking off</span>
+      <span class="badge badge-off">{t('blockingOff')}</span>
     {/if}
   </header>
 
-  <nav class="popup-tabs" aria-label="Popup sections">
+  <nav class="popup-tabs" aria-label={t('ariaPopupSections')}>
     <button
       type="button"
       class="tab"
       class:active={activeTab === 'block'}
       onclick={() => (activeTab = 'block')}
     >
-      Block
+      {t('tabBlock')}
     </button>
     <button
       type="button"
@@ -95,7 +103,7 @@
       class:active={activeTab === 'focus'}
       onclick={() => (activeTab = 'focus')}
     >
-      Focus
+      {t('tabFocus')}
       {#if focusRunning}<span class="tab-live" aria-hidden="true"></span>{/if}
     </button>
     <button
@@ -104,7 +112,7 @@
       class:active={activeTab === 'timer'}
       onclick={() => (activeTab = 'timer')}
     >
-      Timer
+      {t('tabTimer')}
       {#if countdownLive}<span class="tab-live" aria-hidden="true"></span>{/if}
     </button>
   </nav>
@@ -124,26 +132,27 @@
       {#if focusRunning}
         <div class="timer-hint">
           <span class="text-label">{focusLabel}</span>
-          <button type="button" class="link-btn" onclick={() => (activeTab = 'focus')}>Open Focus →</button>
+          <button type="button" class="link-btn" onclick={() => (activeTab = 'focus')}>{t('openFocus')}</button>
         </div>
       {/if}
       {#if countdownDone}
         <div class="timer-hint">
-          <span class="text-label">Timer — time's up</span>
-          <button type="button" class="link-btn" onclick={() => (activeTab = 'timer')}>Open Timer →</button>
+          <span class="text-label">{t('timerTimesUp')}</span>
+          <button type="button" class="link-btn" onclick={() => (activeTab = 'timer')}>{t('openTimer')}</button>
         </div>
       {:else if countdownRunning}
         <div class="timer-hint">
           <span class="text-label">{countdownLabel}</span>
-          <button type="button" class="link-btn" onclick={() => (activeTab = 'timer')}>Open Timer →</button>
+          <button type="button" class="link-btn" onclick={() => (activeTab = 'timer')}>{t('openTimer')}</button>
         </div>
       {/if}
     </div>
   {/if}
 
   <footer class="popup-footer">
-    <button type="button" class="link-btn" onclick={openOptions}>Open settings →</button>
+    <button type="button" class="link-btn" onclick={openOptions}>{t('openSettings')}</button>
   </footer>
+  {/key}
 </div>
 
 <style>

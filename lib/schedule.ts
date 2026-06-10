@@ -6,16 +6,12 @@ const ALL_DAYS = [1, 2, 3, 4, 5, 6, 7];
 
 export interface SchedulePreset {
   id: string;
-  label: string;
-  description: string;
   windows: ScheduleWindow[];
 }
 
 export const SCHEDULE_PRESETS: SchedulePreset[] = [
   {
     id: 'office-hours',
-    label: 'Office hours',
-    description: 'Mon–Fri 8–12, 13:30–17',
     windows: [
       { days: [...WEEKDAYS], start: '08:00', end: '12:00' },
       { days: [...WEEKDAYS], start: '13:30', end: '17:00' },
@@ -23,32 +19,22 @@ export const SCHEDULE_PRESETS: SchedulePreset[] = [
   },
   {
     id: 'full-workday',
-    label: 'Full workday',
-    description: 'Mon–Fri 8–17',
     windows: [{ days: [...WEEKDAYS], start: '08:00', end: '17:00' }],
   },
   {
     id: 'evenings',
-    label: 'Evenings',
-    description: 'Mon–Fri 18–22',
     windows: [{ days: [...WEEKDAYS], start: '18:00', end: '22:00' }],
   },
   {
     id: 'weekends',
-    label: 'Weekends',
-    description: 'Sat–Sun 8–22',
     windows: [{ days: [...WEEKENDS], start: '08:00', end: '22:00' }],
   },
   {
     id: 'all-day-weekdays',
-    label: 'All day (weekdays)',
-    description: 'Mon–Fri all day',
     windows: [{ days: [...WEEKDAYS], start: '00:00', end: '23:59' }],
   },
   {
     id: 'always-on',
-    label: 'Always on',
-    description: 'Every day, all day',
     windows: [{ days: [...ALL_DAYS], start: '00:00', end: '23:59' }],
   },
 ];

@@ -7,6 +7,7 @@
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
   import HiddenListEditor from './HiddenListEditor.svelte';
+  import { t } from '@/lib/i18n';
 
   let { locked = false }: { locked?: boolean } = $props();
 
@@ -35,7 +36,7 @@
       entries = await loadBlocklist();
     } catch (err) {
       console.error('load blocklist failed:', err);
-      loadError = 'Could not load blocklist.';
+      loadError = t('loadBlocklistError');
     } finally {
       loading = false;
     }
@@ -59,18 +60,18 @@
     addError = '';
     addNotice = '';
     if (locked) {
-      addError = 'Unlock with your password above to edit the blocklist.';
+      addError = t('unlockToEditBlocklist');
       return;
     }
     const domain = normalizePattern(newDomain);
     if (!domain) {
-      addError = 'Enter a domain or path (e.g. youtube.com/shorts/*).';
+      addError = t('enterDomainError');
       return;
     }
     try {
       const stored = await loadBlocklist();
       if (await hasBlockedPattern(stored, domain, null)) {
-        addError = `${domain} is already on the list.`;
+        addError = t('alreadyOnList', domain);
         return;
       }
 
@@ -84,11 +85,11 @@
       addAsHidden = false;
 
       if (!synced) {
-        addNotice = 'Saved. If the site is not blocked yet, reload the extension on brave://extensions.';
+        addNotice = t('savedReloadExtension');
       }
     } catch (err) {
       console.error('add blocklist entry failed:', err);
-      addError = 'Failed to save blocklist. Try again.';
+      addError = t('saveBlocklistError');
     }
   }
 
@@ -96,18 +97,18 @@
     addError = '';
     addNotice = '';
     if (locked) {
-      addError = 'Unlock with your password above to edit the blocklist.';
+      addError = t('unlockToEditBlocklist');
       return;
     }
     const keyword = normalizeKeyword(newKeyword);
     if (!keyword) {
-      addError = 'Enter text to match in URLs (e.g. shorts or /reels/).';
+      addError = t('enterKeywordError');
       return;
     }
     try {
       const stored = await loadBlocklist();
       if (await hasBlockedPattern(stored, keyword, null, 'keyword')) {
-        addError = `"${keyword}" is already on the keyword list.`;
+        addError = t('keywordAlreadyOnList', keyword);
         return;
       }
 
@@ -120,11 +121,11 @@
       newKeyword = '';
       addKeywordAsHidden = false;
       if (!synced) {
-        addNotice = 'Saved. If URLs are not blocked yet, reload the extension on brave://extensions.';
+        addNotice = t('savedReloadUrls');
       }
     } catch (err) {
       console.error('add keyword entry failed:', err);
-      addError = 'Failed to save keyword. Try again.';
+      addError = t('saveKeywordError');
     }
   }
 
@@ -134,10 +135,10 @@
     try {
       const next = cloneBlocklist(entries).filter((e) => e.id !== id);
       const synced = await persist(next);
-      if (!synced) addNotice = 'Saved. Block rules will refresh within 1 minute.';
+      if (!synced) addNotice = t('savedRulesRefresh');
     } catch (err) {
       console.error('remove blocklist entry failed:', err);
-      addError = 'Failed to update blocklist. Try again.';
+      addError = t('updateBlocklistError');
     }
   }
 
@@ -145,7 +146,7 @@
     addError = '';
     addNotice = '';
     if (locked) {
-      addError = 'Unlock with your password above to edit the blocklist.';
+      addError = t('unlockToEditBlocklist');
       return;
     }
     try {
@@ -154,24 +155,24 @@
       await syncBlockerSafe();
     } catch (err) {
       console.error('toggle blocklist entry failed:', err);
-      addError = 'Failed to update blocklist. Try again.';
+      addError = t('updateBlocklistError');
     }
   }
 </script>
 
 <section class="card">
-  <h2 class="text-headline-md section-title">Blocked sites</h2>
+  <h2 class="text-headline-md section-title">{t('blockedSitesTitle')}</h2>
 
   {#if locked}
-    <p class="hint-banner">Blocklist is locked while a schedule window is active. Enter your password above to add or remove sites.</p>
+    <p class="hint-banner">{t('blocklistLockedHint')}</p>
   {/if}
 
   {#if loading}
-    <p class="msg-muted">Loading blocklist…</p>
+    <p class="msg-muted">{t('loadingBlocklist')}</p>
   {:else if loadError}
     <p class="msg-error">{loadError}</p>
   {:else if siteEntries.length === 0}
-    <p class="empty-state">No sites blocked yet.</p>
+    <p class="empty-state">{t('noSitesBlocked')}</p>
   {:else}
     <div class="site-list">
       {#each siteEntries as e (e.id)}
@@ -179,13 +180,13 @@
           <div class="list-row-left">
             <span class="status-dot" class:dot-off={e.enabled === false}></span>
             <span class="domain">{e.domain}</span>
-            {#if e.enabled === false}<span class="tag">Paused</span>{/if}
+            {#if e.enabled === false}<span class="tag">{t('paused')}</span>{/if}
           </div>
           <div class="row-actions">
             <Toggle
               checked={e.enabled !== false}
               disabled={locked}
-              ariaLabel="Blocking enabled for {e.domain}"
+              ariaLabel={t('ariaBlockingEnabledFor', e.domain)}
               onchange={(enabled) => toggleEnabled(e.id, enabled)}
             />
             <button
@@ -193,7 +194,7 @@
               class="btn-icon"
               onclick={() => remove(e.id)}
               disabled={locked}
-              aria-label="Remove {e.domain}"
+              aria-label={t('ariaRemoveItem', e.domain)}
             >
               &#x2715;
             </button>
@@ -205,17 +206,17 @@
 
   <div class="add-form">
     <div class="field">
-      <label class="field-label" for="new-domain">Add site</label>
-      <input id="new-domain" class="input" bind:value={newDomain} placeholder="youtube.com or youtube.com/shorts/*" disabled={locked} />
+      <label class="field-label" for="new-domain">{t('addSite')}</label>
+      <input id="new-domain" class="input" bind:value={newDomain} placeholder={t('addSitePlaceholder')} disabled={locked} />
     </div>
 
     <label class="hidden-check">
       <input type="checkbox" bind:checked={addAsHidden} disabled={locked} />
-      <span>Add to hidden list (name hidden in options)</span>
+      <span>{t('addToHidden')}</span>
     </label>
 
     <button type="button" class="btn btn-primary" onclick={add} disabled={locked}>
-      {locked ? 'Add (unlock required)' : 'Add site'}
+      {locked ? t('addUnlockRequired') : t('addSite')}
     </button>
   </div>
 
@@ -224,17 +225,17 @@
 </section>
 
 <section class="card keyword-section">
-  <h2 class="text-headline-md section-title">URL keywords</h2>
-  <p class="text-body-muted section-hint">Block any page whose URL contains the text (path, query, etc.).</p>
+  <h2 class="text-headline-md section-title">{t('urlKeywordsTitle')}</h2>
+  <p class="text-body-muted section-hint">{t('urlKeywordsHint')}</p>
 
   {#if locked}
-    <p class="hint-banner">Keywords are locked while a schedule window is active. Enter your password above to edit.</p>
+    <p class="hint-banner">{t('keywordsLockedHint')}</p>
   {/if}
 
   {#if loading}
-    <p class="msg-muted">Loading…</p>
+    <p class="msg-muted">{t('loading')}</p>
   {:else if keywordEntries.length === 0}
-    <p class="empty-state">No URL keywords yet.</p>
+    <p class="empty-state">{t('noKeywords')}</p>
   {:else}
     <div class="site-list">
       {#each keywordEntries as e (e.id)}
@@ -242,14 +243,14 @@
           <div class="list-row-left">
             <span class="status-dot" class:dot-off={e.enabled === false}></span>
             <span class="domain">{e.domain}</span>
-            <span class="tag">Keyword</span>
-            {#if e.enabled === false}<span class="tag">Paused</span>{/if}
+            <span class="tag">{t('keywordTag')}</span>
+            {#if e.enabled === false}<span class="tag">{t('paused')}</span>{/if}
           </div>
           <div class="row-actions">
             <Toggle
               checked={e.enabled !== false}
               disabled={locked}
-              ariaLabel="Blocking enabled for keyword {e.domain}"
+              ariaLabel={t('ariaBlockingEnabledFor', e.domain)}
               onchange={(enabled) => toggleEnabled(e.id, enabled)}
             />
             <button
@@ -257,7 +258,7 @@
               class="btn-icon"
               onclick={() => remove(e.id)}
               disabled={locked}
-              aria-label="Remove keyword {e.domain}"
+              aria-label={t('ariaRemoveItem', e.domain)}
             >
               &#x2715;
             </button>
@@ -269,47 +270,29 @@
 
   <div class="add-form">
     <div class="field">
-      <label class="field-label" for="new-keyword">Add keyword</label>
+      <label class="field-label" for="new-keyword">{t('addKeyword')}</label>
       <input
         id="new-keyword"
         class="input"
         bind:value={newKeyword}
-        placeholder="shorts, /reels/, gambling"
+        placeholder={t('addKeywordPlaceholder')}
         disabled={locked}
       />
     </div>
     <label class="hidden-check">
       <input type="checkbox" bind:checked={addKeywordAsHidden} disabled={locked} />
-      <span>Add to hidden list (name hidden in options)</span>
+      <span>{t('addToHidden')}</span>
     </label>
 
     <button type="button" class="btn btn-primary" onclick={addKeyword} disabled={locked}>
-      {locked ? 'Add (unlock required)' : 'Add keyword'}
+      {locked ? t('addUnlockRequired') : t('addKeyword')}
     </button>
   </div>
 </section>
 
-<HiddenListEditor
-  {locked}
-  kind="site"
-  title="Hidden sites"
-  hint="Add hidden sites with the checkbox above. Names stay hidden here until you enter your password."
-  entryNoun="site"
-  entryNounPlural="sites"
-  revealPlaceholder="Password to show hidden sites"
-  showButtonLabel="Show hidden sites"
-/>
+<HiddenListEditor {locked} kind="site" />
 
-<HiddenListEditor
-  {locked}
-  kind="keyword"
-  title="Hidden keywords"
-  hint="Add hidden keywords with the checkbox above. Names stay hidden here until you enter your password."
-  entryNoun="keyword"
-  entryNounPlural="keywords"
-  revealPlaceholder="Password to show hidden keywords"
-  showButtonLabel="Show hidden keywords"
-/>
+<HiddenListEditor {locked} kind="keyword" />
 
 <style>
   .section-title {

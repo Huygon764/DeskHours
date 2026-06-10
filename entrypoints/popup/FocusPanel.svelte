@@ -4,6 +4,7 @@
   import { pausePomodoro, resumePomodoro } from '@/lib/pomodoro-controller';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
   import type { PomodoroState } from '@/lib/types';
+  import { pomodoroPresetLabel, t } from '@/lib/i18n';
 
   let state = $state<PomodoroState | null>(null);
   let now = $state(Date.now());
@@ -96,17 +97,17 @@
 </script>
 
 {#if !state}
-  <p class="msg-muted loading">Loading…</p>
+  <p class="msg-muted loading">{t('loading')}</p>
 {:else if idle}
   <div class="timer-section">
     <div class="text-timer idle-preview">{String(state.workMinutes).padStart(2, '0')}:00</div>
     <button class="btn btn-primary btn-block" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_START })}>
-      Start focus
+      {t('startFocus')}
     </button>
   </div>
 
   <div class="preset-section">
-    <span class="text-label">Preset</span>
+    <span class="text-label">{t('preset')}</span>
     <div class="presets">
       {#each POMODORO_PRESETS as preset (preset.id)}
         <button
@@ -116,7 +117,7 @@
           disabled={!idle}
           onclick={() => setDurations(preset.workMinutes, preset.restMinutes)}
         >
-          {preset.label} {preset.workMinutes}/{preset.restMinutes}
+          {pomodoroPresetLabel(preset.id)} {preset.workMinutes}/{preset.restMinutes}
         </button>
       {/each}
     </div>
@@ -124,14 +125,14 @@
 
   <div class="duration-grid">
     <div class="duration-col">
-      <span class="text-label">Work</span>
+      <span class="text-label">{t('work')}</span>
       <div class="stepper">
-        <button class="stepper-btn" onclick={() => bump('workMinutes', -1)} disabled={!idle} aria-label="Decrease work">−</button>
+        <button class="stepper-btn" onclick={() => bump('workMinutes', -1)} disabled={!idle} aria-label={t('ariaDecreaseWork')}>−</button>
         <input
           class="stepper-input"
           type="text"
           inputmode="numeric"
-          aria-label="Work minutes"
+          aria-label={t('ariaWorkMinutes')}
           value={fieldValue('workMinutes')}
           disabled={!idle}
           onfocus={(event) => startFieldEdit('workMinutes', event)}
@@ -139,18 +140,18 @@
           onblur={() => void finishFieldEdit('workMinutes')}
           onkeydown={(event) => onFieldKeydown('workMinutes', event)}
         />
-        <button class="stepper-btn" onclick={() => bump('workMinutes', 1)} disabled={!idle} aria-label="Increase work">+</button>
+        <button class="stepper-btn" onclick={() => bump('workMinutes', 1)} disabled={!idle} aria-label={t('ariaIncreaseWork')}>+</button>
       </div>
     </div>
     <div class="duration-col">
-      <span class="text-label">Rest</span>
+      <span class="text-label">{t('rest')}</span>
       <div class="stepper">
-        <button class="stepper-btn" onclick={() => bump('restMinutes', -1)} disabled={!idle} aria-label="Decrease rest">−</button>
+        <button class="stepper-btn" onclick={() => bump('restMinutes', -1)} disabled={!idle} aria-label={t('ariaDecreaseRest')}>−</button>
         <input
           class="stepper-input"
           type="text"
           inputmode="numeric"
-          aria-label="Rest minutes"
+          aria-label={t('ariaRestMinutes')}
           value={fieldValue('restMinutes')}
           disabled={!idle}
           onfocus={(event) => startFieldEdit('restMinutes', event)}
@@ -158,14 +159,14 @@
           onblur={() => void finishFieldEdit('restMinutes')}
           onkeydown={(event) => onFieldKeydown('restMinutes', event)}
         />
-        <button class="stepper-btn" onclick={() => bump('restMinutes', 1)} disabled={!idle} aria-label="Increase rest">+</button>
+        <button class="stepper-btn" onclick={() => bump('restMinutes', 1)} disabled={!idle} aria-label={t('ariaIncreaseRest')}>+</button>
       </div>
     </div>
   </div>
 {:else if running}
   <div class="timer-section">
     <p class="phase-label">
-      {#if paused}Paused — {state.phase === 'work' ? 'Work' : 'Rest'}{:else}{state.phase === 'work' ? 'Work' : 'Rest'}{/if}
+      {#if paused}{t('pausedDash')} {state.phase === 'work' ? t('work') : t('rest')}{:else}{state.phase === 'work' ? t('phaseFocus') : t('phaseRest')}{/if}
     </p>
     <div class="text-timer" class:timer-paused={paused}>{mmss}</div>
   </div>
@@ -175,21 +176,21 @@
   <div class="running-bar">
     <div class="running-meta">
       <span class="text-label">
-        {#if paused}Paused{:else}{state.phase === 'work' ? 'Work session' : 'Rest break'}{/if}
+        {#if paused}{t('paused')}{:else}{state.phase === 'work' ? t('workSession') : t('restBreak')}{/if}
       </span>
       <span class="text-timer-sm">{mmss}</span>
     </div>
     {#if paused}
       <button class="btn btn-primary btn-block" onclick={() => void resumePomodoro()}>
-        Resume
+        {t('resume')}
       </button>
     {:else}
       <button class="btn btn-outline btn-block" onclick={() => void pausePomodoro()}>
-        Pause
+        {t('pause')}
       </button>
     {/if}
     <button class="btn btn-danger-outline btn-block end-btn" onclick={() => sendBg({ type: BG_MESSAGE.POMODORO_STOP })}>
-      End session
+      {t('endSession')}
     </button>
   </div>
 {/if}

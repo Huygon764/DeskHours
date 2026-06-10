@@ -8,30 +8,34 @@
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry, BlockEntryKind } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
+  import { t } from '@/lib/i18n';
 
   let {
     locked = false,
     kind,
-    title,
-    hint,
-    entryNoun,
-    entryNounPlural,
-    revealPlaceholder,
-    showButtonLabel,
   }: {
     locked?: boolean;
     kind: BlockEntryKind;
-    title: string;
-    hint: string;
-    entryNoun: string;
-    entryNounPlural: string;
-    revealPlaceholder: string;
-    showButtonLabel: string;
   } = $props();
 
+  const title = $derived(kind === 'site' ? t('hiddenSitesTitle') : t('hiddenKeywordsTitle'));
+  const hint = $derived(kind === 'site' ? t('hiddenSitesHint') : t('hiddenKeywordsHint'));
+  const revealPlaceholder = $derived(
+    kind === 'site' ? t('revealPasswordSites') : t('revealPasswordKeywords'),
+  );
+  const showButtonLabel = $derived(
+    kind === 'site' ? t('showHiddenSites') : t('showHiddenKeywords'),
+  );
+
   function countLabel(count: number): string {
-    if (count === 0) return `No hidden ${entryNounPlural} yet.`;
-    return `${count} hidden ${count === 1 ? entryNoun : entryNounPlural}`;
+    if (kind === 'site') {
+      if (count === 0) return t('hiddenCountNoneSites');
+      if (count === 1) return t('hiddenCountOneSite');
+      return t('hiddenCountSites', String(count));
+    }
+    if (count === 0) return t('hiddenCountNoneKeywords');
+    if (count === 1) return t('hiddenCountOneKeyword');
+    return t('hiddenCountKeywords', String(count));
   }
 
   let entries = $state<BlockEntry[]>([]);
@@ -65,7 +69,7 @@
       entries = await loadBlocklist();
     } catch (err) {
       console.error('load hidden list failed:', err);
-      loadError = 'Could not load hidden list.';
+      loadError = t('loadHiddenError');
     } finally {
       loading = false;
     }
@@ -94,7 +98,7 @@
       }
     } catch (err) {
       console.error('reveal hidden list failed:', err);
-      viewError = 'Could not decrypt hidden entries. Check your password.';
+      viewError = t('decryptHiddenError');
       hideList();
     }
   }
@@ -109,11 +113,11 @@
     try {
       const auth = await authItem.getValue();
       if (!auth) {
-        viewError = 'Set a master password in Security first.';
+        viewError = t('setPasswordFirst');
         return;
       }
       if (!(await verifyPassword(viewPassword, auth))) {
-        viewError = 'Wrong password';
+        viewError = t('wrongPassword');
         return;
       }
       const key = await deriveKey(viewPassword, auth.salt);
@@ -145,17 +149,17 @@
     actionError = '';
     actionNotice = '';
     if (!listVisible) {
-      actionError = `Show hidden list with your password to remove entries.`;
+      actionError = t('showToRemove');
       return;
     }
     try {
       const next = cloneBlocklist(entries).filter((e) => e.id !== id);
       const synced = await persist(next);
       await refreshRevealed(viewKey);
-      if (!synced) actionNotice = 'Saved. Block rules will refresh within 1 minute.';
+      if (!synced) actionNotice = t('savedRulesRefresh');
     } catch (err) {
       console.error('remove hidden entry failed:', err);
-      actionError = 'Failed to update hidden list.';
+      actionError = t('updateHiddenError');
     }
   }
 
@@ -163,11 +167,11 @@
     actionError = '';
     actionNotice = '';
     if (!listVisible) {
-      actionError = 'Show hidden list with your password to change entries.';
+      actionError = t('showToChange');
       return;
     }
     if (locked) {
-      actionError = 'Unlock the blocklist above to edit during an active schedule.';
+      actionError = t('unlockToEditDuringSchedule');
       return;
     }
     try {
@@ -177,7 +181,7 @@
       await syncBlockerSafe();
     } catch (err) {
       console.error('toggle hidden entry failed:', err);
-      actionError = 'Failed to update hidden entry.';
+      actionError = t('updateHiddenEntryError');
     }
   }
 </script>
@@ -187,7 +191,7 @@
   <p class="text-body-muted section-hint">{hint}</p>
 
   {#if loading}
-    <p class="msg-muted">Loading…</p>
+    <p class="msg-muted">{t('loading')}</p>
   {:else if loadError}
     <p class="msg-error">{loadError}</p>
   {:else if !listVisible}
@@ -206,18 +210,18 @@
         onclick={showList}
         disabled={viewing || hiddenEntries.length === 0}
       >
-        {viewing ? 'Checking…' : showButtonLabel}
+        {viewing ? t('checking') : showButtonLabel}
       </button>
     </div>
     {#if viewError}<p class="msg-error">{viewError}</p>{/if}
   {:else}
     <div class="visible-header">
-      <p class="text-label">Showing {countLabel(hiddenEntries.length)}</p>
-      <button type="button" class="btn btn-outline btn-sm" onclick={hideList}>Hide again</button>
+      <p class="text-label">{t('showingHiddenCount', countLabel(hiddenEntries.length))}</p>
+      <button type="button" class="btn btn-outline btn-sm" onclick={hideList}>{t('hideAgain')}</button>
     </div>
 
     {#if hiddenEntries.length === 0}
-      <p class="empty-state">No hidden {entryNounPlural} yet.</p>
+      <p class="empty-state">{countLabel(0)}</p>
     {:else}
       <div class="site-list">
         {#each hiddenEntries as e (e.id)}
@@ -225,14 +229,14 @@
             <div class="list-row-left">
               <span class="lock-icon" aria-hidden="true">&#x1F512;</span>
               <span class="domain">{display(e)}</span>
-              {#if kind === 'keyword'}<span class="tag">Keyword</span>{/if}
-              {#if e.enabled === false}<span class="tag">Paused</span>{/if}
+              {#if kind === 'keyword'}<span class="tag">{t('keywordTag')}</span>{/if}
+              {#if e.enabled === false}<span class="tag">{t('paused')}</span>{/if}
             </div>
             <div class="row-actions">
               <Toggle
                 checked={e.enabled !== false}
                 disabled={locked}
-                ariaLabel="Blocking enabled for {display(e)}"
+                ariaLabel={t('ariaBlockingEnabledFor', display(e))}
                 onchange={(enabled) => toggleEnabled(e.id, enabled)}
               />
               <button
@@ -240,7 +244,7 @@
                 class="btn-icon"
                 onclick={() => remove(e.id)}
                 disabled={locked}
-                aria-label="Remove {display(e)}"
+                aria-label={t('ariaRemoveItem', display(e))}
               >
                 &#x2715;
               </button>

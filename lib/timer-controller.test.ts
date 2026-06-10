@@ -11,11 +11,12 @@ import {
   TIMER_ALARM,
 } from './timer-controller';
 import { timerItem } from './storage';
-import { setupOffscreenMock } from './test-setup';
+import { setupOffscreenMock, setupI18nMock } from './test-setup';
 
 describe('timer controller', () => {
   beforeEach(() => {
     fakeBrowser.reset();
+    setupI18nMock();
     setupOffscreenMock();
     vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
   });

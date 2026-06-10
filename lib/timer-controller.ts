@@ -7,6 +7,7 @@ import {
   timerRemainingMs,
 } from './timer';
 import { playAlertSound, stopAlertSound } from './alert-sound';
+import { translate } from './i18n';
 
 export const TIMER_ALARM = 'countdown-timer-end';
 export const TIMER_NOTIFICATION_ID = 'timer-finished';
@@ -114,7 +115,7 @@ async function showNotification(): Promise<void> {
   await browser.notifications.create(TIMER_NOTIFICATION_ID, {
     type: 'basic',
     iconUrl: browser.runtime.getURL('/icon/128.png'),
-    title: "Time's up",
-    message: 'Tap to stop the alert, then reset the timer.',
+    title: await translate('timerNotificationTitle'),
+    message: await translate('timerNotificationMessage'),
   });
 }

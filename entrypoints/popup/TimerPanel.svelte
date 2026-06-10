@@ -23,6 +23,7 @@
   import type { CountdownTimerState } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
   import TimerDurationInput from './TimerDurationInput.svelte';
+  import { t } from '@/lib/i18n';
 
   let state = $state<CountdownTimerState | null>(null);
   let now = $state(Date.now());
@@ -76,11 +77,11 @@
 </script>
 
 {#if !state}
-  <p class="msg-muted loading">Loading…</p>
+  <p class="msg-muted loading">{t('loading')}</p>
 {:else}
   <div class="timer-section" class:timer-section-done={finished}>
     <p class="phase-label">
-      {#if finished}Time's up{:else if paused}Paused{:else if running}Counting down{:else}Tap time to edit{/if}
+      {#if finished}{t('timesUp')}{:else if paused}{t('paused')}{:else if running}{t('countingDown')}{:else}{t('tapToEdit')}{/if}
     </p>
 
     {#if finished}
@@ -99,7 +100,7 @@
         class:time-display-idle={idle}
         disabled={!idle}
         onclick={beginEdit}
-        aria-label={idle ? 'Edit timer duration' : hhmmss}
+        aria-label={idle ? t('ariaEditDuration') : hhmmss}
       >
         {hhmmss}
       </button>
@@ -114,29 +115,29 @@
     </div>
 
     <button class="btn btn-primary btn-block" onclick={() => void startTimer()}>
-      Start timer
+      {t('startTimer')}
     </button>
   {:else if finished}
-    <p class="done-hint">Tap the notification to stop the alert.</p>
+    <p class="done-hint">{t('stopAlertHint')}</p>
     <button class="btn btn-outline btn-block" onclick={() => void stopTimerAlert()}>
-      Stop alert
+      {t('stopAlert')}
     </button>
     <button class="btn btn-primary btn-block reset-done-btn" onclick={() => void resetTimer()}>
-      Reset
+      {t('reset')}
     </button>
   {:else}
     <div class="active-actions">
       {#if paused}
         <button class="btn btn-primary btn-block" onclick={() => void resumeTimer()}>
-          Resume
+          {t('resume')}
         </button>
       {:else}
         <button class="btn btn-outline btn-block" onclick={() => void pauseTimer()}>
-          Pause
+          {t('pause')}
         </button>
       {/if}
       <button class="btn btn-danger-outline btn-block" onclick={() => void resetTimer()}>
-        Reset
+        {t('reset')}
       </button>
     </div>
   {/if}
@@ -145,7 +146,7 @@
     <div class="sound-row">
       <Toggle
         checked={state.soundEnabled}
-        label="Sound"
+        label={t('sound')}
         onchange={(enabled) => void setTimerSoundEnabled(enabled)}
       />
     </div>

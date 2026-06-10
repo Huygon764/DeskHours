@@ -132,8 +132,8 @@ describe('DEFAULT_POMODORO', () => {
 describe('POMODORO_PRESETS', () => {
   it('includes classic 25/5 and deep 50/10', () => {
     expect(POMODORO_PRESETS).toEqual([
-      { id: 'classic', label: 'Classic', workMinutes: 25, restMinutes: 5 },
-      { id: 'deep', label: 'Deep', workMinutes: 50, restMinutes: 10 },
+      { id: 'classic', workMinutes: 25, restMinutes: 5 },
+      { id: 'deep', workMinutes: 50, restMinutes: 10 },
     ]);
   });
 

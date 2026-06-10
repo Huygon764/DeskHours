@@ -1,32 +1,32 @@
 <script lang="ts">
-  import { themeItem } from '@/lib/storage';
-  import type { ThemePreference } from '@/lib/theme';
+  import { localeItem } from '@/lib/storage';
+  import type { LocalePreference } from '@/lib/locale';
   import { t } from '@/lib/i18n';
 
-  let preference = $state<ThemePreference>('system');
+  let preference = $state<LocalePreference>('system');
 
-  const options: { value: ThemePreference; labelKey: string; hintKey: string }[] = [
-    { value: 'system', labelKey: 'themeSystem', hintKey: 'themeSystemHint' },
-    { value: 'light', labelKey: 'themeLight', hintKey: 'themeLightHint' },
-    { value: 'dark', labelKey: 'themeDark', hintKey: 'themeDarkHint' },
+  const options: { value: LocalePreference; labelKey: string; hintKey: string }[] = [
+    { value: 'system', labelKey: 'languageSystem', hintKey: 'languageSystemHint' },
+    { value: 'en', labelKey: 'languageEnglish', hintKey: 'languageEnglishHint' },
+    { value: 'vi', labelKey: 'languageVietnamese', hintKey: 'languageVietnameseHint' },
   ];
 
   $effect(() => {
-    void themeItem.getValue().then((v) => (preference = v));
-    return themeItem.watch((v) => (preference = v));
+    void localeItem.getValue().then((v) => (preference = v));
+    return localeItem.watch((v) => (preference = v));
   });
 
-  async function select(value: ThemePreference) {
+  async function select(value: LocalePreference) {
     if (preference === value) return;
-    await themeItem.setValue(value);
+    await localeItem.setValue(value);
   }
 </script>
 
 <section class="card theme-card">
-  <h2 class="text-headline-md section-title">{t('appearanceTitle')}</h2>
-  <p class="text-body-muted intro">{t('appearanceIntro')}</p>
+  <h2 class="text-headline-md section-title">{t('languageTitle')}</h2>
+  <p class="text-body-muted intro">{t('languageIntro')}</p>
 
-  <div class="theme-options" role="radiogroup" aria-label={t('ariaTheme')}>
+  <div class="theme-options" role="radiogroup" aria-label={t('ariaLanguage')}>
     {#each options as opt (opt.value)}
       <button
         type="button"

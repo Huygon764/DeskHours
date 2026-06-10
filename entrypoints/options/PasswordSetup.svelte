@@ -2,6 +2,7 @@
   import { authItem } from '@/lib/storage';
   import { hashPassword } from '@/lib/crypto';
   import { checkPassword } from '@/lib/password-policy';
+  import { t } from '@/lib/i18n';
 
   let {
     onset = () => {},
@@ -29,10 +30,10 @@
   }
 
   const strengthLabel = $derived.by(() => {
-    if (score <= 1) return 'Weak';
-    if (score === 2) return 'Fair';
-    if (score === 3) return 'Good';
-    return 'Strong';
+    if (score <= 1) return t('strengthWeak');
+    if (score === 2) return t('strengthFair');
+    if (score === 3) return t('strengthGood');
+    return t('strengthStrong');
   });
 
   async function save() {
@@ -42,7 +43,7 @@
       return;
     }
     if (password !== confirm) {
-      errors = ['Passwords do not match'];
+      errors = [t('passwordsDoNotMatch')];
       return;
     }
     await authItem.setValue(await hashPassword(password));
@@ -55,17 +56,17 @@
 </script>
 
 <section class="card">
-  <h2 class="text-headline-md section-title">Master password</h2>
+  <h2 class="text-headline-md section-title">{t('masterPasswordTitle')}</h2>
   <p class="text-body-muted intro">
-    Protects unblocking, schedule edits during blocked hours, and hidden site names.
+    {t('masterPasswordIntro')}
   </p>
 
   {#if readonly}
-    <p class="hint-banner">Unlock above to change your password.</p>
+    <p class="hint-banner">{t('unlockToChangePassword')}</p>
   {:else}
     <div class="fields">
       <div class="field">
-        <label class="field-label" for="pw-new">{hasExisting ? 'New password' : 'Password'}</label>
+        <label class="field-label" for="pw-new">{hasExisting ? t('newPassword') : t('password')}</label>
         <input
           id="pw-new"
           class="input"
@@ -79,7 +80,7 @@
         {/each}
       </div>
       <div class="field">
-        <label class="field-label" for="pw-confirm">Confirm password</label>
+        <label class="field-label" for="pw-confirm">{t('confirmPassword')}</label>
         <input id="pw-confirm" class="input" type="password" bind:value={confirm} />
       </div>
     </div>
@@ -95,7 +96,7 @@
             ></div>
           {/each}
         </div>
-        <span class="text-label strength-label">Strength: {strengthLabel} ({score}/4)</span>
+        <span class="text-label strength-label">{t('strengthFormat', strengthLabel, String(score))}</span>
       </div>
     {/if}
 
@@ -105,10 +106,10 @@
       onclick={save}
       disabled={errors.length > 0 || !password}
     >
-      Save password
+      {t('savePassword')}
     </button>
 
-    {#if saved}<p class="msg-success">Password saved.</p>{/if}
+    {#if saved}<p class="msg-success">{t('passwordSaved')}</p>{/if}
   {/if}
 </section>
 

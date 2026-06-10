@@ -1,0 +1,705 @@
+{
+  "extName": {
+    "message": "Site Blocker"
+  },
+  "extDescription": {
+    "message": "Block distracting sites on a schedule, with a Pomodoro timer"
+  },
+  "appName": {
+    "message": "Site Blocker"
+  },
+  "settingsTitle": {
+    "message": "Site Blocker settings"
+  },
+  "setupSubtitle": {
+    "message": "Set up your master password to get started."
+  },
+  "settingsSubtitle": {
+    "message": "Manage your focus schedule and blocked sites."
+  },
+  "wrongPassword": {
+    "message": "Wrong password"
+  },
+  "blockingUnlockBanner": {
+    "message": "Blocking is active. Enter your password to edit the blocklist."
+  },
+  "passwordPlaceholder": {
+    "message": "Password"
+  },
+  "unlocking": {
+    "message": "Unlocking…"
+  },
+  "unlock": {
+    "message": "Unlock"
+  },
+  "tabSchedule": {
+    "message": "Schedule"
+  },
+  "tabBlockedSites": {
+    "message": "Blocked sites"
+  },
+  "tabSettings": {
+    "message": "Settings"
+  },
+  "ariaSettingsSections": {
+    "message": "Settings sections"
+  },
+  "appearanceTitle": {
+    "message": "Appearance"
+  },
+  "appearanceIntro": {
+    "message": "Choose how Site Blocker looks in the popup, settings, and blocked page."
+  },
+  "languageTitle": {
+    "message": "Language"
+  },
+  "languageIntro": {
+    "message": "Default follows your browser. Override here if you want a fixed language."
+  },
+  "languageSystem": {
+    "message": "System"
+  },
+  "languageSystemHint": {
+    "message": "Use browser language (English if unsupported)"
+  },
+  "languageEnglish": {
+    "message": "English"
+  },
+  "languageEnglishHint": {
+    "message": "Always show English"
+  },
+  "languageVietnamese": {
+    "message": "Vietnamese"
+  },
+  "languageVietnameseHint": {
+    "message": "Always show Vietnamese"
+  },
+  "ariaLanguage": {
+    "message": "Language preference"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "themeSystemHint": {
+    "message": "Match your OS light or dark mode"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeLightHint": {
+    "message": "Soft Sand palette"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "themeDarkHint": {
+    "message": "Warm charcoal palette"
+  },
+  "ariaTheme": {
+    "message": "Theme"
+  },
+  "masterPasswordTitle": {
+    "message": "Master password"
+  },
+  "masterPasswordIntro": {
+    "message": "Protects unblocking, schedule edits during blocked hours, and hidden site names."
+  },
+  "unlockToChangePassword": {
+    "message": "Unlock above to change your password."
+  },
+  "newPassword": {
+    "message": "New password"
+  },
+  "password": {
+    "message": "Password"
+  },
+  "confirmPassword": {
+    "message": "Confirm password"
+  },
+  "strengthWeak": {
+    "message": "Weak"
+  },
+  "strengthFair": {
+    "message": "Fair"
+  },
+  "strengthGood": {
+    "message": "Good"
+  },
+  "strengthStrong": {
+    "message": "Strong"
+  },
+  "strengthFormat": {
+    "message": "Strength: $1$ ($2$/4)",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Strong"
+      },
+      "2": {
+        "content": "$2",
+        "example": "3"
+      }
+    }
+  },
+  "savePassword": {
+    "message": "Save password"
+  },
+  "passwordSaved": {
+    "message": "Password saved."
+  },
+  "passwordsDoNotMatch": {
+    "message": "Passwords do not match"
+  },
+  "whenToBlock": {
+    "message": "When to block"
+  },
+  "loading": {
+    "message": "Loading…"
+  },
+  "presetStartFrom": {
+    "message": "Start from a preset"
+  },
+  "presetHint": {
+    "message": "Choosing a preset replaces your current windows. Tweak below, then save."
+  },
+  "addWindow": {
+    "message": "+ Add window"
+  },
+  "saveSchedule": {
+    "message": "Save schedule"
+  },
+  "scheduleSaved": {
+    "message": "Schedule saved."
+  },
+  "loadScheduleError": {
+    "message": "Could not load schedule."
+  },
+  "saveScheduleError": {
+    "message": "Failed to save schedule. Try again."
+  },
+  "ariaToggleDay": {
+    "message": "Toggle day $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Monday"
+      }
+    }
+  },
+  "ariaRemoveWindow": {
+    "message": "Remove window"
+  },
+  "preset_office_hours_label": {
+    "message": "Office hours"
+  },
+  "preset_office_hours_desc": {
+    "message": "Mon–Fri 8–12, 13:30–17"
+  },
+  "preset_full_workday_label": {
+    "message": "Full workday"
+  },
+  "preset_full_workday_desc": {
+    "message": "Mon–Fri 8–17"
+  },
+  "preset_evenings_label": {
+    "message": "Evenings"
+  },
+  "preset_evenings_desc": {
+    "message": "Mon–Fri 18–22"
+  },
+  "preset_weekends_label": {
+    "message": "Weekends"
+  },
+  "preset_weekends_desc": {
+    "message": "Sat–Sun 8–22"
+  },
+  "preset_all_day_weekdays_label": {
+    "message": "All day (weekdays)"
+  },
+  "preset_all_day_weekdays_desc": {
+    "message": "Mon–Fri all day"
+  },
+  "preset_always_on_label": {
+    "message": "Always on"
+  },
+  "preset_always_on_desc": {
+    "message": "Every day, all day"
+  },
+  "blockedSitesTitle": {
+    "message": "Blocked sites"
+  },
+  "blocklistLockedHint": {
+    "message": "Blocklist is locked while a schedule window is active. Enter your password above to add or remove sites."
+  },
+  "loadingBlocklist": {
+    "message": "Loading blocklist…"
+  },
+  "loadBlocklistError": {
+    "message": "Could not load blocklist."
+  },
+  "noSitesBlocked": {
+    "message": "No sites blocked yet."
+  },
+  "paused": {
+    "message": "Paused"
+  },
+  "ariaBlockingEnabledFor": {
+    "message": "Blocking enabled for $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "ariaRemoveItem": {
+    "message": "Remove $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "addSite": {
+    "message": "Add site"
+  },
+  "addSitePlaceholder": {
+    "message": "youtube.com or youtube.com/shorts/*"
+  },
+  "addToHidden": {
+    "message": "Add to hidden list (name hidden in options)"
+  },
+  "addUnlockRequired": {
+    "message": "Add (unlock required)"
+  },
+  "unlockToEditBlocklist": {
+    "message": "Unlock with your password above to edit the blocklist."
+  },
+  "enterDomainError": {
+    "message": "Enter a domain or path (e.g. youtube.com/shorts/*)."
+  },
+  "alreadyOnList": {
+    "message": "$1$ is already on the list.",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "saveBlocklistError": {
+    "message": "Failed to save blocklist. Try again."
+  },
+  "savedReloadExtension": {
+    "message": "Saved. If the site is not blocked yet, reload the extension on brave://extensions."
+  },
+  "savedRulesRefresh": {
+    "message": "Saved. Block rules will refresh within 1 minute."
+  },
+  "updateBlocklistError": {
+    "message": "Failed to update blocklist. Try again."
+  },
+  "urlKeywordsTitle": {
+    "message": "URL keywords"
+  },
+  "urlKeywordsHint": {
+    "message": "Block any page whose URL contains the text (path, query, etc.)."
+  },
+  "keywordsLockedHint": {
+    "message": "Keywords are locked while a schedule window is active. Enter your password above to edit."
+  },
+  "noKeywords": {
+    "message": "No URL keywords yet."
+  },
+  "keywordTag": {
+    "message": "Keyword"
+  },
+  "addKeyword": {
+    "message": "Add keyword"
+  },
+  "addKeywordPlaceholder": {
+    "message": "shorts, /reels/, gambling"
+  },
+  "enterKeywordError": {
+    "message": "Enter text to match in URLs (e.g. shorts or /reels/)."
+  },
+  "keywordAlreadyOnList": {
+    "message": "\"$1$\" is already on the keyword list.",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "news"
+      }
+    }
+  },
+  "saveKeywordError": {
+    "message": "Failed to save keyword. Try again."
+  },
+  "savedReloadUrls": {
+    "message": "Saved. If URLs are not blocked yet, reload the extension on brave://extensions."
+  },
+  "hiddenSitesTitle": {
+    "message": "Hidden sites"
+  },
+  "hiddenSitesHint": {
+    "message": "Add hidden sites with the checkbox above. Names stay hidden here until you enter your password."
+  },
+  "hiddenKeywordsTitle": {
+    "message": "Hidden keywords"
+  },
+  "hiddenKeywordsHint": {
+    "message": "Add hidden keywords with the checkbox above. Names stay hidden here until you enter your password."
+  },
+  "hiddenCountNoneSites": {
+    "message": "No hidden sites yet."
+  },
+  "hiddenCountOneSite": {
+    "message": "1 hidden site"
+  },
+  "hiddenCountSites": {
+    "message": "$1$ hidden sites",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "hiddenCountNoneKeywords": {
+    "message": "No hidden keywords yet."
+  },
+  "hiddenCountOneKeyword": {
+    "message": "1 hidden keyword"
+  },
+  "hiddenCountKeywords": {
+    "message": "$1$ hidden keywords",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "revealPasswordSites": {
+    "message": "Password to show hidden sites"
+  },
+  "revealPasswordKeywords": {
+    "message": "Password to show hidden keywords"
+  },
+  "showHiddenSites": {
+    "message": "Show hidden sites"
+  },
+  "showHiddenKeywords": {
+    "message": "Show hidden keywords"
+  },
+  "checking": {
+    "message": "Checking…"
+  },
+  "loadHiddenError": {
+    "message": "Could not load hidden list."
+  },
+  "decryptHiddenError": {
+    "message": "Could not decrypt hidden entries. Check your password."
+  },
+  "setPasswordFirst": {
+    "message": "Set a master password in Settings first."
+  },
+  "showingHiddenCount": {
+    "message": "Showing $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "hideAgain": {
+    "message": "Hide again"
+  },
+  "showToRemove": {
+    "message": "Show hidden list with your password to remove entries."
+  },
+  "showToChange": {
+    "message": "Show hidden list with your password to change entries."
+  },
+  "unlockToEditDuringSchedule": {
+    "message": "Unlock the blocklist above to edit during an active schedule."
+  },
+  "updateHiddenError": {
+    "message": "Failed to update hidden list."
+  },
+  "updateHiddenEntryError": {
+    "message": "Failed to update hidden entry."
+  },
+  "blockingOn": {
+    "message": "Blocking on"
+  },
+  "blockingOff": {
+    "message": "Blocking off"
+  },
+  "ariaPopupSections": {
+    "message": "Popup sections"
+  },
+  "tabBlock": {
+    "message": "Block"
+  },
+  "tabFocus": {
+    "message": "Focus"
+  },
+  "tabTimer": {
+    "message": "Timer"
+  },
+  "phaseFocus": {
+    "message": "Focus"
+  },
+  "phaseRest": {
+    "message": "Rest"
+  },
+  "pausedSuffix": {
+    "message": " (paused)"
+  },
+  "timerTimesUp": {
+    "message": "Timer — time's up"
+  },
+  "openFocus": {
+    "message": "Open Focus →"
+  },
+  "openTimer": {
+    "message": "Open Timer →"
+  },
+  "openSettings": {
+    "message": "Open settings →"
+  },
+  "thisPage": {
+    "message": "This page"
+  },
+  "loadingTab": {
+    "message": "Loading tab…"
+  },
+  "openWebsiteTab": {
+    "message": "Open a website tab to block it from here."
+  },
+  "blocked": {
+    "message": "Blocked"
+  },
+  "onList": {
+    "message": "On list"
+  },
+  "onListPaused": {
+    "message": "On list (paused):"
+  },
+  "notOnBlocklist": {
+    "message": "Not on your blocklist"
+  },
+  "blockingEnabled": {
+    "message": "Blocking enabled"
+  },
+  "blockPattern": {
+    "message": "Block $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "enterPasswordToEdit": {
+    "message": "Enter your password to edit the blocklist."
+  },
+  "actionFailed": {
+    "message": "Action failed. Try again."
+  },
+  "startFocus": {
+    "message": "Start focus"
+  },
+  "preset": {
+    "message": "Preset"
+  },
+  "work": {
+    "message": "Work"
+  },
+  "rest": {
+    "message": "Rest"
+  },
+  "ariaDecreaseWork": {
+    "message": "Decrease work"
+  },
+  "ariaIncreaseWork": {
+    "message": "Increase work"
+  },
+  "ariaWorkMinutes": {
+    "message": "Work minutes"
+  },
+  "ariaDecreaseRest": {
+    "message": "Decrease rest"
+  },
+  "ariaIncreaseRest": {
+    "message": "Increase rest"
+  },
+  "ariaRestMinutes": {
+    "message": "Rest minutes"
+  },
+  "pausedDash": {
+    "message": "Paused —"
+  },
+  "workSession": {
+    "message": "Work session"
+  },
+  "restBreak": {
+    "message": "Rest break"
+  },
+  "resume": {
+    "message": "Resume"
+  },
+  "pause": {
+    "message": "Pause"
+  },
+  "endSession": {
+    "message": "End session"
+  },
+  "pomodoro_preset_classic": {
+    "message": "Classic"
+  },
+  "pomodoro_preset_deep": {
+    "message": "Deep"
+  },
+  "timesUp": {
+    "message": "Time's up"
+  },
+  "tapToEdit": {
+    "message": "Tap time to edit"
+  },
+  "countingDown": {
+    "message": "Counting down"
+  },
+  "startTimer": {
+    "message": "Start timer"
+  },
+  "stopAlertHint": {
+    "message": "Tap the notification to stop the alert."
+  },
+  "stopAlert": {
+    "message": "Stop alert"
+  },
+  "reset": {
+    "message": "Reset"
+  },
+  "sound": {
+    "message": "Sound"
+  },
+  "ariaEditDuration": {
+    "message": "Edit timer duration"
+  },
+  "ariaHours": {
+    "message": "Hours"
+  },
+  "ariaMinutes": {
+    "message": "Minutes"
+  },
+  "ariaSeconds": {
+    "message": "Seconds"
+  },
+  "timerNotificationTitle": {
+    "message": "Time's up"
+  },
+  "timerNotificationMessage": {
+    "message": "Tap to stop the alert, then reset the timer."
+  },
+  "pomodoroBackToWorkTitle": {
+    "message": "Back to work"
+  },
+  "pomodoroRestTitle": {
+    "message": "Time to rest"
+  },
+  "pomodoroWorkStartedMessage": {
+    "message": "Work session started."
+  },
+  "pomodoroRestStartedMessage": {
+    "message": "Take a short break."
+  },
+  "patternBlocked": {
+    "message": "$1$ is blocked",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "hostnameBlocked": {
+    "message": "$1$ is blocked",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "siteBlocked": {
+    "message": "This site is blocked"
+  },
+  "blockedSubtext": {
+    "message": "Your schedule is active. You chose to block this site."
+  },
+  "step1": {
+    "message": "Step 1"
+  },
+  "step2": {
+    "message": "Step 2"
+  },
+  "waitPeriod": {
+    "message": "Wait period"
+  },
+  "authentication": {
+    "message": "Authentication"
+  },
+  "stillNeedAccess": {
+    "message": "I still need access"
+  },
+  "wait30Seconds": {
+    "message": "Wait 30 seconds before unblocking."
+  },
+  "waitCountdown": {
+    "message": "Wait $1$s before you can unblock…",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "waitComplete": {
+    "message": "Wait complete."
+  },
+  "masterPasswordLabel": {
+    "message": "Master password"
+  },
+  "unblockPattern": {
+    "message": "Unblock $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "facebook.com"
+      }
+    }
+  },
+  "unblockTemporarily": {
+    "message": "Unblock temporarily"
+  },
+  "blockingResumes": {
+    "message": "Blocking resumes automatically."
+  },
+  "enterUrlError": {
+    "message": "Enter the URL to unblock"
+  },
+  "ruleUnknownError": {
+    "message": "Could not determine which rule blocked this page."
+  },
+  "noPasswordSet": {
+    "message": "No password set. Set one in extension options."
+  },
+  "temporarily": {
+    "message": "temporarily"
+  }
+}
