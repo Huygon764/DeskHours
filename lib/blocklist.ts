@@ -124,12 +124,15 @@ export function hasPlainPattern(entries: BlockEntry[], pattern: string): boolean
   return entries.some((e) => !e.masked && (e.kind ?? 'site') === 'site' && e.domain === pattern);
 }
 
-/** True if a keyword entry already exists (case-insensitive). */
+/** True if a keyword entry already exists (case-insensitive), including hidden entries. */
 export function hasKeywordPattern(entries: BlockEntry[], keyword: string): boolean {
   const lower = keyword.toLowerCase();
-  return entries.some(
-    (e) => !e.masked && e.kind === 'keyword' && e.domain.toLowerCase() === lower,
-  );
+  return entries.some((e) => {
+    if (e.kind !== 'keyword') return false;
+    if (!e.masked) return e.domain.toLowerCase() === lower;
+    if (isEncryptedMaskedDomain(e.domain)) return false;
+    return e.domain.toLowerCase() === lower;
+  });
 }
 
 /** @deprecated Use hasPlainPattern. */

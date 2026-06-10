@@ -82,6 +82,15 @@ describe('syncBlocker', () => {
     const rules = getDynamicRulesForTest();
     expect(rules.map((r) => r.condition.urlFilter)).toContain('||reddit.com/');
   });
+
+  it('blocks plaintext hidden keywords without session unmask', async () => {
+    await blocklistItem.setValue([
+      { id: '1', domain: 'gambling', masked: true, enabled: true, kind: 'keyword' },
+    ]);
+    await syncBlocker();
+    const rules = getDynamicRulesForTest();
+    expect(rules[0].condition.urlFilter).toBe('gambling');
+  });
 });
 
 describe('pruneExpired', () => {

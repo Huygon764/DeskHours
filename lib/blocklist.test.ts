@@ -81,6 +81,11 @@ describe('hasKeywordPattern', () => {
     expect(hasKeywordPattern(entries, 'shorts')).toBe(true);
     expect(hasKeywordPattern(entries, 'reels')).toBe(false);
   });
+
+  it('detects duplicate hidden plaintext keywords', () => {
+    const entries = [{ id: '1', domain: 'gambling', masked: true, kind: 'keyword' as const, enabled: true }];
+    expect(hasKeywordPattern(entries, 'gambling')).toBe(true);
+  });
 });
 
 describe('hasPlainPattern', () => {

@@ -38,7 +38,16 @@ export async function hasBlockedPattern(
   kind: BlockEntryKind = 'site',
 ): Promise<boolean> {
   const normalized = entries.map(normalizeEntry);
-  if (kind === 'keyword') return hasKeywordPattern(normalized, pattern);
+  if (kind === 'keyword') {
+    if (hasKeywordPattern(normalized, pattern)) return true;
+    if (!key) return false;
+    const lower = pattern.toLowerCase();
+    for (const e of normalized) {
+      if (e.kind !== 'keyword' || !e.masked || !isEncryptedMaskedDomain(e.domain)) continue;
+      if ((await revealEntry(e, key)).toLowerCase() === lower) return true;
+    }
+    return false;
+  }
   if (hasPlainPattern(normalized, pattern)) return true;
   for (const e of normalized) {
     if (!e.masked || isEncryptedMaskedDomain(e.domain)) continue;

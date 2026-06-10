@@ -6,10 +6,33 @@
   import { loadBlocklist, setEntryEnabled, syncUnmaskedDomains } from '@/lib/blocklist-session';
   import { isEncryptedMaskedDomain, revealEntry } from '@/lib/masking';
   import { syncBlockerSafe } from '@/lib/messages';
-  import type { BlockEntry } from '@/lib/types';
+  import type { BlockEntry, BlockEntryKind } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
 
-  let { locked = false }: { locked?: boolean } = $props();
+  let {
+    locked = false,
+    kind,
+    title,
+    hint,
+    entryNoun,
+    entryNounPlural,
+    revealPlaceholder,
+    showButtonLabel,
+  }: {
+    locked?: boolean;
+    kind: BlockEntryKind;
+    title: string;
+    hint: string;
+    entryNoun: string;
+    entryNounPlural: string;
+    revealPlaceholder: string;
+    showButtonLabel: string;
+  } = $props();
+
+  function countLabel(count: number): string {
+    if (count === 0) return `No hidden ${entryNounPlural} yet.`;
+    return `${count} hidden ${count === 1 ? entryNoun : entryNounPlural}`;
+  }
 
   let entries = $state<BlockEntry[]>([]);
   let revealed = $state<Record<string, string>>({});
@@ -23,7 +46,9 @@
   let loading = $state(true);
   let loadError = $state('');
 
-  const hiddenEntries = $derived(entries.filter((e) => e.masked && (e.kind ?? 'site') === 'site'));
+  const hiddenEntries = $derived(
+    entries.filter((e) => e.masked && (e.kind ?? 'site') === kind),
+  );
 
   onMount(() => {
     void loadFromStorage();
@@ -39,8 +64,8 @@
     try {
       entries = await loadBlocklist();
     } catch (err) {
-      console.error('load hidden sites failed:', err);
-      loadError = 'Could not load hidden sites.';
+      console.error('load hidden list failed:', err);
+      loadError = 'Could not load hidden list.';
     } finally {
       loading = false;
     }
@@ -68,8 +93,8 @@
         await syncBlockerSafe();
       }
     } catch (err) {
-      console.error('reveal hidden sites failed:', err);
-      viewError = 'Could not decrypt hidden sites. Check your password.';
+      console.error('reveal hidden list failed:', err);
+      viewError = 'Could not decrypt hidden entries. Check your password.';
       hideList();
     }
   }
@@ -120,7 +145,7 @@
     actionError = '';
     actionNotice = '';
     if (!listVisible) {
-      actionError = 'Show hidden sites with your password to remove entries.';
+      actionError = `Show hidden list with your password to remove entries.`;
       return;
     }
     try {
@@ -129,8 +154,8 @@
       await refreshRevealed(viewKey);
       if (!synced) actionNotice = 'Saved. Block rules will refresh within 1 minute.';
     } catch (err) {
-      console.error('remove hidden site failed:', err);
-      actionError = 'Failed to update hidden sites.';
+      console.error('remove hidden entry failed:', err);
+      actionError = 'Failed to update hidden list.';
     }
   }
 
@@ -138,7 +163,7 @@
     actionError = '';
     actionNotice = '';
     if (!listVisible) {
-      actionError = 'Show hidden sites with your password to change entries.';
+      actionError = 'Show hidden list with your password to change entries.';
       return;
     }
     if (locked) {
@@ -151,49 +176,48 @@
       await refreshRevealed(viewKey);
       await syncBlockerSafe();
     } catch (err) {
-      console.error('toggle hidden site failed:', err);
-      actionError = 'Failed to update hidden site.';
+      console.error('toggle hidden entry failed:', err);
+      actionError = 'Failed to update hidden entry.';
     }
   }
 </script>
 
 <section class="card hidden-section">
-  <h2 class="text-headline-md section-title">Hidden sites</h2>
-  <p class="text-body-muted section-hint">
-    Add hidden sites with the checkbox above. Names stay hidden here until you enter your password.
-  </p>
+  <h2 class="text-headline-md section-title">{title}</h2>
+  <p class="text-body-muted section-hint">{hint}</p>
 
   {#if loading}
     <p class="msg-muted">Loading…</p>
   {:else if loadError}
     <p class="msg-error">{loadError}</p>
   {:else if !listVisible}
-    <p class="hidden-summary">
-      {hiddenEntries.length === 0
-        ? 'No hidden sites yet.'
-        : `${hiddenEntries.length} hidden site${hiddenEntries.length === 1 ? '' : 's'}`}
-    </p>
+    <p class="hidden-summary">{countLabel(hiddenEntries.length)}</p>
     <div class="reveal-form">
       <input
         class="input"
         type="password"
         bind:value={viewPassword}
-        placeholder="Password to show hidden sites"
+        placeholder={revealPlaceholder}
         disabled={viewing}
       />
-      <button type="button" class="btn btn-outline" onclick={showList} disabled={viewing || hiddenEntries.length === 0}>
-        {viewing ? 'Checking…' : 'Show hidden sites'}
+      <button
+        type="button"
+        class="btn btn-outline"
+        onclick={showList}
+        disabled={viewing || hiddenEntries.length === 0}
+      >
+        {viewing ? 'Checking…' : showButtonLabel}
       </button>
     </div>
     {#if viewError}<p class="msg-error">{viewError}</p>{/if}
   {:else}
     <div class="visible-header">
-      <p class="text-label">Showing {hiddenEntries.length} hidden site{hiddenEntries.length === 1 ? '' : 's'}</p>
+      <p class="text-label">Showing {countLabel(hiddenEntries.length)}</p>
       <button type="button" class="btn btn-outline btn-sm" onclick={hideList}>Hide again</button>
     </div>
 
     {#if hiddenEntries.length === 0}
-      <p class="empty-state">No hidden sites yet.</p>
+      <p class="empty-state">No hidden {entryNounPlural} yet.</p>
     {:else}
       <div class="site-list">
         {#each hiddenEntries as e (e.id)}
@@ -201,6 +225,7 @@
             <div class="list-row-left">
               <span class="lock-icon" aria-hidden="true">&#x1F512;</span>
               <span class="domain">{display(e)}</span>
+              {#if kind === 'keyword'}<span class="tag">Keyword</span>{/if}
               {#if e.enabled === false}<span class="tag">Paused</span>{/if}
             </div>
             <div class="row-actions">

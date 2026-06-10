@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { blocklistItem } from '@/lib/storage';
-  import { cloneBlocklist, hasKeywordPattern, normalizeKeyword, normalizePattern } from '@/lib/blocklist';
+  import { cloneBlocklist, normalizeKeyword, normalizePattern } from '@/lib/blocklist';
   import { hasBlockedPattern, loadBlocklist, setEntryEnabled } from '@/lib/blocklist-session';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
-  import HiddenSitesEditor from './HiddenSitesEditor.svelte';
+  import HiddenListEditor from './HiddenListEditor.svelte';
 
   let { locked = false }: { locked?: boolean } = $props();
 
@@ -14,6 +14,7 @@
   let newDomain = $state('');
   let addAsHidden = $state(false);
   let newKeyword = $state('');
+  let addKeywordAsHidden = $state(false);
   let addError = $state('');
   let addNotice = $state('');
   let loading = $state(true);
@@ -43,7 +44,9 @@
   const siteEntries = $derived(
     entries.filter((e) => !e.masked && (e.kind ?? 'site') === 'site'),
   );
-  const keywordEntries = $derived(entries.filter((e) => e.kind === 'keyword'));
+  const keywordEntries = $derived(
+    entries.filter((e) => !e.masked && e.kind === 'keyword'),
+  );
 
   async function persist(next: BlockEntry[]): Promise<boolean> {
     const plain = cloneBlocklist(next);
@@ -103,7 +106,7 @@
     }
     try {
       const stored = await loadBlocklist();
-      if (hasKeywordPattern(stored, keyword)) {
+      if (await hasBlockedPattern(stored, keyword, null, 'keyword')) {
         addError = `"${keyword}" is already on the keyword list.`;
         return;
       }
@@ -111,10 +114,11 @@
       const id = crypto.randomUUID();
       const next = [
         ...cloneBlocklist(entries),
-        { id, domain: keyword, masked: false, enabled: true, kind: 'keyword' as const },
+        { id, domain: keyword, masked: addKeywordAsHidden, enabled: true, kind: 'keyword' as const },
       ];
       const synced = await persist(next);
       newKeyword = '';
+      addKeywordAsHidden = false;
       if (!synced) {
         addNotice = 'Saved. If URLs are not blocked yet, reload the extension on brave://extensions.';
       }
@@ -274,13 +278,38 @@
         disabled={locked}
       />
     </div>
+    <label class="hidden-check">
+      <input type="checkbox" bind:checked={addKeywordAsHidden} disabled={locked} />
+      <span>Add to hidden list (name hidden in options)</span>
+    </label>
+
     <button type="button" class="btn btn-primary" onclick={addKeyword} disabled={locked}>
       {locked ? 'Add (unlock required)' : 'Add keyword'}
     </button>
   </div>
 </section>
 
-<HiddenSitesEditor {locked} />
+<HiddenListEditor
+  {locked}
+  kind="site"
+  title="Hidden sites"
+  hint="Add hidden sites with the checkbox above. Names stay hidden here until you enter your password."
+  entryNoun="site"
+  entryNounPlural="sites"
+  revealPlaceholder="Password to show hidden sites"
+  showButtonLabel="Show hidden sites"
+/>
+
+<HiddenListEditor
+  {locked}
+  kind="keyword"
+  title="Hidden keywords"
+  hint="Add hidden keywords with the checkbox above. Names stay hidden here until you enter your password."
+  entryNoun="keyword"
+  entryNounPlural="keywords"
+  revealPlaceholder="Password to show hidden keywords"
+  showButtonLabel="Show hidden keywords"
+/>
 
 <style>
   .section-title {
