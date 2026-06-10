@@ -1,5 +1,5 @@
 import { syncBlocker, grantUnblock } from '@/lib/blocker-controller';
-import { maybeRedirectKeywordTab } from '@/lib/keyword-navigation';
+import { maybeRedirectBlockedTab } from '@/lib/keyword-navigation';
 import {
   onPhaseAlarm,
   pausePomodoro,
@@ -19,6 +19,12 @@ import { BG_MESSAGE, type BgMessage } from '@/lib/messages';
 
 const SCHEDULER_ALARM = 'blocker-scheduler';
 
+function guardTab(tabId: number, url?: string): void {
+  void maybeRedirectBlockedTab(tabId, url).catch((err) =>
+    console.error('[site-blocker] tab guard failed:', err),
+  );
+}
+
 export default defineBackground(() => {
   void syncBlocker().catch((err) => console.error('[site-blocker] initial sync failed:', err));
 
@@ -37,11 +43,12 @@ export default defineBackground(() => {
   });
 
   browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-    if (changeInfo.url) {
-      void maybeRedirectKeywordTab(tabId, changeInfo.url).catch((err) =>
-        console.error('[site-blocker] keyword navigation check failed:', err),
-      );
-    }
+    if (changeInfo.url) guardTab(tabId, changeInfo.url);
+    else if (changeInfo.status === 'complete') guardTab(tabId);
+  });
+
+  browser.tabs.onActivated.addListener(({ tabId }) => {
+    guardTab(tabId);
   });
 
   browser.runtime.onMessage.addListener((message: BgMessage) => {

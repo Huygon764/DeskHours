@@ -1,4 +1,10 @@
-import { isPathPattern, keywordToUrlFilter, patternToUrlFilter, type BlockPattern } from './blocklist';
+import {
+  hostToUrlFilter,
+  isPathPattern,
+  keywordToUrlFilter,
+  patternToUrlFilter,
+  type BlockPattern,
+} from './blocklist';
 
 /** A DNR dynamic rule that redirects navigation to the extension blocked page. */
 export interface RedirectRule {
@@ -51,7 +57,8 @@ export function buildRedirectRules(patterns: BlockPattern[]): RedirectRule[] {
       ...base,
       condition: {
         ...base.condition,
-        requestDomains: [item.pattern.replace(/^www\./, '')],
+        urlFilter: hostToUrlFilter(item.pattern),
+        isUrlFilterCaseSensitive: false,
       },
     };
   });

@@ -21,6 +21,17 @@ export async function pruneExpired(): Promise<Set<string>> {
   return new Set(live.map((u) => tempUnblockPattern(u)));
 }
 
+/** Active block patterns for the current schedule window, minus temp unblocks. */
+export async function getActiveBlockPatterns(now = Date.now()): Promise<BlockPattern[]> {
+  const liveUnblocks = await pruneExpired();
+  const schedule = await scheduleItem.getValue();
+  if (!isBlockingActive(schedule, now)) return [];
+
+  const blocklist = (await blocklistItem.getValue()).map(normalizeEntry);
+  const patterns = await collectActivePatterns(blocklist);
+  return patterns.filter((p) => !liveUnblocks.has(p.pattern));
+}
+
 async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPattern[]> {
   const unmasked = await unmaskedDomainsItem.getValue();
   const patterns: BlockPattern[] = [];
@@ -57,14 +68,12 @@ export async function revealedPatterns(entries: BlockEntry[], key: CryptoKey): P
 /** Recompute DNR rules from blocklist, schedule, and temp unblocks. */
 export async function syncBlocker(): Promise<void> {
   const now = Date.now();
-  const liveUnblocks = await pruneExpired();
+  await pruneExpired();
   const schedule = await scheduleItem.getValue();
 
   let patterns: BlockPattern[] = [];
   if (isBlockingActive(schedule, now)) {
-    const blocklist = (await blocklistItem.getValue()).map(normalizeEntry);
-    patterns = await collectActivePatterns(blocklist);
-    patterns = patterns.filter((p) => !liveUnblocks.has(p.pattern));
+    patterns = await getActiveBlockPatterns(now);
   }
 
   const addRules = buildRedirectRules(patterns);

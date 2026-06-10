@@ -3,6 +3,7 @@ import {
   cloneBlocklist,
   hasKeywordPattern,
   hasPlainPattern,
+  hostToUrlFilter,
   isPathPattern,
   keywordToUrlFilter,
   normalizeKeyword,
@@ -17,6 +18,19 @@ describe('normalizePattern', () => {
 
   it('preserves path segments', () => {
     expect(normalizePattern('youtube.com/shorts/*')).toBe('youtube.com/shorts/*');
+  });
+
+  it('parses adblock and hosts-file formats', () => {
+    expect(normalizePattern('||truyenqqko.com^')).toBe('truyenqqko.com');
+    expect(normalizePattern('0.0.0.0 facebook.com')).toBe('facebook.com');
+    expect(normalizePattern('https://truyenqqko.com/ ')).toBe('truyenqqko.com');
+  });
+});
+
+describe('hostToUrlFilter', () => {
+  it('builds a domain-anchored DNR filter', () => {
+    expect(hostToUrlFilter('truyenqqko.com')).toBe('||truyenqqko.com/');
+    expect(hostToUrlFilter('www.youtube.com')).toBe('||youtube.com/');
   });
 });
 
@@ -33,6 +47,7 @@ describe('pathPatternFromUrl', () => {
 describe('isPathPattern', () => {
   it('detects path and wildcard patterns', () => {
     expect(isPathPattern('youtube.com')).toBe(false);
+    expect(isPathPattern('youtube.com/')).toBe(false);
     expect(isPathPattern('youtube.com/shorts/*')).toBe(true);
   });
 });

@@ -1,7 +1,4 @@
-import { blocklistItem, scheduleItem } from './storage';
-import { isBlockingActive } from './schedule';
-import { pruneExpired } from './blocker-controller';
-import { entryToBlockPattern, normalizeEntry } from './blocklist';
+import { getActiveBlockPatterns } from './blocker-controller';
 import { findMatchingPattern } from './pattern-match';
 import { BLOCKED_PAGE_PATH } from './dnr-rules';
 
@@ -20,32 +17,43 @@ function isExtensionBlockedPage(url: string): boolean {
   return url.includes(BLOCKED_PAGE_PATH);
 }
 
-/** Active keyword pattern matching `url`, or null when blocking is off or unblocked. */
+/** Active block pattern matching `url`, or null when blocking is off or unblocked. */
+export async function matchingBlockedPattern(url: string): Promise<string | null> {
+  const patterns = await getActiveBlockPatterns();
+  return findMatchingPattern(url, patterns);
+}
+
+/** @deprecated Use matchingBlockedPattern */
 export async function matchingKeyword(url: string): Promise<string | null> {
-  const now = Date.now();
-  const liveUnblocks = await pruneExpired();
-  const schedule = await scheduleItem.getValue();
-  if (!isBlockingActive(schedule, now)) return null;
-
-  const blocklist = (await blocklistItem.getValue()).map(normalizeEntry);
-  const keywords = blocklist
-    .filter((e) => e.enabled !== false && !e.masked && e.kind === 'keyword')
-    .map(entryToBlockPattern)
-    .filter((k) => !liveUnblocks.has(k.pattern));
-
+  const patterns = await getActiveBlockPatterns();
+  const keywords = patterns.filter((p) => p.kind === 'keyword');
   return findMatchingPattern(url, keywords);
 }
 
-/** Redirect SPA navigations that DNR does not intercept (e.g. YouTube Shorts). */
-export async function maybeRedirectKeywordTab(tabId: number, url: string | undefined): Promise<void> {
-  if (!url || !isInspectableWebUrl(url) || isExtensionBlockedPage(url)) return;
+async function tabUrl(tabId: number, url?: string): Promise<string | null> {
+  if (url) return url;
+  try {
+    const tab = await browser.tabs.get(tabId);
+    return tab.url ?? null;
+  } catch {
+    return null;
+  }
+}
 
-  const matched = await matchingKeyword(url);
+/** Redirect tabs DNR misses (SPA navigations, back/forward cache, etc.). */
+export async function maybeRedirectBlockedTab(tabId: number, url?: string): Promise<void> {
+  const resolved = await tabUrl(tabId, url);
+  if (!resolved || !isInspectableWebUrl(resolved) || isExtensionBlockedPage(resolved)) return;
+
+  const matched = await matchingBlockedPattern(resolved);
   if (!matched) return;
 
   try {
-    await browser.tabs.update(tabId, { url: blockedPageUrlFor(url) });
+    await browser.tabs.update(tabId, { url: blockedPageUrlFor(resolved) });
   } catch (err) {
-    console.error('[site-blocker] keyword tab redirect failed:', err);
+    console.error('[site-blocker] tab redirect failed:', err);
   }
 }
+
+/** @deprecated Use maybeRedirectBlockedTab */
+export const maybeRedirectKeywordTab = maybeRedirectBlockedTab;

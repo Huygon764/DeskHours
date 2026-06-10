@@ -1,4 +1,5 @@
 import type { BlockEntry, BlockEntryKind } from './types';
+import { isEncryptedMaskedDomain } from './masking';
 
 export interface BlockPattern {
   pattern: string;
@@ -20,7 +21,12 @@ export function cloneBlocklist(entries: BlockEntry[]): BlockEntry[] {
 
 /** Ensure legacy entries without `enabled` default to active. */
 export function normalizeEntry(entry: BlockEntry): BlockEntry {
-  return { ...entry, enabled: entry.enabled !== false, kind: entry.kind ?? 'site' };
+  const kind = entry.kind ?? 'site';
+  let domain = entry.domain;
+  if (kind === 'site' && !isEncryptedMaskedDomain(domain)) {
+    domain = normalizePattern(domain);
+  }
+  return { ...entry, domain, enabled: entry.enabled !== false, kind };
 }
 
 export function entryToBlockPattern(entry: BlockEntry): BlockPattern {
@@ -50,14 +56,39 @@ export function keywordToUrlFilter(keyword: string): string {
 
 /** True when the pattern targets a URL path rather than a whole host. */
 export function isPathPattern(pattern: string): boolean {
-  return pattern.includes('/') || pattern.includes('*');
+  if (pattern.includes('*')) return true;
+  const slash = pattern.indexOf('/');
+  if (slash === -1) return false;
+  const path = pattern.slice(slash + 1).replace(/\/+$/, '');
+  return path.length > 0;
 }
 
 /** Normalize user input to a domain or path pattern. */
 export function normalizePattern(raw: string): string {
-  let s = raw.trim().replace(/^https?:\/\//, '').replace(/^www\./, '');
+  let s = raw.trim();
+
+  // Adblock Plus: ||example.com^ or ||example.com/path^
+  if (s.startsWith('||')) {
+    s = s.slice(2);
+    if (s.endsWith('^')) s = s.slice(0, -1);
+  }
+
+  // Hosts file: 0.0.0.0 example.com
+  const hostsMatch = s.match(/^(?:0\.0\.0\.0|127\.0\.0\.1)\s+(\S+)/);
+  if (hostsMatch) s = hostsMatch[1];
+
+  s = s.replace(/^https?:\/\//, '').replace(/^www\./, '');
   s = s.replace(/\/+$/, '');
-  return s;
+
+  const slash = s.indexOf('/');
+  if (slash === -1) return s.toLowerCase();
+  return s.slice(0, slash).toLowerCase() + s.slice(slash);
+}
+
+/** DNR urlFilter for a host-only pattern (domain + subdomains, all paths). */
+export function hostToUrlFilter(host: string): string {
+  const h = host.replace(/^www\./, '').toLowerCase();
+  return `||${escapeUrlFilterLiteral(h)}/`;
 }
 
 /** @deprecated Use normalizePattern — kept for callers that only accept domains. */

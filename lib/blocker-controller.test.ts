@@ -20,7 +20,7 @@ describe('syncBlocker', () => {
   it('applies redirect rules for all blocked domains during an active window', async () => {
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.requestDomains?.[0]).sort()).toEqual(['facebook.com', 'youtube.com']);
+    expect(rules.map((r) => r.condition.urlFilter).sort()).toEqual(['||facebook.com/', '||youtube.com/']);
   });
 
   it('clears all rules outside an active window', async () => {
@@ -33,14 +33,14 @@ describe('syncBlocker', () => {
     await tempUnblocksItem.setValue([{ pattern: 'facebook.com', expiresAt: MON_1030 + 60_000 }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.requestDomains?.[0])).toEqual(['youtube.com']);
+    expect(rules.map((r) => r.condition.urlFilter)).toEqual(['||youtube.com/']);
   });
 
   it('ignores an expired temp unblock', async () => {
     await tempUnblocksItem.setValue([{ pattern: 'facebook.com', expiresAt: MON_1030 - 1 }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.requestDomains?.[0]).sort()).toEqual(['facebook.com', 'youtube.com']);
+    expect(rules.map((r) => r.condition.urlFilter).sort()).toEqual(['||facebook.com/', '||youtube.com/']);
   });
 
   it('skips disabled blocklist entries', async () => {
@@ -50,7 +50,7 @@ describe('syncBlocker', () => {
     ]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.requestDomains?.[0])).toEqual(['youtube.com']);
+    expect(rules.map((r) => r.condition.urlFilter)).toEqual(['||youtube.com/']);
   });
 
   it('applies path rules for path patterns', async () => {
@@ -73,14 +73,14 @@ describe('syncBlocker', () => {
     await unmaskedDomainsItem.setValue(['reddit.com']);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.requestDomains?.[0])).toContain('reddit.com');
+    expect(rules.map((r) => r.condition.urlFilter)).toContain('||reddit.com/');
   });
 
   it('blocks plaintext hidden sites without session unmask', async () => {
     await blocklistItem.setValue([{ id: '1', domain: 'reddit.com', masked: true, enabled: true }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.requestDomains?.[0])).toContain('reddit.com');
+    expect(rules.map((r) => r.condition.urlFilter)).toContain('||reddit.com/');
   });
 });
 

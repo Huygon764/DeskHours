@@ -14,10 +14,14 @@ describe('buildRedirectRules', () => {
       id: 1,
       priority: 1,
       action: { type: 'redirect', redirect: { extensionPath: '/blocked.html' } },
-      condition: { requestDomains: ['facebook.com'], resourceTypes: ['main_frame'] },
+      condition: {
+        urlFilter: '||facebook.com/',
+        isUrlFilterCaseSensitive: false,
+        resourceTypes: ['main_frame'],
+      },
     });
     expect(rules[1].id).toBe(2);
-    expect(rules[1].condition.requestDomains).toEqual(['youtube.com']);
+    expect(rules[1].condition.urlFilter).toBe('||youtube.com/');
   });
 
   it('builds urlFilter rules for path patterns', () => {
