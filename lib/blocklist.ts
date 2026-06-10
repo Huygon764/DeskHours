@@ -1,4 +1,11 @@
-import type { BlockEntry } from './types';
+import type { BlockEntry, BlockEntryKind } from './types';
+
+export interface BlockPattern {
+  pattern: string;
+  kind: BlockEntryKind;
+}
+
+const MAX_KEYWORD_LENGTH = 200;
 
 /** Plain copy for chrome.storage — do not pass Svelte $state proxies to setValue. */
 export function cloneBlocklist(entries: BlockEntry[]): BlockEntry[] {
@@ -6,13 +13,39 @@ export function cloneBlocklist(entries: BlockEntry[]): BlockEntry[] {
     id: e.id,
     domain: e.domain,
     masked: e.masked,
+    kind: e.kind ?? 'site',
     enabled: e.enabled !== false,
   }));
 }
 
 /** Ensure legacy entries without `enabled` default to active. */
 export function normalizeEntry(entry: BlockEntry): BlockEntry {
-  return { ...entry, enabled: entry.enabled !== false };
+  return { ...entry, enabled: entry.enabled !== false, kind: entry.kind ?? 'site' };
+}
+
+export function entryToBlockPattern(entry: BlockEntry): BlockPattern {
+  return { pattern: entry.domain, kind: entry.kind ?? 'site' };
+}
+
+/** Normalize a URL keyword for storage and matching (DNR filters must be ASCII). */
+export function normalizeKeyword(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  const ascii = trimmed.replace(/[^\x20-\x7E]/g, '');
+  if (!ascii) return '';
+  return ascii.length > MAX_KEYWORD_LENGTH ? ascii.slice(0, MAX_KEYWORD_LENGTH) : ascii;
+}
+
+/** Escape DNR urlFilter specials: * | ^ (prefix with |). */
+export function escapeUrlFilterLiteral(value: string): string {
+  return value.replace(/[*|^]/g, (c) => `|${c}`);
+}
+
+/** DNR urlFilter substring match for URLs containing `keyword`. */
+export function keywordToUrlFilter(keyword: string): string {
+  const escaped = escapeUrlFilterLiteral(keyword);
+  if (!escaped) throw new Error('keyword urlFilter must not be empty');
+  return escaped;
 }
 
 /** True when the pattern targets a URL path rather than a whole host. */
@@ -55,9 +88,17 @@ export function pathPatternFromUrl(url: string): string | null {
   }
 }
 
-/** True if a non-masked entry already uses this exact pattern. */
+/** True if a non-masked site entry already uses this exact pattern. */
 export function hasPlainPattern(entries: BlockEntry[], pattern: string): boolean {
-  return entries.some((e) => !e.masked && e.domain === pattern);
+  return entries.some((e) => !e.masked && (e.kind ?? 'site') === 'site' && e.domain === pattern);
+}
+
+/** True if a keyword entry already exists (case-insensitive). */
+export function hasKeywordPattern(entries: BlockEntry[], keyword: string): boolean {
+  const lower = keyword.toLowerCase();
+  return entries.some(
+    (e) => !e.masked && e.kind === 'keyword' && e.domain.toLowerCase() === lower,
+  );
 }
 
 /** @deprecated Use hasPlainPattern. */

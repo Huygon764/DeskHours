@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { blocklistItem } from '@/lib/storage';
-  import { cloneBlocklist, normalizePattern } from '@/lib/blocklist';
+  import { cloneBlocklist, hasKeywordPattern, normalizeKeyword, normalizePattern } from '@/lib/blocklist';
   import {
     hasBlockedPattern,
     keyFromPassword,
@@ -27,6 +27,7 @@
   let entries = $state<BlockEntry[]>([]);
   let revealed = $state<Record<string, string>>({});
   let newDomain = $state('');
+  let newKeyword = $state('');
   let newMasked = $state(false);
   let maskPassword = $state('');
   let addError = $state('');
@@ -80,6 +81,9 @@
       addError = 'Could not decrypt masked entries. Check your password.';
     }
   }
+
+  const siteEntries = $derived(entries.filter((e) => (e.kind ?? 'site') === 'site'));
+  const keywordEntries = $derived(entries.filter((e) => e.kind === 'keyword'));
 
   function display(e: BlockEntry): string {
     if (!e.masked) return e.domain;
@@ -140,7 +144,10 @@
         domainStored = await maskDomain(domain, key);
       }
 
-      const next = [...cloneBlocklist(entries), { id, domain: domainStored, masked: wasMasked, enabled: true }];
+      const next = [
+        ...cloneBlocklist(entries),
+        { id, domain: domainStored, masked: wasMasked, enabled: true, kind: 'site' as const },
+      ];
       const synced = await persist(next);
       newDomain = '';
       newMasked = false;
@@ -158,6 +165,41 @@
     } catch (err) {
       console.error('add blocklist entry failed:', err);
       addError = 'Failed to save blocklist. Try again.';
+    }
+  }
+
+  async function addKeyword() {
+    addError = '';
+    addNotice = '';
+    if (locked) {
+      addError = 'Unlock with your password above to edit the blocklist.';
+      return;
+    }
+    const keyword = normalizeKeyword(newKeyword);
+    if (!keyword) {
+      addError = 'Enter text to match in URLs (e.g. shorts or /reels/).';
+      return;
+    }
+    try {
+      const stored = await loadBlocklist();
+      if (hasKeywordPattern(stored, keyword)) {
+        addError = `"${keyword}" is already on the keyword list.`;
+        return;
+      }
+
+      const id = crypto.randomUUID();
+      const next = [
+        ...cloneBlocklist(entries),
+        { id, domain: keyword, masked: false, enabled: true, kind: 'keyword' as const },
+      ];
+      const synced = await persist(next);
+      newKeyword = '';
+      if (!synced) {
+        addNotice = 'Saved. If URLs are not blocked yet, reload the extension on brave://extensions.';
+      }
+    } catch (err) {
+      console.error('add keyword entry failed:', err);
+      addError = 'Failed to save keyword. Try again.';
     }
   }
 
@@ -205,11 +247,11 @@
     <p class="msg-muted">Loading blocklist…</p>
   {:else if loadError}
     <p class="msg-error">{loadError}</p>
-  {:else if entries.length === 0}
+  {:else if siteEntries.length === 0}
     <p class="empty-state">No sites blocked yet.</p>
   {:else}
     <div class="site-list">
-      {#each entries as e (e.id)}
+      {#each siteEntries as e (e.id)}
         <div class="list-row" class:row-disabled={e.enabled === false}>
           <div class="list-row-left">
             {#if e.masked}
@@ -271,9 +313,79 @@
   {#if addNotice}<p class="msg-success">{addNotice}</p>{/if}
 </section>
 
+<section class="card keyword-section">
+  <h2 class="text-headline-md section-title">URL keywords</h2>
+  <p class="text-body-muted section-hint">Block any page whose URL contains the text (path, query, etc.).</p>
+
+  {#if locked}
+    <p class="hint-banner">Keywords are locked while a schedule window is active. Enter your password above to edit.</p>
+  {/if}
+
+  {#if loading}
+    <p class="msg-muted">Loading…</p>
+  {:else if keywordEntries.length === 0}
+    <p class="empty-state">No URL keywords yet.</p>
+  {:else}
+    <div class="site-list">
+      {#each keywordEntries as e (e.id)}
+        <div class="list-row" class:row-disabled={e.enabled === false}>
+          <div class="list-row-left">
+            <span class="status-dot" class:dot-off={e.enabled === false}></span>
+            <span class="domain">{display(e)}</span>
+            <span class="tag">Keyword</span>
+            {#if e.enabled === false}<span class="tag">Paused</span>{/if}
+          </div>
+          <div class="row-actions">
+            <Toggle
+              checked={e.enabled !== false}
+              disabled={locked}
+              ariaLabel="Blocking enabled for keyword {display(e)}"
+              onchange={(enabled) => toggleEnabled(e.id, enabled)}
+            />
+            <button
+              type="button"
+              class="btn-icon"
+              onclick={() => remove(e.id)}
+              disabled={locked}
+              aria-label="Remove keyword {display(e)}"
+            >
+              &#x2715;
+            </button>
+          </div>
+        </div>
+      {/each}
+    </div>
+  {/if}
+
+  <div class="add-form">
+    <div class="field">
+      <label class="field-label" for="new-keyword">Add keyword</label>
+      <input
+        id="new-keyword"
+        class="input"
+        bind:value={newKeyword}
+        placeholder="shorts, /reels/, gambling"
+        disabled={locked}
+      />
+    </div>
+    <button type="button" class="btn btn-primary" onclick={addKeyword} disabled={locked}>
+      {locked ? 'Add (unlock required)' : 'Add keyword'}
+    </button>
+  </div>
+</section>
+
 <style>
   .section-title {
     margin: 0 0 20px;
+  }
+
+  .keyword-section {
+    margin-top: 24px;
+  }
+
+  .section-hint {
+    margin: -12px 0 20px;
+    font-size: 14px;
   }
 
   .hint-banner {

@@ -1,4 +1,4 @@
-import { isPathPattern, patternToUrlFilter } from './blocklist';
+import { isPathPattern, keywordToUrlFilter, patternToUrlFilter, type BlockPattern } from './blocklist';
 
 /** A DNR dynamic rule that redirects navigation to the extension blocked page. */
 export interface RedirectRule {
@@ -15,9 +15,9 @@ export interface RedirectRule {
 
 export const BLOCKED_PAGE_PATH = '/blocked.html';
 
-/** Build sequential redirect rules (ids 1..N) for path or domain patterns. */
-export function buildRedirectRules(patterns: string[]): RedirectRule[] {
-  return patterns.map((pattern, i) => {
+/** Build sequential redirect rules (ids 1..N) for site, path, and keyword patterns. */
+export function buildRedirectRules(patterns: BlockPattern[]): RedirectRule[] {
+  return patterns.map((item, i) => {
     const base = {
       id: i + 1,
       priority: 1,
@@ -25,12 +25,23 @@ export function buildRedirectRules(patterns: string[]): RedirectRule[] {
       condition: { resourceTypes: ['main_frame'] as ['main_frame'] },
     };
 
-    if (isPathPattern(pattern)) {
+    if (item.kind === 'keyword') {
       return {
         ...base,
         condition: {
           ...base.condition,
-          urlFilter: patternToUrlFilter(pattern),
+          urlFilter: keywordToUrlFilter(item.pattern),
+          isUrlFilterCaseSensitive: false,
+        },
+      };
+    }
+
+    if (isPathPattern(item.pattern)) {
+      return {
+        ...base,
+        condition: {
+          ...base.condition,
+          urlFilter: patternToUrlFilter(item.pattern),
           isUrlFilterCaseSensitive: false,
         },
       };
@@ -40,7 +51,7 @@ export function buildRedirectRules(patterns: string[]): RedirectRule[] {
       ...base,
       condition: {
         ...base.condition,
-        requestDomains: [pattern.replace(/^www\./, '')],
+        requestDomains: [item.pattern.replace(/^www\./, '')],
       },
     };
   });

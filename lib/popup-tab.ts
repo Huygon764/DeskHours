@@ -1,9 +1,16 @@
 import { blocklistItem } from './storage';
-import { cloneBlocklist, domainPatternFromUrl, normalizePattern, pathPatternFromUrl } from './blocklist';
+import {
+  cloneBlocklist,
+  domainPatternFromUrl,
+  entryToBlockPattern,
+  normalizePattern,
+  pathPatternFromUrl,
+} from './blocklist';
 import { hasBlockedPattern, loadBlocklist, setEntryEnabled } from './blocklist-session';
 import { syncBlockerSafe } from './messages';
-import { findMatchingPattern } from './pattern-match';
+import { entryMatchesPattern, findMatchingPattern } from './pattern-match';
 import { revealEntry } from './masking';
+import type { BlockPattern } from './blocklist';
 import type { BlockEntry } from './types';
 
 export type PageBlockStatus =
@@ -17,21 +24,21 @@ export async function pageBlockStatus(
   entries: BlockEntry[],
   key: CryptoKey | null,
 ): Promise<PageBlockStatus> {
-  const plainPatterns: string[] = [];
+  const rules: BlockPattern[] = [];
   for (const e of entries) {
     if (e.masked) {
-      if (key) plainPatterns.push(await revealEntry(e, key));
+      if (key) rules.push({ pattern: await revealEntry(e, key), kind: 'site' as const });
     } else {
-      plainPatterns.push(e.domain);
+      rules.push(entryToBlockPattern(e));
     }
   }
 
-  const matched = findMatchingPattern(tabUrl, plainPatterns);
+  const matched = findMatchingPattern(tabUrl, rules);
   if (!matched) return { kind: 'none' };
 
   for (const e of entries) {
     const p = e.masked && key ? await revealEntry(e, key) : e.domain;
-    if (p !== matched) continue;
+    if (!entryMatchesPattern(e, matched, p)) continue;
     if (e.enabled === false) return { kind: 'listed-disabled', entry: e, pattern: matched };
     return { kind: 'listed-enabled', entry: e, pattern: matched };
   }

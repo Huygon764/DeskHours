@@ -1,4 +1,5 @@
 import { syncBlocker, grantUnblock } from '@/lib/blocker-controller';
+import { maybeRedirectKeywordTab } from '@/lib/keyword-navigation';
 import {
   onPhaseAlarm,
   pausePomodoro,
@@ -19,18 +20,28 @@ import { BG_MESSAGE, type BgMessage } from '@/lib/messages';
 const SCHEDULER_ALARM = 'blocker-scheduler';
 
 export default defineBackground(() => {
-  void syncBlocker();
+  void syncBlocker().catch((err) => console.error('[site-blocker] initial sync failed:', err));
 
   browser.alarms.create(SCHEDULER_ALARM, { periodInMinutes: 1 });
 
   browser.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === SCHEDULER_ALARM) void syncBlocker();
+    if (alarm.name === SCHEDULER_ALARM) {
+      void syncBlocker().catch((err) => console.error('[site-blocker] scheduled sync failed:', err));
+    }
     else if (alarm.name === POMODORO_ALARM) void onPhaseAlarm();
     else if (alarm.name === TIMER_ALARM) void onTimerAlarm();
   });
 
   browser.notifications.onClicked.addListener((notificationId) => {
     if (notificationId === TIMER_NOTIFICATION_ID) void onTimerNotificationClick();
+  });
+
+  browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.url) {
+      void maybeRedirectKeywordTab(tabId, changeInfo.url).catch((err) =>
+        console.error('[site-blocker] keyword navigation check failed:', err),
+      );
+    }
   });
 
   browser.runtime.onMessage.addListener((message: BgMessage) => {

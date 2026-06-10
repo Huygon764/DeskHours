@@ -1,7 +1,7 @@
 import { blocklistItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
 import { isBlockingActive } from './schedule';
 import { buildRedirectRules } from './dnr-rules';
-import { normalizeEntry } from './blocklist';
+import { entryToBlockPattern, normalizeEntry, type BlockPattern } from './blocklist';
 import { revealEntry } from './masking';
 import type { BlockEntry } from './types';
 
@@ -21,17 +21,19 @@ export async function pruneExpired(): Promise<Set<string>> {
   return new Set(live.map((u) => tempUnblockPattern(u)));
 }
 
-async function collectActivePatterns(blocklist: BlockEntry[]): Promise<string[]> {
+async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPattern[]> {
   const unmasked = await unmaskedDomainsItem.getValue();
-  const patterns: string[] = [];
+  const patterns: BlockPattern[] = [];
 
   for (const e of blocklist) {
     if (e.enabled === false) continue;
-    if (!e.masked) patterns.push(e.domain);
+    if (!e.masked) patterns.push(entryToBlockPattern(e));
   }
 
   for (const p of unmasked) {
-    if (!patterns.includes(p)) patterns.push(p);
+    if (!patterns.some((x) => x.pattern === p && x.kind === 'site')) {
+      patterns.push({ pattern: p, kind: 'site' });
+    }
   }
 
   return patterns;
@@ -52,20 +54,30 @@ export async function syncBlocker(): Promise<void> {
   const liveUnblocks = await pruneExpired();
   const schedule = await scheduleItem.getValue();
 
-  let patterns: string[] = [];
+  let patterns: BlockPattern[] = [];
   if (isBlockingActive(schedule, now)) {
     const blocklist = (await blocklistItem.getValue()).map(normalizeEntry);
     patterns = await collectActivePatterns(blocklist);
-    patterns = patterns.filter((p) => !liveUnblocks.has(p));
+    patterns = patterns.filter((p) => !liveUnblocks.has(p.pattern));
   }
 
   const addRules = buildRedirectRules(patterns);
   const existing = await browser.declarativeNetRequest.getDynamicRules();
-  await browser.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: existing.map((r) => r.id),
-    addRules: addRules as Browser.declarativeNetRequest.Rule[],
-  });
-  console.info('[site-blocker] DNR sync:', patterns.length, 'rule(s)', patterns);
+  try {
+    await browser.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: existing.map((r) => r.id),
+      addRules: addRules as Browser.declarativeNetRequest.Rule[],
+    });
+  } catch (err) {
+    console.error('[site-blocker] DNR update failed:', err, addRules);
+    throw err;
+  }
+  console.info(
+    '[site-blocker] DNR sync:',
+    patterns.length,
+    'rule(s)',
+    patterns.map((p) => (p.kind === 'keyword' ? `kw:${p.pattern}` : p.pattern)),
+  );
 }
 
 /** Temporarily allow one pattern, then resync DNR rules. */

@@ -1,8 +1,8 @@
 import { authItem, blocklistItem, unmaskedDomainsItem } from './storage';
 import { verifyPassword, deriveKey } from './crypto';
 import { revealEntry } from './masking';
-import { cloneBlocklist, hasPlainPattern, normalizeEntry } from './blocklist';
-import type { BlockEntry } from './types';
+import { cloneBlocklist, hasKeywordPattern, hasPlainPattern, normalizeEntry } from './blocklist';
+import type { BlockEntry, BlockEntryKind } from './types';
 
 /** Verify password and derive the AES key used for masked entries. */
 export async function keyFromPassword(password: string): Promise<CryptoKey | null> {
@@ -35,8 +35,10 @@ export async function hasBlockedPattern(
   entries: BlockEntry[],
   pattern: string,
   key: CryptoKey | null,
+  kind: BlockEntryKind = 'site',
 ): Promise<boolean> {
   const normalized = entries.map(normalizeEntry);
+  if (kind === 'keyword') return hasKeywordPattern(normalized, pattern);
   if (hasPlainPattern(normalized, pattern)) return true;
   if (!key) return false;
   for (const e of normalized) {

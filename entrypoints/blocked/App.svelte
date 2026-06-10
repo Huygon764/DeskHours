@@ -2,10 +2,17 @@
   import { authItem, blocklistItem } from '@/lib/storage';
   import { verifyPassword } from '@/lib/crypto';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
-  import { cloneBlocklist, normalizeEntry } from '@/lib/blocklist';
+  import { cloneBlocklist, entryToBlockPattern, normalizeEntry } from '@/lib/blocklist';
+  import { BLOCKED_URL_PARAM } from '@/lib/keyword-navigation';
   import { findMatchingPattern } from '@/lib/pattern-match';
 
-  function referrerUrl(): string {
+  function initialBlockedUrl(): string {
+    try {
+      const fromQuery = new URLSearchParams(window.location.search).get(BLOCKED_URL_PARAM);
+      if (fromQuery) return fromQuery;
+    } catch {
+      /* ignore */
+    }
     try {
       return document.referrer || '';
     } catch {
@@ -13,7 +20,7 @@
     }
   }
 
-  let pageUrl = $state(referrerUrl());
+  let pageUrl = $state(initialBlockedUrl());
   let blockPattern = $state('');
   let confirmed = $state(false);
   let countdown = $state(0);
@@ -42,10 +49,7 @@
   async function resolvePattern() {
     if (!pageUrl) return;
     const entries = cloneBlocklist(await blocklistItem.getValue()).map(normalizeEntry);
-    const patterns: string[] = [];
-    for (const e of entries) {
-      if (!e.masked) patterns.push(e.domain);
-    }
+    const patterns = entries.filter((e) => !e.masked).map(entryToBlockPattern);
     blockPattern = findMatchingPattern(pageUrl, patterns) ?? '';
   }
 

@@ -8,14 +8,18 @@ export interface ScheduleWindow {
   end: string;
 }
 
-/** One blocked site or URL path pattern. `domain` is plaintext for normal entries;
+export type BlockEntryKind = 'site' | 'keyword';
+
+/** One blocked site, URL path pattern, or URL keyword. `domain` is plaintext for normal entries;
  *  for masked entries it holds the AES-GCM ciphertext and plaintext lives only in memory. */
 export interface BlockEntry {
   id: string;
-  /** Domain or path pattern, e.g. "facebook.com" or "youtube.com/shorts/*".
+  /** Site/path pattern or URL keyword text (when `kind` is `keyword`).
    *  When `masked` is true this is the encrypted payload string instead. */
   domain: string;
   masked: boolean;
+  /** `site` (default) blocks hosts/paths; `keyword` blocks URLs containing the text. */
+  kind?: BlockEntryKind;
   /** When false the entry stays in the list but is not enforced. Defaults to true. */
   enabled?: boolean;
 }

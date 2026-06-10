@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { cloneBlocklist, hasPlainPattern, isPathPattern, normalizePattern, pathPatternFromUrl } from './blocklist';
+import {
+  cloneBlocklist,
+  hasKeywordPattern,
+  hasPlainPattern,
+  isPathPattern,
+  keywordToUrlFilter,
+  normalizeKeyword,
+  normalizePattern,
+  pathPatternFromUrl,
+} from './blocklist';
 
 describe('normalizePattern', () => {
   it('strips scheme and www from domains', () => {
@@ -28,10 +37,34 @@ describe('isPathPattern', () => {
   });
 });
 
+describe('normalizeKeyword', () => {
+  it('trims and preserves inner text', () => {
+    expect(normalizeKeyword('  /shorts/  ')).toBe('/shorts/');
+  });
+});
+
+describe('keywordToUrlFilter', () => {
+  it('escapes specials for DNR substring match', () => {
+    expect(keywordToUrlFilter('shorts')).toBe('shorts');
+    expect(keywordToUrlFilter('a*b')).toBe('a|*b');
+    expect(keywordToUrlFilter('foo^bar')).toBe('foo|^bar');
+  });
+});
+
 describe('cloneBlocklist', () => {
   it('returns plain objects with enabled defaulting true', () => {
     const entries = [{ id: '1', domain: 'a.com', masked: false }];
-    expect(cloneBlocklist(entries)).toEqual([{ id: '1', domain: 'a.com', masked: false, enabled: true }]);
+    expect(cloneBlocklist(entries)).toEqual([
+      { id: '1', domain: 'a.com', masked: false, kind: 'site', enabled: true },
+    ]);
+  });
+});
+
+describe('hasKeywordPattern', () => {
+  it('detects duplicate keywords case-insensitively', () => {
+    const entries = [{ id: '1', domain: 'Shorts', masked: false, kind: 'keyword' as const, enabled: true }];
+    expect(hasKeywordPattern(entries, 'shorts')).toBe(true);
+    expect(hasKeywordPattern(entries, 'reels')).toBe(false);
   });
 });
 

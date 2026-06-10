@@ -60,6 +60,15 @@ describe('syncBlocker', () => {
     expect(rules[0].condition.urlFilter).toBe('*://*.youtube.com/shorts/*');
   });
 
+  it('applies keyword urlFilter rules', async () => {
+    await blocklistItem.setValue([
+      { id: '1', domain: 'shorts', masked: false, enabled: true, kind: 'keyword' },
+    ]);
+    await syncBlocker();
+    const rules = getDynamicRulesForTest();
+    expect(rules[0].condition.urlFilter).toBe('shorts');
+  });
+
   it('blocks session-unmasked patterns during an active window', async () => {
     await unmaskedDomainsItem.setValue(['reddit.com']);
     await syncBlocker();
