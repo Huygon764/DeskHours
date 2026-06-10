@@ -1,5 +1,6 @@
 <script lang="ts">
   import PasswordSetup from './PasswordSetup.svelte';
+  import ThemeSettings from './ThemeSettings.svelte';
   import ScheduleEditor from './ScheduleEditor.svelte';
   import BlocklistEditor from './BlocklistEditor.svelte';
   import { authItem, scheduleItem } from '@/lib/storage';
@@ -7,7 +8,7 @@
   import { isBlockingActive } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
 
-  type Tab = 'schedule' | 'sites' | 'security';
+  type Tab = 'schedule' | 'sites' | 'settings';
 
   let hasPassword = $state(false);
   let blockingNow = $state(false);
@@ -89,8 +90,8 @@
         <button class="tab" class:active={activeTab === 'sites'} onclick={() => (activeTab = 'sites')}>
           Blocked sites
         </button>
-        <button class="tab" class:active={activeTab === 'security'} onclick={() => (activeTab = 'security')}>
-          Security
+        <button class="tab" class:active={activeTab === 'settings'} onclick={() => (activeTab = 'settings')}>
+          Settings
         </button>
       </nav>
 
@@ -99,6 +100,7 @@
       {:else if activeTab === 'sites'}
         <BlocklistEditor {locked} />
       {:else}
+        <ThemeSettings />
         <PasswordSetup readonly={locked} />
       {/if}
     {/if}

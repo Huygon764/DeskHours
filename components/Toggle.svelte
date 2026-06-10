@@ -65,8 +65,8 @@
     height: 26px;
     flex-shrink: 0;
     border-radius: 999px;
-    background: #e7e5e4;
-    border: 1px solid #d6d3d1;
+    background: var(--toggle-track);
+    border: 1px solid var(--toggle-track-border);
     transition: background 0.2s ease, border-color 0.2s ease;
   }
 
@@ -77,14 +77,14 @@
     width: 20px;
     height: 20px;
     border-radius: 999px;
-    background: #ffffff;
+    background: var(--toggle-knob);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
     transition: transform 0.2s ease;
   }
 
   .toggle-input:checked + .toggle-track {
-    background: #34c759;
-    border-color: #2eb04e;
+    background: var(--toggle-on);
+    border-color: var(--toggle-on-border);
   }
 
   .toggle-input:checked + .toggle-track .toggle-knob {
@@ -92,7 +92,7 @@
   }
 
   .toggle-input:focus-visible + .toggle-track {
-    outline: 2px solid rgba(245, 158, 11, 0.45);
+    outline: 2px solid var(--amber-ring);
     outline-offset: 2px;
   }
 

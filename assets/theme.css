@@ -1,9 +1,11 @@
-/* C1 Soft Sand — from stitch_site_blocker_focus_kit/DESIGN.md */
-:root {
+/* C1 Soft Sand — light theme (default) */
+:root,
+[data-theme='light'] {
   --bg: #fafaf9;
   --surface: #ffffff;
   --surface-low: #faf2eb;
   --surface-muted: #f4ede6;
+  --surface-step: rgba(250, 242, 235, 0.3);
   --border: #e7e5e4;
   --border-variant: #cfc4bd;
   --text: #57534e;
@@ -16,15 +18,65 @@
   --amber: #f59e0b;
   --amber-bg: #fef3c7;
   --amber-text: #92400e;
+  --amber-border: rgba(245, 158, 11, 0.2);
+  --amber-ring: rgba(245, 158, 11, 0.15);
   --secondary: #855300;
   --error: #ba1a1a;
   --error-bg: #ffdad6;
   --success: #059669;
+  --preset-selected-bg: color-mix(in srgb, var(--primary) 12%, var(--surface-low));
+  --toggle-track: #e7e5e4;
+  --toggle-track-border: #d6d3d1;
+  --toggle-knob: #ffffff;
+  --toggle-on: #34c759;
+  --toggle-on-border: #2eb04e;
+  --strength-bar-empty: rgba(207, 196, 189, 0.4);
+  --link-underline: rgba(133, 83, 0, 0.3);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #1c1917;
+  --surface: #292524;
+  --surface-low: #231f1e;
+  --surface-muted: #35302e;
+  --surface-step: rgba(41, 37, 36, 0.6);
+  --border: #44403c;
+  --border-variant: #57534e;
+  --text: #d6d3d1;
+  --text-strong: #fafaf9;
+  --text-muted: #a8a29e;
+  --text-subtle: #78716c;
+  --primary: #78716c;
+  --primary-hover: #8b8580;
+  --on-primary: #ffffff;
+  --amber: #fbbf24;
+  --amber-bg: rgba(251, 191, 36, 0.14);
+  --amber-text: #fbbf24;
+  --amber-border: rgba(251, 191, 36, 0.25);
+  --amber-ring: rgba(251, 191, 36, 0.25);
+  --secondary: #fbbf24;
+  --error: #f87171;
+  --error-bg: rgba(248, 113, 113, 0.12);
+  --success: #34d399;
+  --preset-selected-bg: rgba(251, 191, 36, 0.1);
+  --toggle-track: #44403c;
+  --toggle-track-border: #57534e;
+  --toggle-knob: #fafaf9;
+  --toggle-on: #34c759;
+  --toggle-on-border: #2eb04e;
+  --strength-bar-empty: rgba(87, 83, 78, 0.5);
+  --link-underline: rgba(251, 191, 36, 0.35);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+:root {
   --radius-sm: 6px;
   --radius: 12px;
   --radius-lg: 16px;
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.03);
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 *,
@@ -219,7 +271,7 @@ textarea {
 .input:focus {
   outline: none;
   border-color: var(--amber);
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 0 2px var(--amber-ring);
 }
 
 .input:disabled {
@@ -295,7 +347,7 @@ textarea {
   padding: 16px;
   border-radius: var(--radius);
   background: var(--amber-bg);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid var(--amber-border);
   color: var(--amber-text);
   margin-bottom: 24px;
 }
@@ -488,7 +540,7 @@ textarea {
 .strength-bar {
   flex: 1;
   border-radius: 999px;
-  background: rgba(207, 196, 189, 0.4);
+  background: var(--strength-bar-empty);
 }
 
 .strength-bar.filled {
@@ -521,7 +573,7 @@ textarea {
   font-weight: 500;
   color: var(--text-muted);
   text-decoration: underline;
-  text-decoration-color: rgba(133, 83, 0, 0.3);
+  text-decoration-color: var(--link-underline);
   cursor: pointer;
 }
 

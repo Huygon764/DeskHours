@@ -217,7 +217,7 @@
     padding: 16px;
     border: 1px solid var(--border-variant);
     border-radius: var(--radius);
-    background: rgba(250, 242, 235, 0.3);
+    background: var(--surface-step);
   }
 
   .step-disabled {
@@ -237,7 +237,7 @@
     font-weight: 500;
     padding: 2px 8px;
     border-radius: 999px;
-    background: rgba(207, 196, 189, 0.3);
+    background: var(--surface-muted);
     color: var(--text-muted);
     text-transform: capitalize;
   }

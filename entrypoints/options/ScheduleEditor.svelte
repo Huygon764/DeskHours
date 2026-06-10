@@ -193,8 +193,8 @@
   }
 
   .preset-card.selected {
-    border-color: var(--primary);
-    background: color-mix(in srgb, var(--primary) 12%, var(--surface-low));
+    border-color: var(--amber);
+    background: var(--preset-selected-bg);
   }
 
   .preset-card:disabled {
