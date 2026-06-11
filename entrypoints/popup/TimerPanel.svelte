@@ -162,13 +162,13 @@
   .timer-section-done {
     padding: 12px 0 4px;
     border-radius: 12px;
-    background: #fdeee8;
-    border: 1px solid #f5d6c8;
-    color: var(--text-strong);
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
   }
 
-  .timer-section-done .phase-label {
-    color: #c2410c;
+  .timer-section-done .phase-label,
+  .timer-section-done .time-done {
+    color: var(--amber-text);
   }
 
   .phase-label {
