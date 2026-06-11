@@ -704,5 +704,107 @@
   },
   "temporarily": {
     "message": "temporarily"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "backupTitle": {
+    "message": "Backup"
+  },
+  "backupIntro": {
+    "message": "Export your blocklist, schedule, password, and preferences to a JSON file. Import restores everything on this or another install."
+  },
+  "backupSensitiveHint": {
+    "message": "Backup files contain your password hash and encrypted hidden entries. Store them somewhere safe."
+  },
+  "backupExport": {
+    "message": "Export backup"
+  },
+  "backupImport": {
+    "message": "Import backup"
+  },
+  "backupExportDone": {
+    "message": "Backup downloaded."
+  },
+  "backupExportFailed": {
+    "message": "Could not create backup."
+  },
+  "backupPreviewTitle": {
+    "message": "Import preview"
+  },
+  "backupPreviewSites": {
+    "message": "$1$ site(s)",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "backupPreviewKeywords": {
+    "message": "$1$ keyword(s)",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "backupPreviewHidden": {
+    "message": "$1$ hidden entry(ies)",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "backupPreviewSchedule": {
+    "message": "$1$ schedule window(s)",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "backupPreviewPasswordYes": {
+    "message": "Password: included"
+  },
+  "backupPreviewPasswordNo": {
+    "message": "Password: not set"
+  },
+  "backupImportWarning": {
+    "message": "This replaces all current settings. Temporary unblocks and active timers will be cleared."
+  },
+  "backupImportConfirm": {
+    "message": "Replace all settings"
+  },
+  "backupImporting": {
+    "message": "Importing…"
+  },
+  "backupImportDone": {
+    "message": "Settings restored from backup."
+  },
+  "backupImportDoneReload": {
+    "message": "Settings restored. Reload the extension if blocking rules look out of date."
+  },
+  "backupImportFailed": {
+    "message": "Import failed."
+  },
+  "backupErrorInvalidJson": {
+    "message": "File is not valid JSON."
+  },
+  "backupErrorWrongApp": {
+    "message": "This file is not a Site Blocker backup."
+  },
+  "backupErrorNewerSchema": {
+    "message": "Backup was made with a newer extension version. Update Site Blocker first."
+  },
+  "backupErrorMaskedNoAuth": {
+    "message": "Backup has hidden entries but no password record."
+  },
+  "backupErrorInvalid": {
+    "message": "Backup file is invalid or incomplete."
   }
 }

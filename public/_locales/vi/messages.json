@@ -704,5 +704,107 @@
   },
   "temporarily": {
     "message": "tạm thời"
+  },
+  "cancel": {
+    "message": "Hủy"
+  },
+  "backupTitle": {
+    "message": "Sao lưu"
+  },
+  "backupIntro": {
+    "message": "Xuất danh sách chặn, lịch, mật khẩu và tùy chọn ra file JSON. Nhập lại để khôi phục trên máy này hoặc cài mới."
+  },
+  "backupSensitiveHint": {
+    "message": "File sao lưu chứa hash mật khẩu và mục ẩn đã mã hóa. Lưu ở nơi an toàn."
+  },
+  "backupExport": {
+    "message": "Xuất sao lưu"
+  },
+  "backupImport": {
+    "message": "Nhập sao lưu"
+  },
+  "backupExportDone": {
+    "message": "Đã tải file sao lưu."
+  },
+  "backupExportFailed": {
+    "message": "Không tạo được file sao lưu."
+  },
+  "backupPreviewTitle": {
+    "message": "Xem trước khi nhập"
+  },
+  "backupPreviewSites": {
+    "message": "$1$ trang",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "backupPreviewKeywords": {
+    "message": "$1$ từ khóa",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "backupPreviewHidden": {
+    "message": "$1$ mục ẩn",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "backupPreviewSchedule": {
+    "message": "$1$ khung giờ",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "backupPreviewPasswordYes": {
+    "message": "Mật khẩu: có"
+  },
+  "backupPreviewPasswordNo": {
+    "message": "Mật khẩu: chưa đặt"
+  },
+  "backupImportWarning": {
+    "message": "Thao tác này thay toàn bộ cài đặt hiện tại. Bỏ chặn tạm và hẹn giờ đang chạy sẽ bị xóa."
+  },
+  "backupImportConfirm": {
+    "message": "Thay toàn bộ cài đặt"
+  },
+  "backupImporting": {
+    "message": "Đang nhập…"
+  },
+  "backupImportDone": {
+    "message": "Đã khôi phục cài đặt từ sao lưu."
+  },
+  "backupImportDoneReload": {
+    "message": "Đã khôi phục. Tải lại extension nếu quy tắc chặn chưa khớp."
+  },
+  "backupImportFailed": {
+    "message": "Nhập sao lưu thất bại."
+  },
+  "backupErrorInvalidJson": {
+    "message": "File không phải JSON hợp lệ."
+  },
+  "backupErrorWrongApp": {
+    "message": "File này không phải sao lưu Site Blocker."
+  },
+  "backupErrorNewerSchema": {
+    "message": "Sao lưu từ phiên bản extension mới hơn. Hãy cập nhật Site Blocker trước."
+  },
+  "backupErrorMaskedNoAuth": {
+    "message": "Sao lưu có mục ẩn nhưng thiếu mật khẩu."
+  },
+  "backupErrorInvalid": {
+    "message": "File sao lưu không hợp lệ hoặc thiếu dữ liệu."
   }
 }

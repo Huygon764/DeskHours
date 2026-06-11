@@ -5,6 +5,7 @@
   import ScheduleEditor from './ScheduleEditor.svelte';
   import BlocklistEditor from './BlocklistEditor.svelte';
   import FocusTimerSettings from './FocusTimerSettings.svelte';
+  import BackupSettings from './BackupSettings.svelte';
   import { authItem, scheduleItem } from '@/lib/storage';
   import { verifyPassword, deriveKey } from '@/lib/crypto';
   import { isBlockingActive } from '@/lib/schedule';
@@ -121,6 +122,7 @@
       {:else}
         <LanguageSettings />
         <ThemeSettings />
+        <BackupSettings />
         <PasswordSetup readonly={locked} />
       {/if}
     {/if}
