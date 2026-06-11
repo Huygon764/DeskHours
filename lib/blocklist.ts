@@ -91,11 +91,6 @@ export function hostToUrlFilter(host: string): string {
   return `||${escapeUrlFilterLiteral(h)}/`;
 }
 
-/** @deprecated Use normalizePattern — kept for callers that only accept domains. */
-export function normalizeDomain(raw: string): string {
-  return normalizePattern(raw).split('/')[0];
-}
-
 /** Hostname from a URL, without www. */
 export function hostFromUrl(url: string): string {
   return new URL(url).hostname.replace(/^www\./, '');
@@ -133,11 +128,6 @@ export function hasKeywordPattern(entries: BlockEntry[], keyword: string): boole
     if (isEncryptedMaskedDomain(e.domain)) return false;
     return e.domain.toLowerCase() === lower;
   });
-}
-
-/** @deprecated Use hasPlainPattern. */
-export function hasPlainDomain(entries: BlockEntry[], domain: string): boolean {
-  return hasPlainPattern(entries, domain);
 }
 
 /** Convert a stored pattern to a DNR urlFilter (path patterns only). */

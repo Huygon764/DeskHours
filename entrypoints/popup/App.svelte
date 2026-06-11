@@ -8,6 +8,7 @@
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
   import { t, watchLocale } from '@/lib/i18n';
+  import AppLogo from '@/components/AppLogo.svelte';
 
   type PopupTab = 'block' | 'focus' | 'timer';
 
@@ -78,7 +79,7 @@
   {#key localeRevision}
   <header class="popup-header">
     <div class="brand">
-      <span class="shield" aria-hidden="true">&#x1F6E1;</span>
+      <AppLogo size={22} />
       <span class="brand-name">{t('appName')}</span>
     </div>
     {#if blockingNow}
@@ -177,11 +178,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .shield {
-    font-size: 18px;
-    line-height: 1;
   }
 
   .brand-name {

@@ -1,15 +1,15 @@
 {
   "extName": {
-    "message": "Site Blocker"
+    "message": "DeskHours"
   },
   "extDescription": {
-    "message": "Chặn trang web gây xao nhãng theo lịch, kèm bộ đếm Pomodoro"
+    "message": "Chặn trang gây xao nhãng theo giờ làm, kèm Pomodoro và hẹn giờ"
   },
   "appName": {
-    "message": "Site Blocker"
+    "message": "DeskHours"
   },
   "settingsTitle": {
-    "message": "Cài đặt Site Blocker"
+    "message": "Cài đặt DeskHours"
   },
   "setupSubtitle": {
     "message": "Thiết lập mật khẩu chính để bắt đầu."
@@ -51,7 +51,7 @@
     "message": "Giao diện"
   },
   "appearanceIntro": {
-    "message": "Chọn giao diện Site Blocker trong popup, cài đặt và trang chặn."
+    "message": "Chọn giao diện DeskHours trong popup, cài đặt và trang chặn."
   },
   "languageTitle": {
     "message": "Ngôn ngữ"
@@ -106,9 +106,6 @@
   },
   "masterPasswordIntro": {
     "message": "Bảo vệ bỏ chặn, chỉnh lịch trong giờ chặn và tên trang ẩn."
-  },
-  "unlockToChangePassword": {
-    "message": "Mở khóa ở trên để đổi mật khẩu."
   },
   "revealPasswordChange": {
     "message": "Mật khẩu hiện tại"
@@ -814,10 +811,10 @@
     "message": "File không phải JSON hợp lệ."
   },
   "backupErrorWrongApp": {
-    "message": "File này không phải sao lưu Site Blocker."
+    "message": "File này không phải sao lưu DeskHours."
   },
   "backupErrorNewerSchema": {
-    "message": "Sao lưu từ phiên bản extension mới hơn. Hãy cập nhật Site Blocker trước."
+    "message": "Sao lưu từ phiên bản extension mới hơn. Hãy cập nhật DeskHours trước."
   },
   "backupErrorMaskedNoAuth": {
     "message": "Sao lưu có mục ẩn nhưng thiếu mật khẩu."

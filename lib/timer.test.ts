@@ -4,11 +4,9 @@ import {
   addDurationSeconds,
   clampDurationSeconds,
   formatHhMmSs,
-  formatMmSs,
   isTimerPaused,
   normalizeTimerState,
   parseHhMmSs,
-  parseMmSs,
   splitHhMmSs,
   resumeTimerState,
   timerRemainingMs,
@@ -67,10 +65,6 @@ describe('formatHhMmSs / parseHhMmSs', () => {
     expect(parseHhMmSs('00', '02', '60')).toBeNull();
   });
 
-  it('keeps legacy mm:ss helpers working', () => {
-    expect(formatMmSs(125)).toBe('00:02:05');
-    expect(parseMmSs('02', '05')).toBe(125);
-  });
 });
 
 describe('normalizeTimerState', () => {

@@ -27,7 +27,9 @@ import type {
   ScheduleWindow,
 } from './types';
 
-export const BACKUP_APP_ID = 'site-blocker';
+export const BACKUP_APP_ID = 'deskhours';
+/** Pre-rebrand exports; still accepted on import. */
+export const LEGACY_BACKUP_APP_ID = 'site-blocker';
 export const BACKUP_SCHEMA_VERSION = 1;
 
 export interface PomodoroPrefs {
@@ -218,7 +220,7 @@ export function parseBackupJson(text: string): BackupFile {
   if (!isRecord(parsed)) throw new BackupError('Backup file is not an object', 'invalid_format');
 
   const app = parsed.app;
-  if (app !== BACKUP_APP_ID) {
+  if (app !== BACKUP_APP_ID && app !== LEGACY_BACKUP_APP_ID) {
     throw new BackupError(`Not a ${BACKUP_APP_ID} backup file`, 'unsupported_app');
   }
 
@@ -307,7 +309,7 @@ export function backupFileToJson(file: BackupFile): string {
 
 export function backupDownloadName(exportedAt: string): string {
   const day = exportedAt.slice(0, 10);
-  return `site-blocker-backup-${day}.json`;
+  return `deskhours-backup-${day}.json`;
 }
 
 async function clearActiveTimers(): Promise<void> {

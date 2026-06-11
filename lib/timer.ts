@@ -55,11 +55,6 @@ export function formatHhMmSs(totalSeconds: number): string {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-/** @deprecated Use formatHhMmSs */
-export function formatMmSs(totalSeconds: number): string {
-  return formatHhMmSs(totalSeconds);
-}
-
 export function parseHhMmSs(hours: string, minutes: string, seconds: string): number | null {
   const h = hours.padStart(2, '0');
   const m = minutes.padStart(2, '0');
@@ -70,11 +65,6 @@ export function parseHhMmSs(hours: string, minutes: string, seconds: string): nu
   const si = Number(s);
   if (mi > 59 || si > 59) return null;
   return clampDurationSeconds(hi * 3600 + mi * 60 + si);
-}
-
-/** @deprecated Use parseHhMmSs */
-export function parseMmSs(minutes: string, seconds: string): number | null {
-  return parseHhMmSs('00', minutes, seconds);
 }
 
 export function isTimerPaused(state: CountdownTimerState): boolean {

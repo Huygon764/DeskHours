@@ -27,7 +27,7 @@ describe('backup parse/validate', () => {
   it('parses a valid backup file', () => {
     const json = JSON.stringify({
       schemaVersion: BACKUP_SCHEMA_VERSION,
-      app: 'site-blocker',
+      app: 'deskhours',
       exportedAt: '2026-06-07T12:00:00.000Z',
       data: SAMPLE_DATA,
     });
@@ -47,13 +47,24 @@ describe('backup parse/validate', () => {
       exportedAt: '2026-06-07T12:00:00.000Z',
       data: SAMPLE_DATA,
     });
-    expect(() => parseBackupJson(json)).toThrow(/site-blocker/);
+    expect(() => parseBackupJson(json)).toThrow(/deskhours/);
+  });
+
+  it('accepts legacy site-blocker app id on import', () => {
+    const json = JSON.stringify({
+      schemaVersion: BACKUP_SCHEMA_VERSION,
+      app: 'site-blocker',
+      exportedAt: '2026-06-07T12:00:00.000Z',
+      data: SAMPLE_DATA,
+    });
+    const file = parseBackupJson(json);
+    expect(file.data.blocklist).toHaveLength(1);
   });
 
   it('rejects newer schema version', () => {
     const json = JSON.stringify({
       schemaVersion: BACKUP_SCHEMA_VERSION + 1,
-      app: 'site-blocker',
+      app: 'deskhours',
       exportedAt: '2026-06-07T12:00:00.000Z',
       data: SAMPLE_DATA,
     });

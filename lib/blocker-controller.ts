@@ -2,7 +2,7 @@ import { blocklistItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } fr
 import { isBlockingActive } from './schedule';
 import { buildRedirectRules } from './dnr-rules';
 import { entryToBlockPattern, normalizeEntry, type BlockPattern } from './blocklist';
-import { isEncryptedMaskedDomain, revealEntry } from './masking';
+import { isEncryptedMaskedDomain } from './masking';
 import type { BlockEntry } from './types';
 
 /** Legacy temp-unblock records used `domain` instead of `pattern`. */
@@ -56,15 +56,6 @@ async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPatt
   return patterns;
 }
 
-/** Plaintext patterns for masked entries when a crypto key is available. */
-export async function revealedPatterns(entries: BlockEntry[], key: CryptoKey): Promise<string[]> {
-  const patterns: string[] = [];
-  for (const e of entries) {
-    if (e.masked) patterns.push(await revealEntry(e, key));
-  }
-  return patterns;
-}
-
 /** Recompute DNR rules from blocklist, schedule, and temp unblocks. */
 export async function syncBlocker(): Promise<void> {
   const now = Date.now();
@@ -84,11 +75,11 @@ export async function syncBlocker(): Promise<void> {
       addRules: addRules as Browser.declarativeNetRequest.Rule[],
     });
   } catch (err) {
-    console.error('[site-blocker] DNR update failed:', err, addRules);
+    console.error('[deskhours] DNR update failed:', err, addRules);
     throw err;
   }
   console.info(
-    '[site-blocker] DNR sync:',
+    '[deskhours] DNR sync:',
     patterns.length,
     'rule(s)',
     patterns.map((p) => (p.kind === 'keyword' ? `kw:${p.pattern}` : p.pattern)),

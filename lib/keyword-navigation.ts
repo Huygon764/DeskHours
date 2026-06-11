@@ -23,13 +23,6 @@ export async function matchingBlockedPattern(url: string): Promise<string | null
   return findMatchingPattern(url, patterns);
 }
 
-/** @deprecated Use matchingBlockedPattern */
-export async function matchingKeyword(url: string): Promise<string | null> {
-  const patterns = await getActiveBlockPatterns();
-  const keywords = patterns.filter((p) => p.kind === 'keyword');
-  return findMatchingPattern(url, keywords);
-}
-
 async function tabUrl(tabId: number, url?: string): Promise<string | null> {
   if (url) return url;
   try {
@@ -51,9 +44,6 @@ export async function maybeRedirectBlockedTab(tabId: number, url?: string): Prom
   try {
     await browser.tabs.update(tabId, { url: blockedPageUrlFor(resolved) });
   } catch (err) {
-    console.error('[site-blocker] tab redirect failed:', err);
+    console.error('[deskhours] tab redirect failed:', err);
   }
 }
-
-/** @deprecated Use maybeRedirectBlockedTab */
-export const maybeRedirectKeywordTab = maybeRedirectBlockedTab;

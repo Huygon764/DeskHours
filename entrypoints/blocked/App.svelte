@@ -6,6 +6,7 @@
   import { BLOCKED_URL_PARAM } from '@/lib/keyword-navigation';
   import { findMatchingPattern } from '@/lib/pattern-match';
   import { t, watchLocale } from '@/lib/i18n';
+  import AppLogo from '@/components/AppLogo.svelte';
 
   function initialBlockedUrl(): string {
     try {
@@ -107,7 +108,7 @@
   {#key localeRevision}
   <div class="intercept-card">
     <div class="hero">
-      <div class="shield-circle" aria-hidden="true">&#x1F6E1;</div>
+      <AppLogo size={80} />
     </div>
 
     <div class="content">
@@ -189,18 +190,6 @@
     background: var(--surface-low);
     display: flex;
     justify-content: center;
-  }
-
-  .shield-circle {
-    width: 96px;
-    height: 96px;
-    border-radius: 999px;
-    background: var(--amber-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    line-height: 1;
   }
 
   .content {

@@ -3,8 +3,11 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-svelte'],
   manifest: {
-    name: 'Site Blocker',
-    description: 'Block distracting sites on a schedule, with a Pomodoro timer',
+    name: '__MSG_extName__',
+    description: '__MSG_extDescription__',
+    action: {
+      default_title: '__MSG_extName__',
+    },
     default_locale: 'en',
     permissions: [
       'storage',

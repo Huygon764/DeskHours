@@ -35,7 +35,7 @@ export async function playAlertSound(sound: AlertSound, repeats = 1): Promise<vo
       await new Promise((resolve) => setTimeout(resolve, PLAY_RETRY_MS));
     }
   }
-  console.error('[site-blocker] playAlertSound failed after retries:', lastError);
+  console.error('[deskhours] playAlertSound failed after retries:', lastError);
 }
 
 /** Stop any in-progress offscreen alert playback. */

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { blocklistItem } from './storage';
-import { matchingBlockedPattern, matchingKeyword } from './keyword-navigation';
+import { matchingBlockedPattern } from './keyword-navigation';
 import { setupDnrMock } from './test-setup';
 
 const MON_1030 = new Date(2026, 5, 8, 10, 30).getTime();
@@ -26,7 +26,7 @@ describe('matchingBlockedPattern', () => {
   });
 });
 
-describe('matchingKeyword', () => {
+describe('matchingBlockedPattern (keyword)', () => {
   beforeEach(async () => {
     fakeBrowser.reset();
     setupDnrMock();
@@ -37,18 +37,18 @@ describe('matchingKeyword', () => {
   });
 
   it('matches keyword in URL during an active schedule window', async () => {
-    await expect(matchingKeyword('https://www.youtube.com/shorts/abc')).resolves.toBe('shorts');
+    await expect(matchingBlockedPattern('https://www.youtube.com/shorts/abc')).resolves.toBe('shorts');
   });
 
   it('returns null outside schedule', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(new Date(2026, 5, 8, 12, 30).getTime());
-    await expect(matchingKeyword('https://www.youtube.com/shorts/abc')).resolves.toBeNull();
+    await expect(matchingBlockedPattern('https://www.youtube.com/shorts/abc')).resolves.toBeNull();
   });
 
   it('returns null when keyword entry is disabled', async () => {
     await blocklistItem.setValue([
       { id: '1', domain: 'shorts', masked: false, enabled: false, kind: 'keyword' },
     ]);
-    await expect(matchingKeyword('https://www.youtube.com/shorts/abc')).resolves.toBeNull();
+    await expect(matchingBlockedPattern('https://www.youtube.com/shorts/abc')).resolves.toBeNull();
   });
 });

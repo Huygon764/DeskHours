@@ -21,18 +21,18 @@ const SCHEDULER_ALARM = 'blocker-scheduler';
 
 function guardTab(tabId: number, url?: string): void {
   void maybeRedirectBlockedTab(tabId, url).catch((err) =>
-    console.error('[site-blocker] tab guard failed:', err),
+    console.error('[deskhours] tab guard failed:', err),
   );
 }
 
 export default defineBackground(() => {
-  void syncBlocker().catch((err) => console.error('[site-blocker] initial sync failed:', err));
+  void syncBlocker().catch((err) => console.error('[deskhours] initial sync failed:', err));
 
   browser.alarms.create(SCHEDULER_ALARM, { periodInMinutes: 1 });
 
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SCHEDULER_ALARM) {
-      void syncBlocker().catch((err) => console.error('[site-blocker] scheduled sync failed:', err));
+      void syncBlocker().catch((err) => console.error('[deskhours] scheduled sync failed:', err));
     }
     else if (alarm.name === POMODORO_ALARM) void onPhaseAlarm();
     else if (alarm.name === TIMER_ALARM) void onTimerAlarm();
@@ -55,7 +55,7 @@ export default defineBackground(() => {
     switch (message.type) {
       case BG_MESSAGE.SYNC_BLOCKER:
         return syncBlocker().catch((err) =>
-          console.error(`[site-blocker] ${BG_MESSAGE.SYNC_BLOCKER} failed:`, err),
+          console.error(`[deskhours] ${BG_MESSAGE.SYNC_BLOCKER} failed:`, err),
         );
       case BG_MESSAGE.GRANT_UNBLOCK:
         return unblockMinutesItem.getValue().then((m) => grantUnblock(message.pattern, m));

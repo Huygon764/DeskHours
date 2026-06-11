@@ -1,15 +1,15 @@
 {
   "extName": {
-    "message": "Site Blocker"
+    "message": "DeskHours"
   },
   "extDescription": {
-    "message": "Block distracting sites on a schedule, with a Pomodoro timer"
+    "message": "Block distracting sites on your work schedule, with focus timer"
   },
   "appName": {
-    "message": "Site Blocker"
+    "message": "DeskHours"
   },
   "settingsTitle": {
-    "message": "Site Blocker settings"
+    "message": "DeskHours settings"
   },
   "setupSubtitle": {
     "message": "Set up your master password to get started."
@@ -51,7 +51,7 @@
     "message": "Appearance"
   },
   "appearanceIntro": {
-    "message": "Choose how Site Blocker looks in the popup, settings, and blocked page."
+    "message": "Choose how DeskHours looks in the popup, settings, and blocked page."
   },
   "languageTitle": {
     "message": "Language"
@@ -106,9 +106,6 @@
   },
   "masterPasswordIntro": {
     "message": "Protects unblocking, schedule edits during blocked hours, and hidden site names."
-  },
-  "unlockToChangePassword": {
-    "message": "Unlock above to change your password."
   },
   "revealPasswordChange": {
     "message": "Current password"
@@ -814,10 +811,10 @@
     "message": "File is not valid JSON."
   },
   "backupErrorWrongApp": {
-    "message": "This file is not a Site Blocker backup."
+    "message": "This file is not a DeskHours backup."
   },
   "backupErrorNewerSchema": {
-    "message": "Backup was made with a newer extension version. Update Site Blocker first."
+    "message": "Backup was made with a newer extension version. Update DeskHours first."
   },
   "backupErrorMaskedNoAuth": {
     "message": "Backup has hidden entries but no password record."
