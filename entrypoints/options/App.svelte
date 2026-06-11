@@ -123,7 +123,7 @@
         <LanguageSettings />
         <ThemeSettings />
         <BackupSettings />
-        <PasswordSetup readonly={locked} />
+        <PasswordSetup />
       {/if}
     {/if}
   </div>

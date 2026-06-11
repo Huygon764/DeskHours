@@ -110,6 +110,24 @@
   "unlockToChangePassword": {
     "message": "Unlock above to change your password."
   },
+  "revealPasswordChange": {
+    "message": "Current password"
+  },
+  "changePasswordStart": {
+    "message": "Change password"
+  },
+  "verifyingPassword": {
+    "message": "Verifying…"
+  },
+  "savingPassword": {
+    "message": "Saving…"
+  },
+  "changePasswordVerifyFailed": {
+    "message": "Could not verify your password."
+  },
+  "changePasswordSaveFailed": {
+    "message": "Could not save the new password."
+  },
   "newPassword": {
     "message": "New password"
   },

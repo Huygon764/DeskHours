@@ -110,6 +110,24 @@
   "unlockToChangePassword": {
     "message": "Mở khóa ở trên để đổi mật khẩu."
   },
+  "revealPasswordChange": {
+    "message": "Mật khẩu hiện tại"
+  },
+  "changePasswordStart": {
+    "message": "Đổi mật khẩu"
+  },
+  "verifyingPassword": {
+    "message": "Đang xác minh…"
+  },
+  "savingPassword": {
+    "message": "Đang lưu…"
+  },
+  "changePasswordVerifyFailed": {
+    "message": "Không xác minh được mật khẩu."
+  },
+  "changePasswordSaveFailed": {
+    "message": "Không lưu được mật khẩu mới."
+  },
   "newPassword": {
     "message": "Mật khẩu mới"
   },
