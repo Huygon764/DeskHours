@@ -4,13 +4,14 @@
   import LanguageSettings from './LanguageSettings.svelte';
   import ScheduleEditor from './ScheduleEditor.svelte';
   import BlocklistEditor from './BlocklistEditor.svelte';
+  import FocusTimerSettings from './FocusTimerSettings.svelte';
   import { authItem, scheduleItem } from '@/lib/storage';
   import { verifyPassword, deriveKey } from '@/lib/crypto';
   import { isBlockingActive } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
   import { t, watchLocale } from '@/lib/i18n';
 
-  type Tab = 'schedule' | 'sites' | 'settings';
+  type Tab = 'schedule' | 'sites' | 'focus-timer' | 'settings';
 
   let localeRevision = $state(0);
 
@@ -60,6 +61,12 @@
       unlocking = false;
     }
   }
+
+  function onUnlockSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    if (unlocking) return;
+    void unlock();
+  }
 </script>
 
 <div class="page">
@@ -80,12 +87,12 @@
       {#if showUnlockBanner}
         <div class="banner-lock">
           <p>{t('blockingUnlockBanner')}</p>
-          <div class="banner-lock-actions">
+          <form class="banner-lock-actions" onsubmit={onUnlockSubmit}>
             <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
-            <button class="btn btn-primary btn-sm" onclick={unlock} disabled={unlocking}>
+            <button type="submit" class="btn btn-primary btn-sm" disabled={unlocking}>
               {unlocking ? t('unlocking') : t('unlock')}
             </button>
-          </div>
+          </form>
           {#if unlockError}<p class="msg-error banner-error">{unlockError}</p>{/if}
         </div>
       {/if}
@@ -97,6 +104,9 @@
         <button class="tab" class:active={activeTab === 'sites'} onclick={() => (activeTab = 'sites')}>
           {t('tabBlockedSites')}
         </button>
+        <button class="tab" class:active={activeTab === 'focus-timer'} onclick={() => (activeTab = 'focus-timer')}>
+          {t('tabFocusTimer')}
+        </button>
         <button class="tab" class:active={activeTab === 'settings'} onclick={() => (activeTab = 'settings')}>
           {t('tabSettings')}
         </button>
@@ -106,6 +116,8 @@
         <ScheduleEditor {locked} onsaved={refreshBlocking} />
       {:else if activeTab === 'sites'}
         <BlocklistEditor {locked} />
+      {:else if activeTab === 'focus-timer'}
+        <FocusTimerSettings />
       {:else}
         <LanguageSettings />
         <ThemeSettings />

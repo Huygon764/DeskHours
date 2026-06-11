@@ -38,6 +38,9 @@
   "tabBlockedSites": {
     "message": "Trang bị chặn"
   },
+  "tabFocusTimer": {
+    "message": "Tập trung & Hẹn giờ"
+  },
   "tabSettings": {
     "message": "Cài đặt"
   },

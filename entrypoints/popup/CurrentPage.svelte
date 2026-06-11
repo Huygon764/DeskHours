@@ -75,6 +75,11 @@
     await refreshStatus();
   }
 
+  function onUnlockSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    void unlock();
+  }
+
   async function withAuth(action: () => Promise<void>) {
     actionError = '';
     if (locked) {
@@ -121,10 +126,10 @@
     <p class="page-url" title={tabUrl}>{domainPattern}{new URL(tabUrl).pathname}</p>
 
     {#if locked}
-      <div class="lock-row">
+      <form class="lock-row" onsubmit={onUnlockSubmit}>
         <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
-        <button type="button" class="btn btn-primary btn-sm" onclick={unlock}>{t('unlock')}</button>
-      </div>
+        <button type="submit" class="btn btn-primary btn-sm">{t('unlock')}</button>
+      </form>
       {#if unlockError}<p class="msg-error">{unlockError}</p>{/if}
     {/if}
 
@@ -191,6 +196,7 @@
     display: flex;
     gap: 8px;
     margin-bottom: 8px;
+    margin-top: 0;
   }
 
   .lock-row .input {

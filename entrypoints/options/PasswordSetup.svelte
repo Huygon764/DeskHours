@@ -53,6 +53,11 @@
     confirm = '';
     onset();
   }
+
+  function onSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    void save();
+  }
 </script>
 
 <section class="card">
@@ -64,7 +69,8 @@
   {#if readonly}
     <p class="hint-banner">{t('unlockToChangePassword')}</p>
   {:else}
-    <div class="fields">
+    <form class="password-form" onsubmit={onSubmit}>
+      <div class="fields">
       <div class="field">
         <label class="field-label" for="pw-new">{hasExisting ? t('newPassword') : t('password')}</label>
         <input
@@ -101,15 +107,15 @@
     {/if}
 
     <button
-      type="button"
+      type="submit"
       class="btn btn-primary save-btn"
-      onclick={save}
       disabled={errors.length > 0 || !password}
     >
       {t('savePassword')}
     </button>
 
     {#if saved}<p class="msg-success">{t('passwordSaved')}</p>{/if}
+    </form>
   {/if}
 </section>
 
@@ -152,6 +158,10 @@
 
   .save-btn {
     min-width: 160px;
+  }
+
+  .password-form {
+    margin: 0;
   }
 
   .hint-banner {

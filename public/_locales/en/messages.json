@@ -38,6 +38,9 @@
   "tabBlockedSites": {
     "message": "Blocked sites"
   },
+  "tabFocusTimer": {
+    "message": "Focus & Timer"
+  },
   "tabSettings": {
     "message": "Settings"
   },

@@ -95,6 +95,12 @@
       busy = false;
     }
   }
+
+  function onUnblockSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    if (busy) return;
+    void submit();
+  }
 </script>
 
 <div class="page">
@@ -134,14 +140,16 @@
             <span class="step-tag">{t('authentication')}</span>
           </div>
           {#if confirmed && countdown <= 0}
-            <div class="field">
-              <label class="field-label" for="unblock-pw">{t('masterPasswordLabel')}</label>
-              <input id="unblock-pw" class="input" type="password" bind:value={password} />
-            </div>
-            <button type="button" class="btn btn-primary btn-block" onclick={submit} disabled={busy}>
-              {t('unblockPattern', blockPattern || t('temporarily'))}
-            </button>
-            <p class="step-hint italic">{t('blockingResumes')}</p>
+            <form class="unblock-form" onsubmit={onUnblockSubmit}>
+              <div class="field">
+                <label class="field-label" for="unblock-pw">{t('masterPasswordLabel')}</label>
+                <input id="unblock-pw" class="input" type="password" bind:value={password} />
+              </div>
+              <button type="submit" class="btn btn-primary btn-block" disabled={busy}>
+                {t('unblockPattern', blockPattern || t('temporarily'))}
+              </button>
+              <p class="step-hint italic">{t('blockingResumes')}</p>
+            </form>
           {:else}
             <input class="input" type="password" disabled placeholder={t('masterPasswordLabel')} />
             <button type="button" class="btn btn-primary btn-block" disabled>{t('unblockTemporarily')}</button>
@@ -269,5 +277,9 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--amber-text);
+  }
+
+  .unblock-form {
+    margin: 0;
   }
 </style>

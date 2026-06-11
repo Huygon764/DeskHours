@@ -158,6 +158,18 @@
       addError = t('updateBlocklistError');
     }
   }
+
+  function onAddSiteSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    if (locked) return;
+    void add();
+  }
+
+  function onAddKeywordSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    if (locked) return;
+    void addKeyword();
+  }
 </script>
 
 <section class="card">
@@ -204,7 +216,7 @@
     </div>
   {/if}
 
-  <div class="add-form">
+  <form class="add-form" onsubmit={onAddSiteSubmit}>
     <div class="field">
       <label class="field-label" for="new-domain">{t('addSite')}</label>
       <input id="new-domain" class="input" bind:value={newDomain} placeholder={t('addSitePlaceholder')} disabled={locked} />
@@ -215,10 +227,10 @@
       <span>{t('addToHidden')}</span>
     </label>
 
-    <button type="button" class="btn btn-primary" onclick={add} disabled={locked}>
+    <button type="submit" class="btn btn-primary" disabled={locked}>
       {locked ? t('addUnlockRequired') : t('addSite')}
     </button>
-  </div>
+  </form>
 
   {#if addError}<p class="msg-error">{addError}</p>{/if}
   {#if addNotice}<p class="msg-success">{addNotice}</p>{/if}
@@ -268,7 +280,7 @@
     </div>
   {/if}
 
-  <div class="add-form">
+  <form class="add-form" onsubmit={onAddKeywordSubmit}>
     <div class="field">
       <label class="field-label" for="new-keyword">{t('addKeyword')}</label>
       <input
@@ -284,10 +296,10 @@
       <span>{t('addToHidden')}</span>
     </label>
 
-    <button type="button" class="btn btn-primary" onclick={addKeyword} disabled={locked}>
+    <button type="submit" class="btn btn-primary" disabled={locked}>
       {locked ? t('addUnlockRequired') : t('addKeyword')}
     </button>
-  </div>
+  </form>
 </section>
 
 <HiddenListEditor {locked} kind="site" />
@@ -337,6 +349,7 @@
     gap: 12px;
     padding-top: 16px;
     border-top: 1px solid var(--border);
+    margin: 0;
   }
 
   .hidden-check {

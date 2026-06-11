@@ -184,6 +184,12 @@
       actionError = t('updateHiddenEntryError');
     }
   }
+
+  function onRevealSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    if (viewing || hiddenEntries.length === 0) return;
+    void showList();
+  }
 </script>
 
 <section class="card hidden-section">
@@ -196,7 +202,7 @@
     <p class="msg-error">{loadError}</p>
   {:else if !listVisible}
     <p class="hidden-summary">{countLabel(hiddenEntries.length)}</p>
-    <div class="reveal-form">
+    <form class="reveal-form" onsubmit={onRevealSubmit}>
       <input
         class="input"
         type="password"
@@ -205,14 +211,13 @@
         disabled={viewing}
       />
       <button
-        type="button"
+        type="submit"
         class="btn btn-outline"
-        onclick={showList}
         disabled={viewing || hiddenEntries.length === 0}
       >
         {viewing ? t('checking') : showButtonLabel}
       </button>
-    </div>
+    </form>
     {#if viewError}<p class="msg-error">{viewError}</p>{/if}
   {:else}
     <div class="visible-header">
@@ -282,7 +287,7 @@
   .reveal-form {
     display: flex;
     gap: 8px;
-    margin-bottom: 8px;
+    margin: 0 0 8px;
   }
 
   .reveal-form .input {
