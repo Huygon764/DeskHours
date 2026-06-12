@@ -6,9 +6,9 @@
   import BlocklistEditor from './BlocklistEditor.svelte';
   import FocusTimerSettings from './FocusTimerSettings.svelte';
   import BackupSettings from './BackupSettings.svelte';
-  import { authItem, scheduleItem } from '@/lib/storage';
+  import { authItem, pomodoroItem, scheduleItem } from '@/lib/storage';
   import { verifyPassword, deriveKey } from '@/lib/crypto';
-  import { isBlockingActive } from '@/lib/schedule';
+  import { isSiteBlockingEnabled } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
   import { t, watchLocale } from '@/lib/i18n';
 
@@ -26,8 +26,12 @@
 
   $effect(() => {
     void init();
+    const unwatchPomodoro = pomodoroItem.watch(() => void refreshBlocking());
     const id = setInterval(() => void refreshBlocking(), 15_000);
-    return () => clearInterval(id);
+    return () => {
+      unwatchPomodoro();
+      clearInterval(id);
+    };
   });
 
   $effect(() => watchLocale(() => localeRevision++));
@@ -38,7 +42,8 @@
   }
 
   async function refreshBlocking() {
-    blockingNow = isBlockingActive(await scheduleItem.getValue(), Date.now());
+    const [schedule, pomodoro] = await Promise.all([scheduleItem.getValue(), pomodoroItem.getValue()]);
+    blockingNow = isSiteBlockingEnabled(schedule, Date.now(), pomodoro);
   }
 
   const locked = $derived(blockingNow && !unlocked);

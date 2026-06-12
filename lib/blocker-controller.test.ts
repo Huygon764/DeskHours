@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { syncBlocker, pruneExpired } from './blocker-controller';
-import { blocklistItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
+import { blocklistItem, pomodoroItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
+import { DEFAULT_POMODORO } from './pomodoro';
 import { getDynamicRulesForTest, setupDnrMock } from './test-setup';
 
 const MON_1030 = new Date(2026, 5, 8, 10, 30).getTime();
@@ -25,6 +26,29 @@ describe('syncBlocker', () => {
 
   it('clears all rules outside an active window', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(new Date(2026, 5, 8, 12, 30).getTime());
+    await syncBlocker();
+    expect(getDynamicRulesForTest()).toEqual([]);
+  });
+
+  it('applies rules during focus work outside schedule', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(new Date(2026, 5, 8, 12, 30).getTime());
+    await pomodoroItem.setValue({
+      ...DEFAULT_POMODORO,
+      phase: 'work',
+      phaseEndsAt: Date.now() + 25 * 60_000,
+    });
+    await syncBlocker();
+    const rules = getDynamicRulesForTest();
+    expect(rules.map((r) => r.condition.urlFilter).sort()).toEqual(['||facebook.com/', '||youtube.com/']);
+  });
+
+  it('clears rules during focus rest outside schedule', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(new Date(2026, 5, 8, 12, 30).getTime());
+    await pomodoroItem.setValue({
+      ...DEFAULT_POMODORO,
+      phase: 'rest',
+      phaseEndsAt: Date.now() + 5 * 60_000,
+    });
     await syncBlocker();
     expect(getDynamicRulesForTest()).toEqual([]);
   });

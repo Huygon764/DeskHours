@@ -59,6 +59,11 @@ export function isPaused(state: PomodoroState): boolean {
   return state.pausedRemainingMs != null;
 }
 
+/** True while a focus (work) phase is active, including when paused. */
+export function isFocusBlockActive(state: PomodoroState): boolean {
+  return state.phase === 'work';
+}
+
 /** Freeze the countdown and store time left. */
 export function pauseState(state: PomodoroState, now: number): PomodoroState {
   if (state.phase === 'idle' || isPaused(state)) return state;

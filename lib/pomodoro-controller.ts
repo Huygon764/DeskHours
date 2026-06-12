@@ -1,3 +1,4 @@
+import { syncBlocker } from './blocker-controller';
 import { pomodoroItem } from './storage';
 import { isPaused, nextPhase, remainingMs, resumeState } from './pomodoro';
 import { playAlertSound } from './alert-sound';
@@ -15,6 +16,7 @@ export async function startPomodoro(): Promise<void> {
   const started = nextPhase({ ...current, phase: 'idle' }, Date.now());
   await pomodoroItem.setValue(started);
   if (started.phaseEndsAt) await scheduleAlarm(started.phaseEndsAt);
+  await syncBlocker();
 }
 
 /** Reset to idle, clear the alarm. */
@@ -27,6 +29,7 @@ export async function stopPomodoro(): Promise<void> {
     pausedRemainingMs: null,
   });
   await browser.alarms.clear(POMODORO_ALARM);
+  await syncBlocker();
 }
 
 /** Pause the current phase and keep remaining time. */
@@ -59,6 +62,7 @@ export async function onPhaseAlarm(): Promise<void> {
   await pomodoroItem.setValue(advanced);
   await alert(advanced.phase === 'work' ? 'work-start' : 'rest-start');
   if (advanced.phaseEndsAt) await scheduleAlarm(advanced.phaseEndsAt);
+  await syncBlocker();
 }
 
 async function alert(sound: 'work-start' | 'rest-start'): Promise<void> {

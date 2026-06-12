@@ -3,11 +3,13 @@ import {
   cloneSchedule,
   DEFAULT_SCHEDULE,
   isBlockingActive,
+  isSiteBlockingEnabled,
   matchingPresetId,
   SCHEDULE_PRESETS,
   schedulesEqual,
 } from './schedule';
-import type { ScheduleWindow } from './types';
+import { DEFAULT_POMODORO } from './pomodoro';
+import type { PomodoroState, ScheduleWindow } from './types';
 
 // 2026-06-08 is a Monday.
 const mon = (h: number, m = 0) => new Date(2026, 5, 8, h, m).getTime();
@@ -44,6 +46,27 @@ describe('isBlockingActive', () => {
     expect(isBlockingActive(DEFAULT_SCHEDULE, mon(12, 30))).toBe(false);
     expect(isBlockingActive(DEFAULT_SCHEDULE, mon(14, 0))).toBe(true);
     expect(isBlockingActive(DEFAULT_SCHEDULE, mon(17, 0))).toBe(false);
+  });
+});
+
+const focusWork: PomodoroState = { ...DEFAULT_POMODORO, phase: 'work', phaseEndsAt: mon(11) + 60_000 };
+const focusRest: PomodoroState = { ...DEFAULT_POMODORO, phase: 'rest', phaseEndsAt: mon(11) + 60_000 };
+
+describe('isSiteBlockingEnabled', () => {
+  it('is active during schedule windows', () => {
+    expect(isSiteBlockingEnabled(sched, mon(10, 30), DEFAULT_POMODORO)).toBe(true);
+  });
+
+  it('is active during focus work outside schedule', () => {
+    expect(isSiteBlockingEnabled(sched, mon(12, 30), focusWork)).toBe(true);
+  });
+
+  it('is inactive during focus rest outside schedule', () => {
+    expect(isSiteBlockingEnabled(sched, mon(12, 30), focusRest)).toBe(false);
+  });
+
+  it('is inactive when idle outside schedule', () => {
+    expect(isSiteBlockingEnabled(sched, mon(12, 30), DEFAULT_POMODORO)).toBe(false);
   });
 });
 

@@ -2,8 +2,8 @@
   import { pomodoroItem, scheduleItem, timerItem } from '@/lib/storage';
   import { isPaused, remainingMs, displaySecondsFromMs } from '@/lib/pomodoro';
   import { formatHhMmSs, isTimerFinished, isTimerRunning, timerRemainingMs } from '@/lib/timer';
-  import { isBlockingActive } from '@/lib/schedule';
-  import type { CountdownTimerState, PomodoroState } from '@/lib/types';
+  import { isSiteBlockingEnabled } from '@/lib/schedule';
+  import type { CountdownTimerState, PomodoroState, ScheduleWindow } from '@/lib/types';
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
@@ -17,8 +17,8 @@
   let activeTab = $state<PopupTab>('block');
   let pomodoroState = $state<PomodoroState | null>(null);
   let countdownState = $state<CountdownTimerState | null>(null);
+  let scheduleState = $state<ScheduleWindow[] | null>(null);
   let now = $state(Date.now());
-  let blockingNow = $state(false);
 
   $effect(() => watchLocale(() => localeRevision++));
 
@@ -31,11 +31,15 @@
       countdownState = v;
       now = Date.now();
     });
+    const unwatchSchedule = scheduleItem.watch((v) => {
+      scheduleState = v;
+      now = Date.now();
+    });
     void Promise.all([pomodoroItem.getValue(), timerItem.getValue(), scheduleItem.getValue()]).then(
       ([pomo, timer, schedule]) => {
         pomodoroState = pomo;
         countdownState = timer;
-        blockingNow = isBlockingActive(schedule, Date.now());
+        scheduleState = schedule;
         if (pomo.phase !== 'idle') activeTab = 'focus';
       },
     );
@@ -43,8 +47,15 @@
     return () => {
       unwatchPomodoro();
       unwatchTimer();
+      unwatchSchedule();
       clearInterval(id);
     };
+  });
+
+  const blockingNow = $derived.by(() => {
+    void now;
+    if (!pomodoroState || !scheduleState) return false;
+    return isSiteBlockingEnabled(scheduleState, now, pomodoroState);
   });
 
   const focusRunning = $derived(pomodoroState != null && pomodoroState.phase !== 'idle');

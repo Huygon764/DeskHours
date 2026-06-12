@@ -5,6 +5,7 @@ import {
   pauseState,
   resumeState,
   isPaused,
+  isFocusBlockActive,
   DEFAULT_POMODORO,
   displaySecondsFromMs,
   endAtFromDuration,
@@ -154,6 +155,14 @@ describe('parseMinutesInput', () => {
   it('returns fallback for empty or invalid input', () => {
     expect(parseMinutesInput('', 25)).toBe(25);
     expect(parseMinutesInput('abc', 5)).toBe(5);
+  });
+});
+
+describe('isFocusBlockActive', () => {
+  it('is true only during work phase', () => {
+    expect(isFocusBlockActive({ ...base, phase: 'idle' })).toBe(false);
+    expect(isFocusBlockActive({ ...base, phase: 'work', pausedRemainingMs: 60_000 })).toBe(true);
+    expect(isFocusBlockActive({ ...base, phase: 'rest' })).toBe(false);
   });
 });
 

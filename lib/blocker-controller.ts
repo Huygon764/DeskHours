@@ -1,5 +1,5 @@
-import { blocklistItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
-import { isBlockingActive } from './schedule';
+import { blocklistItem, pomodoroItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
+import { isSiteBlockingEnabled } from './schedule';
 import { buildRedirectRules } from './dnr-rules';
 import { entryToBlockPattern, normalizeEntry, type BlockPattern } from './blocklist';
 import { isEncryptedMaskedDomain } from './masking';
@@ -21,11 +21,11 @@ export async function pruneExpired(): Promise<Set<string>> {
   return new Set(live.map((u) => tempUnblockPattern(u)));
 }
 
-/** Active block patterns for the current schedule window, minus temp unblocks. */
+/** Active block patterns when blocking is enabled, minus temp unblocks. */
 export async function getActiveBlockPatterns(now = Date.now()): Promise<BlockPattern[]> {
   const liveUnblocks = await pruneExpired();
-  const schedule = await scheduleItem.getValue();
-  if (!isBlockingActive(schedule, now)) return [];
+  const [schedule, pomodoro] = await Promise.all([scheduleItem.getValue(), pomodoroItem.getValue()]);
+  if (!isSiteBlockingEnabled(schedule, now, pomodoro)) return [];
 
   const blocklist = (await blocklistItem.getValue()).map(normalizeEntry);
   const patterns = await collectActivePatterns(blocklist);
@@ -56,16 +56,10 @@ async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPatt
   return patterns;
 }
 
-/** Recompute DNR rules from blocklist, schedule, and temp unblocks. */
+/** Recompute DNR rules from blocklist, schedule, focus state, and temp unblocks. */
 export async function syncBlocker(): Promise<void> {
-  const now = Date.now();
   await pruneExpired();
-  const schedule = await scheduleItem.getValue();
-
-  let patterns: BlockPattern[] = [];
-  if (isBlockingActive(schedule, now)) {
-    patterns = await getActiveBlockPatterns(now);
-  }
+  const patterns = await getActiveBlockPatterns();
 
   const addRules = buildRedirectRules(patterns);
   const existing = await browser.declarativeNetRequest.getDynamicRules();

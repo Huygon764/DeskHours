@@ -1,4 +1,5 @@
-import type { ScheduleWindow } from './types';
+import { isFocusBlockActive } from './pomodoro';
+import type { PomodoroState, ScheduleWindow } from './types';
 
 const WEEKDAYS = [1, 2, 3, 4, 5];
 const WEEKENDS = [6, 7];
@@ -94,4 +95,13 @@ export function isBlockingActive(schedule: ScheduleWindow[], at: number): boolea
       minutes >= toMinutes(w.start) &&
       minutes < toMinutes(w.end),
   );
+}
+
+/** True when the blocklist should be enforced (schedule window or focus work phase). */
+export function isSiteBlockingEnabled(
+  schedule: ScheduleWindow[],
+  at: number,
+  pomodoro: PomodoroState,
+): boolean {
+  return isBlockingActive(schedule, at) || isFocusBlockActive(pomodoro);
 }

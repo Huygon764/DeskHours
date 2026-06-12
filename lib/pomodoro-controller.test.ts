@@ -9,11 +9,12 @@ import {
   POMODORO_ALARM,
 } from './pomodoro-controller';
 import { pomodoroItem } from './storage';
-import { setupOffscreenMock, setupI18nMock } from './test-setup';
+import { setupDnrMock, setupOffscreenMock, setupI18nMock } from './test-setup';
 
 describe('pomodoro controller', () => {
   beforeEach(() => {
     fakeBrowser.reset();
+    setupDnrMock();
     setupI18nMock();
     setupOffscreenMock();
     vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
