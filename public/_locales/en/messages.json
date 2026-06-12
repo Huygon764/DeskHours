@@ -735,11 +735,20 @@
   "backupExport": {
     "message": "Export backup"
   },
+  "backupExportHint": {
+    "message": "Download a JSON file"
+  },
   "backupImport": {
     "message": "Import backup"
   },
+  "backupImportHint": {
+    "message": "Replace all settings from a file"
+  },
   "backupExportDone": {
-    "message": "Backup downloaded."
+    "message": "Backup saved."
+  },
+  "backupExportWaiting": {
+    "message": "Choose where to save your backup…"
   },
   "backupExportFailed": {
     "message": "Could not create backup."

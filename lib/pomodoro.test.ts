@@ -51,7 +51,8 @@ describe('nextPhase', () => {
   it('aligns phaseEndsAt when now is mid-second', () => {
     const s = nextPhase(base, 1_000_050);
     expect(s.phaseEndsAt).toBe(2_500_000);
-    expect(displaySecondsFromMs(s.phaseEndsAt - 1_000_050)).toBe(25 * 60);
+    expect(s.phaseEndsAt).not.toBeNull();
+    expect(displaySecondsFromMs(s.phaseEndsAt! - 1_000_050)).toBe(25 * 60);
   });
 });
 

@@ -735,11 +735,20 @@
   "backupExport": {
     "message": "Xuất sao lưu"
   },
+  "backupExportHint": {
+    "message": "Tải file JSON"
+  },
   "backupImport": {
     "message": "Nhập sao lưu"
   },
+  "backupImportHint": {
+    "message": "Ghi đè toàn bộ cài đặt từ file"
+  },
   "backupExportDone": {
-    "message": "Đã tải file sao lưu."
+    "message": "Đã lưu file sao lưu."
+  },
+  "backupExportWaiting": {
+    "message": "Chọn vị trí lưu file sao lưu…"
   },
   "backupExportFailed": {
     "message": "Không tạo được file sao lưu."

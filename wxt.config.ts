@@ -14,6 +14,7 @@ export default defineConfig({
       'alarms',
       'declarativeNetRequest',
       'declarativeNetRequestWithHostAccess',
+      'downloads',
       'offscreen',
       'notifications',
       'tabs',

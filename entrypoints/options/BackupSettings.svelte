@@ -9,11 +9,14 @@
     summarizeBackupData,
     type BackupSummary,
   } from '@/lib/backup';
+  import { downloadBackupJson } from '@/lib/backup-download';
   import { syncBlockerSafe } from '@/lib/messages';
   import { t } from '@/lib/i18n';
 
   let fileInput = $state<HTMLInputElement | null>(null);
   let exportNotice = $state('');
+  let exportError = $state('');
+  let exportWaiting = $state(false);
   let importError = $state('');
   let importNotice = $state('');
   let importing = $state(false);
@@ -22,6 +25,8 @@
 
   function clearMessages() {
     exportNotice = '';
+    exportError = '';
+    exportWaiting = false;
     importError = '';
     importNotice = '';
   }
@@ -30,20 +35,20 @@
     clearMessages();
     pendingSummary = null;
     pendingApply = null;
+    exportWaiting = true;
     try {
       const file = await buildBackupFile();
       const json = backupFileToJson(file);
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = backupDownloadName(file.exportedAt);
-      anchor.click();
-      URL.revokeObjectURL(url);
-      exportNotice = t('backupExportDone');
+      const filename = backupDownloadName(file.exportedAt);
+      const result = await downloadBackupJson(json, filename);
+      if (result === 'saved') {
+        exportNotice = t('backupExportDone');
+      }
     } catch (err) {
       console.error('export backup failed:', err);
-      importError = t('backupExportFailed');
+      exportError = t('backupExportFailed');
+    } finally {
+      exportWaiting = false;
     }
   }
 
@@ -121,18 +126,44 @@
   }
 </script>
 
-<section class="card backup-card">
+<section class="card">
   <h2 class="text-headline-md section-title">{t('backupTitle')}</h2>
   <p class="text-body-muted intro">{t('backupIntro')}</p>
   <p class="sensitive-hint">{t('backupSensitiveHint')}</p>
 
-  <div class="actions">
-    <button type="button" class="btn btn-outline" onclick={() => void exportBackup()}>
-      {t('backupExport')}
+  <div class="action-grid">
+    <button type="button" class="action-tile" disabled={exportWaiting} onclick={() => void exportBackup()}>
+      <span class="action-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 14v1.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V14"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="action-label">{t('backupExport')}</span>
+      <span class="action-hint">{t('backupExportHint')}</span>
     </button>
-    <button type="button" class="btn btn-primary" onclick={openImportPicker}>
-      {t('backupImport')}
+
+    <button type="button" class="action-tile" onclick={openImportPicker}>
+      <span class="action-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M10 17V8m0 0 3.5 3.5M10 8 6.5 11.5M4 6V4.5A1.5 1.5 0 0 1 5.5 3h9A1.5 1.5 0 0 1 16 4.5V6"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="action-label">{t('backupImport')}</span>
+      <span class="action-hint">{t('backupImportHint')}</span>
     </button>
+
     <input
       bind:this={fileInput}
       type="file"
@@ -142,7 +173,15 @@
     />
   </div>
 
-  {#if exportNotice}<p class="msg-success">{exportNotice}</p>{/if}
+  {#if exportWaiting}
+    <p class="export-waiting">{t('backupExportWaiting')}</p>
+  {/if}
+  {#if exportNotice}
+    <p class="msg-success">{exportNotice}</p>
+  {/if}
+  {#if exportError}
+    <p class="msg-error">{exportError}</p>
+  {/if}
 
   {#if pendingSummary}
     <div class="preview">
@@ -196,14 +235,73 @@
     line-height: 1.4;
   }
 
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+  }
+
+  @media (max-width: 520px) {
+    .action-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .action-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--border-variant);
+    border-radius: var(--radius-sm);
+    background: var(--surface-low);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .action-tile:hover {
+    border-color: var(--border);
+    background: var(--surface);
+  }
+
+  .action-tile:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .action-tile:focus-visible {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 2px var(--amber-ring);
+  }
+
+  .action-icon {
+    display: flex;
+    color: var(--amber-text);
+  }
+
+  .action-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .action-hint {
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text-muted);
   }
 
   .file-input {
     display: none;
+  }
+
+  .export-waiting {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
   }
 
   .preview {
