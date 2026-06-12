@@ -9,7 +9,7 @@ const outDir = join(root, 'public/icon');
 const sizes = [16, 32, 48, 128, 256];
 
 if (!existsSync(masterPath)) {
-  console.error(`Missing ${masterPath}. Add a square PNG master (1024+ recommended), then run npm run icons.`);
+  console.error(`Missing ${masterPath}. Add a square PNG master (1024+ recommended), then run bun run icons.`);
   process.exit(1);
 }
 
