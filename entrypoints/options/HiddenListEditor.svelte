@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { authItem, blocklistItem } from '@/lib/storage';
+  import { authItem } from '@/lib/storage';
   import { cloneBlocklist } from '@/lib/blocklist';
-  import { keyFromPassword, loadBlocklist, persistBlocklist, setEntryEnabled, syncUnmaskedDomains } from '@/lib/blocklist-session';
+  import { keyFromPassword, persistBlocklist, setEntryEnabled, syncUnmaskedDomains } from '@/lib/blocklist-session';
+  import { watchBlocklist } from '@/lib/reactive.svelte';
   import { isEncryptedMaskedDomain, revealEntry } from '@/lib/masking';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry, BlockEntryKind } from '@/lib/types';
@@ -53,26 +53,14 @@
     entries.filter((e) => e.masked && (e.kind ?? 'site') === kind),
   );
 
-  onMount(() => {
-    void loadFromStorage();
-    const unwatch = blocklistItem.watch((v) => {
-      entries = cloneBlocklist(v);
-    });
-    return () => unwatch();
-  });
-
-  async function loadFromStorage() {
-    loading = true;
-    loadError = '';
-    try {
-      entries = await loadBlocklist();
-    } catch (err) {
+  watchBlocklist({
+    onEntries: (e) => (entries = e),
+    onError: (err) => {
       console.error('load hidden list failed:', err);
       loadError = t('loadHiddenError');
-    } finally {
-      loading = false;
-    }
-  }
+    },
+    onSettled: () => (loading = false),
+  });
 
   // Rebuild the decrypted map and resync masked-domain enforcement. Each mutation
   // calls this exactly once, so it owns the single DNR resync (persist() does not).

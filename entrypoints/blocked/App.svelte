@@ -3,7 +3,8 @@
   import { verifyPassword } from '@/lib/crypto';
   import { grantUnblockSafe, getPendingBlockedUrlSafe } from '@/lib/messages';
   import { BLOCKED_URL_PARAM, matchingBlockedPattern } from '@/lib/keyword-navigation';
-  import { t, watchLocale } from '@/lib/i18n';
+  import { t } from '@/lib/i18n';
+  import { useLocaleRevision } from '@/lib/reactive.svelte';
   import AppLogo from '@/components/AppLogo.svelte';
 
   function blockedUrlFromLocation(): string {
@@ -32,12 +33,13 @@
   let password = $state('');
   let error = $state('');
   let busy = $state(false);
-  let localeRevision = $state(0);
+
+  const locale = useLocaleRevision();
 
   const WAIT_SECONDS = 30;
 
   const headline = $derived.by(() => {
-    void localeRevision;
+    void locale.value;
     if (blockPattern) return t('patternBlocked', blockPattern);
     if (pageUrl) {
       try {
@@ -48,8 +50,6 @@
     }
     return t('siteBlocked');
   });
-
-  $effect(() => watchLocale(() => localeRevision++));
 
   $effect(() => {
     void resolvePageUrl();
@@ -137,7 +137,7 @@
 </script>
 
 <div class="page">
-  {#key localeRevision}
+  {#key locale.value}
   <div class="intercept-card">
     <div class="hero">
       <AppLogo size={112} />

@@ -2,7 +2,7 @@ import { syncBlocker } from './blocker-controller';
 import { pomodoroItem } from './storage';
 import { isPaused, nextPhase, pauseState, resumeState } from './pomodoro';
 import { playAlertSound } from './alert-sound';
-import { translate } from './i18n';
+import { notify } from './notify';
 
 export const POMODORO_ALARM = 'pomodoro-phase-end';
 
@@ -72,13 +72,9 @@ async function alert(sound: 'work-start' | 'rest-start'): Promise<void> {
 
 async function showNotification(sound: 'work-start' | 'rest-start'): Promise<void> {
   const isWork = sound === 'work-start';
-  await browser.notifications.create({
-    type: 'basic',
-    iconUrl: browser.runtime.getURL('/icon/128.png'),
-    title: await translate(isWork ? 'pomodoroBackToWorkTitle' : 'pomodoroRestTitle'),
-    message: await translate(
-      isWork ? 'pomodoroWorkStartedMessage' : 'pomodoroRestStartedMessage',
-    ),
+  await notify({
+    titleKey: isWork ? 'pomodoroBackToWorkTitle' : 'pomodoroRestTitle',
+    messageKey: isWork ? 'pomodoroWorkStartedMessage' : 'pomodoroRestStartedMessage',
   });
 }
 

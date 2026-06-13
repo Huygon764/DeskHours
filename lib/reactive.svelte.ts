@@ -1,5 +1,22 @@
 /** Reactive helpers shared by the popup panels (Svelte 5 runes module).
  *  Each must be called during a component's init so the inner $effect has an owner. */
+import { watchLocale } from './i18n';
+import { blocklistItem } from './storage';
+import { cloneBlocklist } from './blocklist';
+import { loadBlocklist } from './blocklist-session';
+import type { BlockEntry } from './types';
+
+/** A counter that bumps whenever the UI language changes; read it inside `{#key ...}`
+ *  (and `void` it in any `t()`-derived value) to re-render translated content. */
+export function useLocaleRevision() {
+  let revision = $state(0);
+  $effect(() => watchLocale(() => revision++));
+  return {
+    get value() {
+      return revision;
+    },
+  };
+}
 
 /** A wall-clock that ticks every `intervalMs` while the using component is mounted. */
 export function useNow(intervalMs = 250) {
@@ -17,6 +34,35 @@ export function useNow(intervalMs = 250) {
       now = Date.now();
     },
   };
+}
+
+/** Load the blocklist once and keep it live via watch. The component owns its own
+ *  `entries` state (so it can reassign after mutations); this just feeds it. `onEntries`
+ *  fires for the initial load and every external change; `onError`/`onSettled` cover the
+ *  initial load outcome. */
+export function watchBlocklist(opts: {
+  onEntries: (entries: BlockEntry[]) => void;
+  onError: (err: unknown) => void;
+  onSettled?: () => void;
+}) {
+  $effect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const loaded = await loadBlocklist();
+        if (active) opts.onEntries(loaded);
+      } catch (err) {
+        if (active) opts.onError(err);
+      } finally {
+        if (active) opts.onSettled?.();
+      }
+    })();
+    const unwatch = blocklistItem.watch((v) => opts.onEntries(cloneBlocklist(v)));
+    return () => {
+      active = false;
+      unwatch();
+    };
+  });
 }
 
 interface ReadableStored<T> {

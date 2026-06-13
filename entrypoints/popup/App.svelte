@@ -6,16 +6,15 @@
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
-  import { t, watchLocale } from '@/lib/i18n';
-  import { useNow, useStored } from '@/lib/reactive.svelte';
+  import { t } from '@/lib/i18n';
+  import { useNow, useStored, useLocaleRevision } from '@/lib/reactive.svelte';
   import AppLogo from '@/components/AppLogo.svelte';
 
   type PopupTab = 'block' | 'focus' | 'timer';
 
-  let localeRevision = $state(0);
-
   let activeTab = $state<PopupTab>('block');
 
+  const locale = useLocaleRevision();
   const clock = useNow();
   const pomo = useStored(pomodoroItem, { onChange: () => clock.sync() });
   const timer = useStored(timerItem, { onChange: () => clock.sync() });
@@ -24,8 +23,6 @@
   const countdownState = $derived(timer.value);
   const scheduleState = $derived(schedule.value);
   const now = $derived(clock.value);
-
-  $effect(() => watchLocale(() => localeRevision++));
 
   // Open straight to the Focus tab on first load if a session is already running.
   let tabAutoSwitched = false;
@@ -47,7 +44,7 @@
   const countdownLive = $derived(countdownRunning || countdownDone);
 
   const focusLabel = $derived.by(() => {
-    void localeRevision;
+    void locale.value;
     if (!pomodoroState || pomodoroState.phase === 'idle') return '';
     const time = formatMmSs(displaySecondsFromMs(remainingMs(pomodoroState, now)));
     const phase = pomodoroState.phase === 'work' ? t('phaseFocus') : t('phaseRest');
@@ -56,7 +53,7 @@
   });
 
   const countdownLabel = $derived.by(() => {
-    void localeRevision;
+    void locale.value;
     if (!countdownState || !isTimerRunning(countdownState)) return '';
     const suffix = countdownState.pausedRemainingMs != null ? t('pausedSuffix') : '';
     return `${t('tabTimer')} ${formatHhMmSs(displaySecondsFromMs(timerRemainingMs(countdownState, now)))}${suffix}`;
@@ -68,7 +65,7 @@
 </script>
 
 <div class="popup">
-  {#key localeRevision}
+  {#key locale.value}
   <header class="popup-header">
     <div class="brand">
       <AppLogo size={22} />

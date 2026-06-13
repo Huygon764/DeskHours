@@ -28,39 +28,22 @@ export function buildRedirectRules(patterns: BlockPattern[], blockedPageBase: st
   const redirectSubstitution = `${blockedPageBase}?${BLOCKED_URL_QUERY_KEY}=\\0`;
 
   return patterns.map((item, i) => {
-    const base = {
+    const isKeyword = item.kind === 'keyword';
+    const regexFilter = isKeyword
+      ? keywordToRegexFilter(item.pattern)
+      : isPathPattern(item.pattern)
+        ? patternToRegexFilter(item.pattern)
+        : hostToRegexFilter(item.pattern);
+
+    return {
       id: i + 1,
       priority: 1,
       action: { type: 'redirect' as const, redirect: { regexSubstitution: redirectSubstitution } },
-      condition: { resourceTypes: ['main_frame'] as ['main_frame'] },
-    };
-
-    if (item.kind === 'keyword') {
-      return {
-        ...base,
-        condition: {
-          ...base.condition,
-          regexFilter: keywordToRegexFilter(item.pattern),
-          isUrlFilterCaseSensitive: false,
-        },
-      };
-    }
-
-    if (isPathPattern(item.pattern)) {
-      return {
-        ...base,
-        condition: {
-          ...base.condition,
-          regexFilter: patternToRegexFilter(item.pattern),
-        },
-      };
-    }
-
-    return {
-      ...base,
       condition: {
-        ...base.condition,
-        regexFilter: hostToRegexFilter(item.pattern),
+        regexFilter,
+        resourceTypes: ['main_frame'] as ['main_frame'],
+        // Keyword matches are case-insensitive; host/path filters are already lowercased.
+        ...(isKeyword && { isUrlFilterCaseSensitive: false }),
       },
     };
   });

@@ -11,7 +11,8 @@
   import { verifyPassword } from '@/lib/crypto';
   import { isSiteBlockingEnabled } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
-  import { t, watchLocale } from '@/lib/i18n';
+  import { t } from '@/lib/i18n';
+  import { useLocaleRevision } from '@/lib/reactive.svelte';
 
   const LANGUAGE_OPTIONS: { value: LocalePreference; labelKey: string; hintKey: string }[] = [
     { value: 'system', labelKey: 'languageSystem', hintKey: 'languageSystemHint' },
@@ -27,7 +28,7 @@
 
   type Tab = 'schedule' | 'sites' | 'focus-timer' | 'settings';
 
-  let localeRevision = $state(0);
+  const locale = useLocaleRevision();
 
   let hasPassword = $state(false);
   let blockingNow = $state(false);
@@ -46,8 +47,6 @@
       clearInterval(id);
     };
   });
-
-  $effect(() => watchLocale(() => localeRevision++));
 
   async function init() {
     hasPassword = (await authItem.getValue()) != null;
@@ -90,7 +89,7 @@
 </script>
 
 <div class="page">
-  {#key localeRevision}
+  {#key locale.value}
   <div class="page-inner">
     {#if !hasPassword}
       <header class="page-header">

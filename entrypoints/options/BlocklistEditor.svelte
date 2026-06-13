@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { blocklistItem } from '@/lib/storage';
   import { cloneBlocklist, normalizeKeyword, normalizePattern } from '@/lib/blocklist';
   import { hasBlockedPattern, loadBlocklist, persistBlocklist, setEntryEnabled } from '@/lib/blocklist-session';
+  import { watchBlocklist } from '@/lib/reactive.svelte';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
@@ -21,26 +20,14 @@
   let loading = $state(true);
   let loadError = $state('');
 
-  onMount(() => {
-    void loadFromStorage();
-    const unwatch = blocklistItem.watch((v) => {
-      entries = cloneBlocklist(v);
-    });
-    return () => unwatch();
-  });
-
-  async function loadFromStorage() {
-    loading = true;
-    loadError = '';
-    try {
-      entries = await loadBlocklist();
-    } catch (err) {
+  watchBlocklist({
+    onEntries: (e) => (entries = e),
+    onError: (err) => {
       console.error('load blocklist failed:', err);
       loadError = t('loadBlocklistError');
-    } finally {
-      loading = false;
-    }
-  }
+    },
+    onSettled: () => (loading = false),
+  });
 
   const siteEntries = $derived(
     entries.filter((e) => !e.masked && (e.kind ?? 'site') === 'site'),
