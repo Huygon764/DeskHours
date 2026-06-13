@@ -130,6 +130,39 @@ export function hasKeywordPattern(entries: BlockEntry[], keyword: string): boole
   });
 }
 
+/** Escape RE2 metacharacters in a literal substring. */
+function escapeRegexLiteral(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Registrable domain for DNR requestDomains (host-only patterns). */
+export function hostToRequestDomain(host: string): string {
+  return host.replace(/^www\./, '').toLowerCase();
+}
+
+/** DNR regexFilter for a host-only pattern (domain + subdomains, all paths). */
+export function hostToRegexFilter(host: string): string {
+  const h = escapeRegexLiteral(host.replace(/^www\./, '').toLowerCase());
+  return `^https?://([^/]*\\.)?${h}(/.*)?$`;
+}
+
+/** DNR regexFilter for a path or wildcard site pattern. */
+export function patternToRegexFilter(pattern: string): string {
+  const slash = pattern.indexOf('/');
+  const host = escapeRegexLiteral(pattern.slice(0, slash).replace(/^www\./, ''));
+  let path = pattern.slice(slash + 1);
+  if (path.endsWith('/*')) {
+    path = path.slice(0, -2);
+  }
+  const pathRegex = path.split('*').map(escapeRegexLiteral).join('.*');
+  return `^https?://([^/]*\\.)?${host}/${pathRegex}(/.*)?$`;
+}
+
+/** DNR regexFilter substring match for URLs containing `keyword`. */
+export function keywordToRegexFilter(keyword: string): string {
+  return `^.*${escapeRegexLiteral(keyword)}.*$`;
+}
+
 /** Convert a stored pattern to a DNR urlFilter (path patterns only). */
 export function patternToUrlFilter(pattern: string): string {
   const slash = pattern.indexOf('/');

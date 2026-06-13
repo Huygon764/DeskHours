@@ -690,6 +690,9 @@
   "waitComplete": {
     "message": "Đã chờ xong."
   },
+  "completeStep1First": {
+    "message": "Hoàn thành bước 1 để nhập mật khẩu."
+  },
   "masterPasswordLabel": {
     "message": "Mật khẩu chính"
   },

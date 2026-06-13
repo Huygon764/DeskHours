@@ -21,7 +21,10 @@ describe('syncBlocker', () => {
   it('applies redirect rules for all blocked domains during an active window', async () => {
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter).sort()).toEqual(['||facebook.com/', '||youtube.com/']);
+    expect(rules.map((r) => r.condition.regexFilter)).toEqual([
+      '^https?://([^/]*\\.)?facebook\\.com(/.*)?$',
+      '^https?://([^/]*\\.)?youtube\\.com(/.*)?$',
+    ]);
   });
 
   it('clears all rules outside an active window', async () => {
@@ -39,7 +42,10 @@ describe('syncBlocker', () => {
     });
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter).sort()).toEqual(['||facebook.com/', '||youtube.com/']);
+    expect(rules.map((r) => r.condition.regexFilter)).toEqual([
+      '^https?://([^/]*\\.)?facebook\\.com(/.*)?$',
+      '^https?://([^/]*\\.)?youtube\\.com(/.*)?$',
+    ]);
   });
 
   it('clears rules during focus rest outside schedule', async () => {
@@ -57,14 +63,17 @@ describe('syncBlocker', () => {
     await tempUnblocksItem.setValue([{ pattern: 'facebook.com', expiresAt: MON_1030 + 60_000 }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter)).toEqual(['||youtube.com/']);
+    expect(rules.map((r) => r.condition.regexFilter)).toEqual(['^https?://([^/]*\\.)?youtube\\.com(/.*)?$']);
   });
 
   it('ignores an expired temp unblock', async () => {
     await tempUnblocksItem.setValue([{ pattern: 'facebook.com', expiresAt: MON_1030 - 1 }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter).sort()).toEqual(['||facebook.com/', '||youtube.com/']);
+    expect(rules.map((r) => r.condition.regexFilter)).toEqual([
+      '^https?://([^/]*\\.)?facebook\\.com(/.*)?$',
+      '^https?://([^/]*\\.)?youtube\\.com(/.*)?$',
+    ]);
   });
 
   it('skips disabled blocklist entries', async () => {
@@ -74,37 +83,37 @@ describe('syncBlocker', () => {
     ]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter)).toEqual(['||youtube.com/']);
+    expect(rules.map((r) => r.condition.regexFilter)).toEqual(['^https?://([^/]*\\.)?youtube\\.com(/.*)?$']);
   });
 
   it('applies path rules for path patterns', async () => {
     await blocklistItem.setValue([{ id: '1', domain: 'youtube.com/shorts/*', masked: false, enabled: true }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules[0].condition.urlFilter).toBe('*://*.youtube.com/shorts/*');
+    expect(rules[0].condition.regexFilter).toBe('^https?://([^/]*\\.)?youtube\\.com/shorts(/.*)?$');
   });
 
-  it('applies keyword urlFilter rules', async () => {
+  it('applies keyword regex rules', async () => {
     await blocklistItem.setValue([
       { id: '1', domain: 'shorts', masked: false, enabled: true, kind: 'keyword' },
     ]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules[0].condition.urlFilter).toBe('shorts');
+    expect(rules[0].condition.regexFilter).toBe('^.*shorts.*$');
   });
 
   it('blocks session-unmasked patterns during an active window', async () => {
     await unmaskedDomainsItem.setValue(['reddit.com']);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter)).toContain('||reddit.com/');
+    expect(rules.some((r) => r.condition.regexFilter === '^https?://([^/]*\\.)?reddit\\.com(/.*)?$')).toBe(true);
   });
 
   it('blocks plaintext hidden sites without session unmask', async () => {
     await blocklistItem.setValue([{ id: '1', domain: 'reddit.com', masked: true, enabled: true }]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules.map((r) => r.condition.urlFilter)).toContain('||reddit.com/');
+    expect(rules.some((r) => r.condition.regexFilter === '^https?://([^/]*\\.)?reddit\\.com(/.*)?$')).toBe(true);
   });
 
   it('blocks plaintext hidden keywords without session unmask', async () => {
@@ -113,7 +122,7 @@ describe('syncBlocker', () => {
     ]);
     await syncBlocker();
     const rules = getDynamicRulesForTest();
-    expect(rules[0].condition.urlFilter).toBe('gambling');
+    expect(rules[0].condition.regexFilter).toBe('^.*gambling.*$');
   });
 });
 
@@ -128,5 +137,25 @@ describe('pruneExpired', () => {
     ]);
     await pruneExpired();
     expect(await tempUnblocksItem.getValue()).toEqual([{ pattern: 'b.com', expiresAt: 5000 }]);
+  });
+});
+
+describe('grantUnblock', () => {
+  beforeEach(async () => {
+    fakeBrowser.reset();
+    setupDnrMock();
+    vi.spyOn(Date, 'now').mockReturnValue(MON_1030);
+    await blocklistItem.setValue([{ id: '1', domain: 'facebook.com', masked: false, enabled: true }]);
+  });
+
+  it('removes the unblocked pattern from DNR rules', async () => {
+    const { grantUnblock } = await import('./blocker-controller');
+    await syncBlocker();
+    expect(getDynamicRulesForTest()).toHaveLength(1);
+    await grantUnblock('facebook.com', 5);
+    expect(getDynamicRulesForTest()).toEqual([]);
+    expect(await tempUnblocksItem.getValue()).toEqual([
+      { pattern: 'facebook.com', expiresAt: MON_1030 + 5 * 60_000 },
+    ]);
   });
 });

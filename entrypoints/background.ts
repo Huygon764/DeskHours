@@ -1,5 +1,6 @@
 import { syncBlocker, grantUnblock } from '@/lib/blocker-controller';
-import { maybeRedirectBlockedTab } from '@/lib/keyword-navigation';
+import { maybeRedirectBlockedTab, rememberNavigationTarget } from '@/lib/keyword-navigation';
+import { peekPendingBlockUrl } from '@/lib/pending-block-url';
 import {
   onPhaseAlarm,
   pausePomodoro,
@@ -51,7 +52,12 @@ export default defineBackground(() => {
     guardTab(tabId);
   });
 
-  browser.runtime.onMessage.addListener((message: BgMessage) => {
+  browser.webNavigation.onBeforeNavigate.addListener((details) => {
+    if (details.frameId !== 0) return;
+    rememberNavigationTarget(details.tabId, details.url);
+  });
+
+  browser.runtime.onMessage.addListener((message: BgMessage, sender) => {
     switch (message.type) {
       case BG_MESSAGE.SYNC_BLOCKER:
         return syncBlocker().catch((err) =>
@@ -59,6 +65,11 @@ export default defineBackground(() => {
         );
       case BG_MESSAGE.GRANT_UNBLOCK:
         return unblockMinutesItem.getValue().then((m) => grantUnblock(message.pattern, m));
+      case BG_MESSAGE.GET_PENDING_BLOCKED_URL: {
+        const tabId = sender.tab?.id;
+        if (tabId == null) return null;
+        return peekPendingBlockUrl(tabId);
+      }
       case BG_MESSAGE.POMODORO_START:
         return startPomodoro();
       case BG_MESSAGE.POMODORO_STOP:

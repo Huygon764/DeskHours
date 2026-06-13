@@ -1,5 +1,6 @@
 import { getActiveBlockPatterns } from './blocker-controller';
 import { findMatchingPattern } from './pattern-match';
+import { setPendingBlockUrl } from './pending-block-url';
 import { BLOCKED_PAGE_PATH } from './dnr-rules';
 
 export const BLOCKED_URL_PARAM = 'url';
@@ -33,6 +34,12 @@ async function tabUrl(tabId: number, url?: string): Promise<string | null> {
   }
 }
 
+/** Store the last http(s) navigation target before DNR redirect (sync — no async race). */
+export function rememberNavigationTarget(tabId: number, url: string): void {
+  if (!isInspectableWebUrl(url) || isExtensionBlockedPage(url)) return;
+  setPendingBlockUrl(tabId, url);
+}
+
 /** Redirect tabs DNR misses (SPA navigations, back/forward cache, etc.). */
 export async function maybeRedirectBlockedTab(tabId: number, url?: string): Promise<void> {
   const resolved = await tabUrl(tabId, url);
@@ -42,6 +49,7 @@ export async function maybeRedirectBlockedTab(tabId: number, url?: string): Prom
   if (!matched) return;
 
   try {
+    setPendingBlockUrl(tabId, resolved);
     await browser.tabs.update(tabId, { url: blockedPageUrlFor(resolved) });
   } catch (err) {
     console.error('[deskhours] tab redirect failed:', err);

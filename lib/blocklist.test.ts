@@ -3,12 +3,16 @@ import {
   cloneBlocklist,
   hasKeywordPattern,
   hasPlainPattern,
+  hostToRegexFilter,
+  hostToRequestDomain,
   hostToUrlFilter,
   isPathPattern,
+  keywordToRegexFilter,
   keywordToUrlFilter,
   normalizeKeyword,
   normalizePattern,
   pathPatternFromUrl,
+  patternToRegexFilter,
 } from './blocklist';
 
 describe('normalizePattern', () => {
@@ -63,6 +67,34 @@ describe('keywordToUrlFilter', () => {
     expect(keywordToUrlFilter('shorts')).toBe('shorts');
     expect(keywordToUrlFilter('a*b')).toBe('a|*b');
     expect(keywordToUrlFilter('foo^bar')).toBe('foo|^bar');
+  });
+});
+
+describe('hostToRegexFilter', () => {
+  it('matches host-only patterns on the domain and subdomains', () => {
+    expect(hostToRegexFilter('www.youtube.com')).toBe('^https?://([^/]*\\.)?youtube\\.com(/.*)?$');
+  });
+});
+
+describe('hostToRequestDomain', () => {
+  it('normalizes host-only patterns', () => {
+    expect(hostToRequestDomain('www.youtube.com')).toBe('youtube.com');
+    expect(hostToRequestDomain('Facebook.COM')).toBe('facebook.com');
+  });
+});
+
+describe('patternToRegexFilter', () => {
+  it('matches path wildcards on the host and subdomains', () => {
+    expect(patternToRegexFilter('youtube.com/shorts/*')).toBe(
+      '^https?://([^/]*\\.)?youtube\\.com/shorts(/.*)?$',
+    );
+  });
+});
+
+describe('keywordToRegexFilter', () => {
+  it('escapes regex specials for substring match', () => {
+    expect(keywordToRegexFilter('shorts')).toBe('^.*shorts.*$');
+    expect(keywordToRegexFilter('a*b')).toBe('^.*a\\*b.*$');
   });
 });
 

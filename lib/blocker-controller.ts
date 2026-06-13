@@ -1,6 +1,6 @@
 import { blocklistItem, pomodoroItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
 import { isSiteBlockingEnabled } from './schedule';
-import { buildRedirectRules } from './dnr-rules';
+import { BLOCKED_PAGE_PATH, buildRedirectRules } from './dnr-rules';
 import { entryToBlockPattern, normalizeEntry, type BlockPattern } from './blocklist';
 import { isEncryptedMaskedDomain } from './masking';
 import type { BlockEntry } from './types';
@@ -57,11 +57,20 @@ async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPatt
 }
 
 /** Recompute DNR rules from blocklist, schedule, focus state, and temp unblocks. */
+let syncQueue: Promise<void> = Promise.resolve();
+
 export async function syncBlocker(): Promise<void> {
+  const run = syncQueue.then(() => syncBlockerInner());
+  syncQueue = run.catch(() => undefined);
+  return run;
+}
+
+async function syncBlockerInner(): Promise<void> {
   await pruneExpired();
   const patterns = await getActiveBlockPatterns();
 
-  const addRules = buildRedirectRules(patterns);
+  const blockedPageBase = browser.runtime.getURL(BLOCKED_PAGE_PATH);
+  const addRules = buildRedirectRules(patterns, blockedPageBase);
   const existing = await browser.declarativeNetRequest.getDynamicRules();
   try {
     await browser.declarativeNetRequest.updateDynamicRules({
@@ -83,11 +92,16 @@ export async function syncBlocker(): Promise<void> {
 /** Temporarily allow one pattern, then resync DNR rules. */
 export async function grantUnblock(pattern: string, minutes: number): Promise<void> {
   const list = await tempUnblocksItem.getValue();
-  const expiresAt = Date.now() + minutes * 60_000;
+  const expiresAt = Date.now() + Math.max(1, minutes || 5) * 60_000;
   const normalized = list
     .map((u) => ({ pattern: tempUnblockPattern(u), expiresAt: u.expiresAt }))
     .filter((u) => u.pattern !== pattern);
   normalized.push({ pattern, expiresAt });
   await tempUnblocksItem.setValue(normalized);
-  await syncBlocker();
+  try {
+    await syncBlocker();
+  } catch (err) {
+    await tempUnblocksItem.setValue(list);
+    throw err;
+  }
 }

@@ -2,50 +2,52 @@ import { describe, it, expect } from 'vitest';
 import { buildRedirectRules } from './dnr-rules';
 import type { BlockPattern } from './blocklist';
 
+const BLOCKED_BASE = 'chrome-extension://test-id/blocked.html';
+
 describe('buildRedirectRules', () => {
   it('builds one main_frame redirect rule per domain', () => {
     const patterns: BlockPattern[] = [
       { pattern: 'facebook.com', kind: 'site' },
       { pattern: 'youtube.com', kind: 'site' },
     ];
-    const rules = buildRedirectRules(patterns);
+    const rules = buildRedirectRules(patterns, BLOCKED_BASE);
     expect(rules).toHaveLength(2);
     expect(rules[0]).toEqual({
       id: 1,
       priority: 1,
-      action: { type: 'redirect', redirect: { extensionPath: '/blocked.html' } },
+      action: {
+        type: 'redirect',
+        redirect: { regexSubstitution: `${BLOCKED_BASE}?url=\\0` },
+      },
       condition: {
-        urlFilter: '||facebook.com/',
-        isUrlFilterCaseSensitive: false,
+        regexFilter: '^https?://([^/]*\\.)?facebook\\.com(/.*)?$',
         resourceTypes: ['main_frame'],
       },
     });
     expect(rules[1].id).toBe(2);
-    expect(rules[1].condition.urlFilter).toBe('||youtube.com/');
+    expect(rules[1].condition.regexFilter).toBe('^https?://([^/]*\\.)?youtube\\.com(/.*)?$');
   });
 
-  it('builds urlFilter rules for path patterns', () => {
-    const rules = buildRedirectRules([{ pattern: 'youtube.com/shorts/*', kind: 'site' }]);
+  it('builds regex rules for path patterns', () => {
+    const rules = buildRedirectRules([{ pattern: 'youtube.com/shorts/*', kind: 'site' }], BLOCKED_BASE);
     expect(rules).toHaveLength(1);
-    expect(rules[0].condition.urlFilter).toBe('*://*.youtube.com/shorts/*');
-    expect(rules[0].condition.isUrlFilterCaseSensitive).toBe(false);
-    expect(rules[0].condition.requestDomains).toBeUndefined();
+    expect(rules[0].condition.regexFilter).toBe('^https?://([^/]*\\.)?youtube\\.com/shorts(/.*)?$');
   });
 
-  it('builds urlFilter rules for URL keywords', () => {
-    const rules = buildRedirectRules([{ pattern: 'shorts', kind: 'keyword' }]);
+  it('builds regex rules for URL keywords', () => {
+    const rules = buildRedirectRules([{ pattern: 'shorts', kind: 'keyword' }], BLOCKED_BASE);
     expect(rules).toHaveLength(1);
-    expect(rules[0].condition.urlFilter).toBe('shorts');
+    expect(rules[0].condition.regexFilter).toBe('^.*shorts.*$');
     expect(rules[0].condition.isUrlFilterCaseSensitive).toBe(false);
   });
 
   it('escapes special characters in keywords', () => {
-    const rules = buildRedirectRules([{ pattern: 'a*b', kind: 'keyword' }]);
-    expect(rules[0].condition.urlFilter).toBe('a|*b');
+    const rules = buildRedirectRules([{ pattern: 'a*b', kind: 'keyword' }], BLOCKED_BASE);
+    expect(rules[0].condition.regexFilter).toBe('^.*a\\*b.*$');
   });
 
   it('returns empty array for no patterns', () => {
-    expect(buildRedirectRules([])).toEqual([]);
+    expect(buildRedirectRules([], BLOCKED_BASE)).toEqual([]);
   });
 
   it('assigns sequential ids starting at 1', () => {
@@ -54,7 +56,7 @@ describe('buildRedirectRules', () => {
       { pattern: 'b.com', kind: 'site' },
       { pattern: 'c.com', kind: 'site' },
     ];
-    const rules = buildRedirectRules(patterns);
+    const rules = buildRedirectRules(patterns, BLOCKED_BASE);
     expect(rules.map((r) => r.id)).toEqual([1, 2, 3]);
   });
 });

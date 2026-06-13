@@ -1,28 +1,31 @@
 <script lang="ts">
-  import { authItem, blocklistItem } from '@/lib/storage';
+  import { authItem } from '@/lib/storage';
   import { verifyPassword } from '@/lib/crypto';
-  import { BG_MESSAGE, sendBg } from '@/lib/messages';
-  import { cloneBlocklist, entryToBlockPattern, normalizeEntry } from '@/lib/blocklist';
-  import { BLOCKED_URL_PARAM } from '@/lib/keyword-navigation';
-  import { findMatchingPattern } from '@/lib/pattern-match';
+  import { grantUnblockSafe, getPendingBlockedUrlSafe } from '@/lib/messages';
+  import { BLOCKED_URL_PARAM, matchingBlockedPattern } from '@/lib/keyword-navigation';
   import { t, watchLocale } from '@/lib/i18n';
   import AppLogo from '@/components/AppLogo.svelte';
 
-  function initialBlockedUrl(): string {
+  function blockedUrlFromLocation(): string {
     try {
-      const fromQuery = new URLSearchParams(window.location.search).get(BLOCKED_URL_PARAM);
-      if (fromQuery) return fromQuery;
+      const href = window.location.href;
+      const marker = `${BLOCKED_URL_PARAM}=`;
+      const idx = href.indexOf(marker);
+      if (idx !== -1) {
+        const raw = href.slice(idx + marker.length);
+        try {
+          return decodeURIComponent(raw);
+        } catch {
+          return raw;
+        }
+      }
     } catch {
       /* ignore */
     }
-    try {
-      return document.referrer || '';
-    } catch {
-      return '';
-    }
+    return '';
   }
 
-  let pageUrl = $state(initialBlockedUrl());
+  let pageUrl = $state('');
   let blockPattern = $state('');
   let confirmed = $state(false);
   let countdown = $state(0);
@@ -49,14 +52,34 @@
   $effect(() => watchLocale(() => localeRevision++));
 
   $effect(() => {
+    void resolvePageUrl();
+  });
+
+  async function resolvePageUrl() {
+    const fromLocation = blockedUrlFromLocation();
+    if (fromLocation) {
+      pageUrl = fromLocation;
+      return;
+    }
+    const pending = await getPendingBlockedUrlSafe();
+    if (pending) {
+      pageUrl = pending;
+      return;
+    }
+    try {
+      pageUrl = document.referrer || '';
+    } catch {
+      pageUrl = '';
+    }
+  }
+
+  $effect(() => {
     void resolvePattern();
   });
 
   async function resolvePattern() {
     if (!pageUrl) return;
-    const entries = cloneBlocklist(await blocklistItem.getValue()).map(normalizeEntry);
-    const patterns = entries.filter((e) => !e.masked).map(entryToBlockPattern);
-    blockPattern = findMatchingPattern(pageUrl, patterns) ?? '';
+    blockPattern = (await matchingBlockedPattern(pageUrl)) ?? '';
   }
 
   function startCountdown() {
@@ -70,10 +93,12 @@
 
   async function submit() {
     error = '';
+    if (!pageUrl) await resolvePageUrl();
     if (!pageUrl) {
       error = t('enterUrlError');
       return;
     }
+    if (!blockPattern) await resolvePattern();
     if (!blockPattern) {
       error = t('ruleUnknownError');
       return;
@@ -90,8 +115,15 @@
         error = t('wrongPassword');
         return;
       }
-      await sendBg({ type: BG_MESSAGE.GRANT_UNBLOCK, pattern: blockPattern });
-      window.location.href = pageUrl;
+      const granted = await grantUnblockSafe(blockPattern);
+      if (!granted) {
+        error = t('actionFailed');
+        return;
+      }
+      window.location.assign(pageUrl);
+    } catch (err) {
+      console.error('[deskhours] unblock failed:', err);
+      error = t('actionFailed');
     } finally {
       busy = false;
     }
@@ -108,7 +140,7 @@
   {#key localeRevision}
   <div class="intercept-card">
     <div class="hero">
-      <AppLogo size={80} />
+      <AppLogo size={112} />
     </div>
 
     <div class="content">
@@ -127,7 +159,7 @@
             <button type="button" class="btn btn-outline btn-block" onclick={startCountdown}>
               {t('stillNeedAccess')}
             </button>
-            <p class="step-hint">{t('wait30Seconds')}</p>
+            <p class="step-hint">{t('waitCountdown', String(WAIT_SECONDS))}</p>
           {:else if countdown > 0}
             <p class="countdown">{t('waitCountdown', String(countdown))}</p>
           {:else}
@@ -152,9 +184,7 @@
               <p class="step-hint italic">{t('blockingResumes')}</p>
             </form>
           {:else}
-            <input class="input" type="password" disabled placeholder={t('masterPasswordLabel')} />
-            <button type="button" class="btn btn-primary btn-block" disabled>{t('unblockTemporarily')}</button>
-            <p class="step-hint italic">{t('blockingResumes')}</p>
+            <p class="step-placeholder">{t('completeStep1First')}</p>
           {/if}
         </div>
       </div>
@@ -186,7 +216,7 @@
   }
 
   .hero {
-    padding: 40px 20px;
+    padding: 32px 24px 28px;
     background: var(--surface-low);
     display: flex;
     justify-content: center;
@@ -213,12 +243,12 @@
   .steps {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     text-align: left;
   }
 
   .step {
-    padding: 16px;
+    padding: 18px;
     border: 1px solid var(--border-variant);
     border-radius: var(--radius);
     background: var(--surface-step);
@@ -269,6 +299,15 @@
   }
 
   .unblock-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     margin: 0;
+  }
+
+  .step-disabled .step-placeholder {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
   }
 </style>

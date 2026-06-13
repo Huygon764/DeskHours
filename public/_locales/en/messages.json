@@ -690,6 +690,9 @@
   "waitComplete": {
     "message": "Wait complete."
   },
+  "completeStep1First": {
+    "message": "Complete step 1 to enter your password."
+  },
   "masterPasswordLabel": {
     "message": "Master password"
   },

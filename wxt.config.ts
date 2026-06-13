@@ -18,6 +18,7 @@ export default defineConfig({
       'offscreen',
       'notifications',
       'tabs',
+      'webNavigation',
     ],
     host_permissions: ['<all_urls>'],
     web_accessible_resources: [
