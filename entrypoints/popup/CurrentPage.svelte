@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { authItem, blocklistItem } from '@/lib/storage';
+  import { blocklistItem } from '@/lib/storage';
   import { keyFromPassword, syncUnmaskedDomains } from '@/lib/blocklist-session';
-  import { verifyPassword, deriveKey } from '@/lib/crypto';
   import {
     addPattern,
     domainPatternFromUrl,
@@ -63,13 +62,12 @@
 
   async function unlock() {
     unlockError = '';
-    const auth = await authItem.getValue();
-    if (!auth) return;
-    if (!(await verifyPassword(pw, auth))) {
+    const key = await keyFromPassword(pw);
+    if (!key) {
       unlockError = t('wrongPassword');
       return;
     }
-    cryptoKey = await deriveKey(pw, auth.salt);
+    cryptoKey = key;
     unlocked = true;
     pw = '';
     await refreshStatus();

@@ -1,43 +1,56 @@
-<script lang="ts">
-  import { themeItem } from '@/lib/storage';
-  import type { ThemePreference } from '@/lib/theme';
+<script lang="ts" generics="T extends string">
   import { t } from '@/lib/i18n';
 
-  let preference = $state<ThemePreference>('system');
+  /** Minimal shape of a WXT storage item this control needs. */
+  interface StorageLike {
+    getValue(): Promise<T>;
+    setValue(value: T): Promise<unknown>;
+    watch(cb: (value: T) => void): () => void;
+  }
 
-  const options: { value: ThemePreference; labelKey: string; hintKey: string }[] = [
-    { value: 'system', labelKey: 'themeSystem', hintKey: 'themeSystemHint' },
-    { value: 'light', labelKey: 'themeLight', hintKey: 'themeLightHint' },
-    { value: 'dark', labelKey: 'themeDark', hintKey: 'themeDarkHint' },
-  ];
+  let {
+    item,
+    titleKey,
+    introKey,
+    ariaKey,
+    options,
+  }: {
+    item: StorageLike;
+    titleKey: string;
+    introKey: string;
+    ariaKey: string;
+    options: { value: T; labelKey: string; hintKey: string }[];
+  } = $props();
+
+  let preference = $state<T | null>(null);
 
   $effect(() => {
-    void themeItem.getValue().then((v) => (preference = v));
-    return themeItem.watch((v) => (preference = v));
+    void item.getValue().then((v) => (preference = v));
+    return item.watch((v) => (preference = v));
   });
 
-  async function select(value: ThemePreference) {
+  async function select(value: T) {
     if (preference === value) return;
-    await themeItem.setValue(value);
+    await item.setValue(value);
   }
 </script>
 
-<section class="card theme-card">
-  <h2 class="text-headline-md section-title">{t('appearanceTitle')}</h2>
-  <p class="text-body-muted intro">{t('appearanceIntro')}</p>
+<section class="card">
+  <h2 class="text-headline-md section-title">{t(titleKey)}</h2>
+  <p class="text-body-muted intro">{t(introKey)}</p>
 
-  <div class="theme-options" role="radiogroup" aria-label={t('ariaTheme')}>
+  <div class="pref-options" role="radiogroup" aria-label={t(ariaKey)}>
     {#each options as opt (opt.value)}
       <button
         type="button"
-        class="theme-option"
+        class="pref-option"
         class:selected={preference === opt.value}
         role="radio"
         aria-checked={preference === opt.value}
         onclick={() => select(opt.value)}
       >
-        <span class="theme-option-label">{t(opt.labelKey)}</span>
-        <span class="theme-option-hint">{t(opt.hintKey)}</span>
+        <span class="pref-option-label">{t(opt.labelKey)}</span>
+        <span class="pref-option-hint">{t(opt.hintKey)}</span>
       </button>
     {/each}
   </div>
@@ -52,19 +65,19 @@
     margin: 0 0 20px;
   }
 
-  .theme-options {
+  .pref-options {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
 
   @media (max-width: 520px) {
-    .theme-options {
+    .pref-options {
       grid-template-columns: 1fr;
     }
   }
 
-  .theme-option {
+  .pref-option {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -78,23 +91,23 @@
     transition: border-color 0.15s, background 0.15s;
   }
 
-  .theme-option:hover:not(:disabled) {
+  .pref-option:hover:not(:disabled) {
     border-color: var(--border);
     background: var(--surface-muted);
   }
 
-  .theme-option.selected {
+  .pref-option.selected {
     border-color: var(--amber);
     background: var(--preset-selected-bg);
   }
 
-  .theme-option-label {
+  .pref-option-label {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-strong);
   }
 
-  .theme-option-hint {
+  .pref-option-hint {
     font-size: 12px;
     color: var(--text-muted);
     line-height: 1.3;

@@ -169,7 +169,7 @@ describe('isFocusBlockActive', () => {
 
 describe('withDurations', () => {
   it('updates minutes and keeps idle', () => {
-    const s = withDurations({ ...base, phase: 'work', phaseEndsAt: 999 }, 1, 2);
+    const s = withDurations(1, 2);
     expect(s).toEqual({
       workMinutes: 1,
       restMinutes: 2,
@@ -179,7 +179,7 @@ describe('withDurations', () => {
     });
   });
   it('clamps to 1..120', () => {
-    expect(withDurations(base, 0, 200).workMinutes).toBe(1);
-    expect(withDurations(base, 0, 200).restMinutes).toBe(120);
+    expect(withDurations(0, 200).workMinutes).toBe(1);
+    expect(withDurations(0, 200).restMinutes).toBe(120);
   });
 });

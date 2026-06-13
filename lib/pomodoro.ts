@@ -99,12 +99,9 @@ export function parseMinutesInput(raw: string, fallback: number): number {
   return clampMinutes(parsed);
 }
 
-/** Update durations; only allowed while idle (resets phase). */
-export function withDurations(
-  state: PomodoroState,
-  workMinutes: number,
-  restMinutes: number,
-): PomodoroState {
+/** Fresh idle state with the given (clamped) durations. Always resets to idle, so
+ *  callers must guard that the timer is idle before applying. */
+export function withDurations(workMinutes: number, restMinutes: number): PomodoroState {
   return {
     workMinutes: clampMinutes(workMinutes),
     restMinutes: clampMinutes(restMinutes),
@@ -112,4 +109,11 @@ export function withDurations(
     phaseEndsAt: null,
     pausedRemainingMs: null,
   };
+}
+
+/** mm:ss with both fields zero-padded, e.g. 63 -> "01:03". */
+export function formatMmSs(totalSeconds: number): string {
+  const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const s = String(totalSeconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
 }

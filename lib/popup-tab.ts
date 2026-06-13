@@ -2,7 +2,6 @@ import { blocklistItem } from './storage';
 import {
   cloneBlocklist,
   domainPatternFromUrl,
-  entryToBlockPattern,
   normalizePattern,
   pathPatternFromUrl,
 } from './blocklist';
@@ -24,23 +23,27 @@ export async function pageBlockStatus(
   entries: BlockEntry[],
   key: CryptoKey | null,
 ): Promise<PageBlockStatus> {
-  const rules: BlockPattern[] = [];
+  // Decrypt each masked entry at most once; reuse the plaintext for both pattern
+  // matching and the enabled/disabled lookup. Masked entries with no key in this
+  // session cannot be revealed, so they are skipped.
+  const resolved: { entry: BlockEntry; pattern: string }[] = [];
   for (const e of entries) {
-    if (e.masked) {
-      if (key) rules.push({ pattern: await revealEntry(e, key), kind: 'site' as const });
-    } else {
-      rules.push(entryToBlockPattern(e));
-    }
+    if (!e.masked) resolved.push({ entry: e, pattern: e.domain });
+    else if (key) resolved.push({ entry: e, pattern: await revealEntry(e, key) });
   }
+
+  const rules: BlockPattern[] = resolved.map(({ entry, pattern }) => ({
+    pattern,
+    kind: entry.kind ?? 'site',
+  }));
 
   const matched = findMatchingPattern(tabUrl, rules);
   if (!matched) return { kind: 'none' };
 
-  for (const e of entries) {
-    const p = e.masked && key ? await revealEntry(e, key) : e.domain;
-    if (!entryMatchesPattern(e, matched, p)) continue;
-    if (e.enabled === false) return { kind: 'listed-disabled', entry: e, pattern: matched };
-    return { kind: 'listed-enabled', entry: e, pattern: matched };
+  for (const { entry, pattern } of resolved) {
+    if (!entryMatchesPattern(entry, matched, pattern)) continue;
+    if (entry.enabled === false) return { kind: 'listed-disabled', entry, pattern: matched };
+    return { kind: 'listed-enabled', entry, pattern: matched };
   }
 
   return { kind: 'none' };

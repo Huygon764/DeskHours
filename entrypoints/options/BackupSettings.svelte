@@ -77,12 +77,16 @@
         importing = true;
         importError = '';
         importNotice = '';
+        // Imported masked entries cannot be enforced until the user re-unlocks them,
+        // since the password (and thus the AES key) is never part of a backup.
+        const hadHidden = (pendingSummary?.hidden ?? 0) > 0;
         try {
           await applyBackupData(parsed.data);
           const synced = await syncBlockerSafe();
           pendingSummary = null;
           pendingApply = null;
           importNotice = synced ? t('backupImportDone') : t('backupImportDoneReload');
+          if (hadHidden) importNotice += ` ${t('backupImportHiddenNote')}`;
         } catch (err) {
           console.error('import backup failed:', err);
           importError = t('backupImportFailed');

@@ -1,4 +1,5 @@
 import { cloneBlocklist } from './blocklist';
+import { ensureEncKeySalt } from './blocklist-session';
 import { deriveKey, hashPassword, verifyPassword } from './crypto';
 import { maskDomain, revealEntry } from './masking';
 import { authItem, blocklistItem, unmaskedDomainsItem } from './storage';
@@ -16,7 +17,7 @@ export async function verifyCurrentPassword(password: string): Promise<CryptoKey
   const auth = await authItem.getValue();
   if (!auth) throw new PasswordChangeError('no_password');
   if (!(await verifyPassword(password, auth))) throw new PasswordChangeError('wrong_password');
-  return deriveKey(password, auth.salt);
+  return deriveKey(password, await ensureEncKeySalt(password, auth));
 }
 
 async function reencryptMaskedEntries(
@@ -39,7 +40,7 @@ async function reencryptMaskedEntries(
 /** Set a new master password and re-encrypt hidden entries. */
 export async function applyPasswordChange(oldKey: CryptoKey, newPassword: string): Promise<void> {
   const newAuth = await hashPassword(newPassword);
-  const newKey = await deriveKey(newPassword, newAuth.salt);
+  const newKey = await deriveKey(newPassword, newAuth.encKeySalt);
   const entries = cloneBlocklist(await blocklistItem.getValue());
   const next = await reencryptMaskedEntries(entries, oldKey, newKey);
 

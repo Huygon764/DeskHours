@@ -76,6 +76,14 @@ describe('syncBlocker', () => {
     ]);
   });
 
+  it('recomputes cached patterns after a blocklist change + resync', async () => {
+    await syncBlocker();
+    expect(getDynamicRulesForTest()).toHaveLength(2);
+    await blocklistItem.setValue([{ id: '1', domain: 'facebook.com', masked: false, enabled: true }]);
+    await syncBlocker();
+    expect(getDynamicRulesForTest()).toHaveLength(1);
+  });
+
   it('skips disabled blocklist entries', async () => {
     await blocklistItem.setValue([
       { id: '1', domain: 'facebook.com', masked: false, enabled: false },

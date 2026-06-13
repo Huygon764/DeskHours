@@ -21,15 +21,34 @@ export async function pruneExpired(): Promise<Set<string>> {
   return new Set(live.map((u) => tempUnblockPattern(u)));
 }
 
+// guardTab() recomputes patterns on every tab/navigation event; a short TTL cache
+// avoids 3-5 storage reads per event. It is only a redirect-check accelerator — DNR
+// rules are the real enforcement — so a <=TTL staleness window is harmless. Every
+// syncBlocker() invalidates it, so mutations and the 1-minute alarm keep it fresh.
+const PATTERN_CACHE_TTL_MS = 500;
+let patternCache: { at: number; patterns: BlockPattern[] } | null = null;
+
+function invalidatePatternCache(): void {
+  patternCache = null;
+}
+
 /** Active block patterns when blocking is enabled, minus temp unblocks. */
 export async function getActiveBlockPatterns(now = Date.now()): Promise<BlockPattern[]> {
+  const age = patternCache ? now - patternCache.at : Infinity;
+  if (patternCache && age >= 0 && age < PATTERN_CACHE_TTL_MS) return patternCache.patterns;
+
   const liveUnblocks = await pruneExpired();
   const [schedule, pomodoro] = await Promise.all([scheduleItem.getValue(), pomodoroItem.getValue()]);
-  if (!isSiteBlockingEnabled(schedule, now, pomodoro)) return [];
+  if (!isSiteBlockingEnabled(schedule, now, pomodoro)) {
+    patternCache = { at: now, patterns: [] };
+    return [];
+  }
 
   const blocklist = (await blocklistItem.getValue()).map(normalizeEntry);
   const patterns = await collectActivePatterns(blocklist);
-  return patterns.filter((p) => !liveUnblocks.has(p.pattern));
+  const active = patterns.filter((p) => !liveUnblocks.has(p.pattern));
+  patternCache = { at: now, patterns: active };
+  return active;
 }
 
 async function collectActivePatterns(blocklist: BlockEntry[]): Promise<BlockPattern[]> {
@@ -66,7 +85,9 @@ export async function syncBlocker(): Promise<void> {
 }
 
 async function syncBlockerInner(): Promise<void> {
-  await pruneExpired();
+  // Rebuild from fresh state, then repopulate the cache. getActiveBlockPatterns()
+  // also prunes expired temp unblocks, so no extra prune here.
+  invalidatePatternCache();
   const patterns = await getActiveBlockPatterns();
 
   const blockedPageBase = browser.runtime.getURL(BLOCKED_PAGE_PATH);

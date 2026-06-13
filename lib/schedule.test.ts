@@ -47,6 +47,21 @@ describe('isBlockingActive', () => {
     expect(isBlockingActive(DEFAULT_SCHEDULE, mon(14, 0))).toBe(true);
     expect(isBlockingActive(DEFAULT_SCHEDULE, mon(17, 0))).toBe(false);
   });
+
+  it('blocks across midnight for an overnight window (start > end)', () => {
+    // Mon 22:00 -> Tue 02:00; the post-midnight tail belongs to Monday's window.
+    const overnight: ScheduleWindow[] = [{ days: [1], start: '22:00', end: '02:00' }];
+    expect(isBlockingActive(overnight, mon(23, 0))).toBe(true); // Monday evening
+    expect(isBlockingActive(overnight, mon(1, 0))).toBe(false); // Monday pre-dawn (window not open yet)
+    const tue = (h: number, m = 0) => new Date(2026, 5, 9, h, m).getTime();
+    expect(isBlockingActive(overnight, tue(1, 0))).toBe(true); // Tuesday tail of Monday window
+    expect(isBlockingActive(overnight, tue(3, 0))).toBe(false); // after the tail ends
+  });
+
+  it('leaves no unblocked gap at 23:59 for all-day presets', () => {
+    const allDay: ScheduleWindow[] = [{ days: [1], start: '00:00', end: '23:59' }];
+    expect(isBlockingActive(allDay, mon(23, 59))).toBe(true);
+  });
 });
 
 const focusWork: PomodoroState = { ...DEFAULT_POMODORO, phase: 'work', phaseEndsAt: mon(11) + 60_000 };

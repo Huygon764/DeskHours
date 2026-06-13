@@ -18,13 +18,13 @@ export function applyTheme(resolved: ResolvedTheme): void {
 
 /** Load preference, apply theme, and react to system changes when preference is system. */
 export async function initTheme(): Promise<void> {
-  applyTheme(resolveTheme(await themeItem.getValue()));
+  let preference = await themeItem.getValue();
+  applyTheme(resolveTheme(preference));
   window.matchMedia(MEDIA).addEventListener('change', () => {
-    void themeItem.getValue().then((pref) => {
-      if (pref === 'system') applyTheme(resolveTheme('system'));
-    });
+    if (preference === 'system') applyTheme(resolveTheme('system'));
   });
   themeItem.watch((pref) => {
+    preference = pref;
     applyTheme(resolveTheme(pref));
   });
 }

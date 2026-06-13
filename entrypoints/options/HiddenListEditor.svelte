@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { authItem, blocklistItem } from '@/lib/storage';
-  import { verifyPassword, deriveKey } from '@/lib/crypto';
   import { cloneBlocklist } from '@/lib/blocklist';
-  import { loadBlocklist, setEntryEnabled, syncUnmaskedDomains } from '@/lib/blocklist-session';
+  import { keyFromPassword, loadBlocklist, persistBlocklist, setEntryEnabled, syncUnmaskedDomains } from '@/lib/blocklist-session';
   import { isEncryptedMaskedDomain, revealEntry } from '@/lib/masking';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry, BlockEntryKind } from '@/lib/types';
@@ -75,13 +74,9 @@
     }
   }
 
-  $effect(() => {
-    if (!listVisible || loading) return;
-    void hiddenEntries.length;
-    void refreshRevealed(viewKey);
-  });
-
-  async function refreshRevealed(key: CryptoKey | null) {
+  // Rebuild the decrypted map and resync masked-domain enforcement. Each mutation
+  // calls this exactly once, so it owns the single DNR resync (persist() does not).
+  async function refreshRevealed(key: CryptoKey | null): Promise<boolean> {
     try {
       const map: Record<string, string> = {};
       for (const e of hiddenEntries) {
@@ -92,14 +87,14 @@
         }
       }
       revealed = map;
-      if (key) {
-        await syncUnmaskedDomains(entries, key);
-        await syncBlockerSafe();
-      }
+      if (!key) return true;
+      await syncUnmaskedDomains(entries, key);
+      return await syncBlockerSafe();
     } catch (err) {
       console.error('reveal hidden list failed:', err);
       viewError = t('decryptHiddenError');
       hideList();
+      return true;
     }
   }
 
@@ -116,11 +111,11 @@
         viewError = t('setPasswordFirst');
         return;
       }
-      if (!(await verifyPassword(viewPassword, auth))) {
+      const key = await keyFromPassword(viewPassword);
+      if (!key) {
         viewError = t('wrongPassword');
         return;
       }
-      const key = await deriveKey(viewPassword, auth.salt);
       viewPassword = '';
       viewKey = key;
       listVisible = true;
@@ -138,11 +133,8 @@
     revealed = {};
   }
 
-  async function persist(next: BlockEntry[]): Promise<boolean> {
-    const plain = cloneBlocklist(next);
-    await blocklistItem.setValue(plain);
-    entries = plain;
-    return syncBlockerSafe();
+  async function persist(next: BlockEntry[]): Promise<void> {
+    entries = await persistBlocklist(next);
   }
 
   async function remove(id: string) {
@@ -152,10 +144,13 @@
       actionError = t('showToRemove');
       return;
     }
+    if (locked) {
+      actionError = t('unlockToEditDuringSchedule');
+      return;
+    }
     try {
-      const next = cloneBlocklist(entries).filter((e) => e.id !== id);
-      const synced = await persist(next);
-      await refreshRevealed(viewKey);
+      await persist(cloneBlocklist(entries).filter((e) => e.id !== id));
+      const synced = await refreshRevealed(viewKey);
       if (!synced) actionNotice = t('savedRulesRefresh');
     } catch (err) {
       console.error('remove hidden entry failed:', err);
@@ -178,7 +173,6 @@
       const next = await setEntryEnabled(id, enabled);
       entries = next;
       await refreshRevealed(viewKey);
-      await syncBlockerSafe();
     } catch (err) {
       console.error('toggle hidden entry failed:', err);
       actionError = t('updateHiddenEntryError');

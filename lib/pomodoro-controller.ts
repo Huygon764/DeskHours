@@ -1,6 +1,6 @@
 import { syncBlocker } from './blocker-controller';
 import { pomodoroItem } from './storage';
-import { isPaused, nextPhase, remainingMs, resumeState } from './pomodoro';
+import { isPaused, nextPhase, pauseState, resumeState } from './pomodoro';
 import { playAlertSound } from './alert-sound';
 import { translate } from './i18n';
 
@@ -35,13 +35,9 @@ export async function stopPomodoro(): Promise<void> {
 /** Pause the current phase and keep remaining time. */
 export async function pausePomodoro(): Promise<void> {
   const current = await pomodoroItem.getValue();
-  if (current.phase === 'idle' || isPaused(current)) return;
-  const now = Date.now();
-  await pomodoroItem.setValue({
-    ...current,
-    phaseEndsAt: null,
-    pausedRemainingMs: remainingMs(current, now),
-  });
+  const paused = pauseState(current, Date.now());
+  if (paused === current) return; // already idle or paused
+  await pomodoroItem.setValue(paused);
   await browser.alarms.clear(POMODORO_ALARM);
 }
 
@@ -60,9 +56,13 @@ export async function onPhaseAlarm(): Promise<void> {
   if (current.phase === 'idle' || current.pausedRemainingMs != null) return;
   const advanced = nextPhase(current, Date.now());
   await pomodoroItem.setValue(advanced);
-  await alert(advanced.phase === 'work' ? 'work-start' : 'rest-start');
+  // Schedule the next phase + resync blocking FIRST; never let sound playback,
+  // which can take seconds, delay the alarm (the timer controller does the same).
   if (advanced.phaseEndsAt) await scheduleAlarm(advanced.phaseEndsAt);
   await syncBlocker();
+  void alert(advanced.phase === 'work' ? 'work-start' : 'rest-start').catch((err) =>
+    console.error('[deskhours] pomodoro alert failed:', err),
+  );
 }
 
 async function alert(sound: 'work-start' | 'rest-start'): Promise<void> {

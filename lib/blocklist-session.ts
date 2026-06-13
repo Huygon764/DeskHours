@@ -1,15 +1,43 @@
 import { authItem, blocklistItem, unmaskedDomainsItem } from './storage';
-import { verifyPassword, deriveKey } from './crypto';
-import { isEncryptedMaskedDomain, revealEntry } from './masking';
+import { verifyPassword, deriveKey, randomSaltB64 } from './crypto';
+import { isEncryptedMaskedDomain, maskDomain, revealEntry } from './masking';
 import { cloneBlocklist, hasKeywordPattern, hasPlainPattern, normalizeEntry } from './blocklist';
-import type { BlockEntry, BlockEntryKind } from './types';
+import type { AuthRecord, BlockEntry, BlockEntryKind } from './types';
+
+/** Legacy records derived the AES key from `auth.salt`, making the stored hash equal to
+ *  the key. Migrate to an independent `encKeySalt`, re-encrypting masked entries from the
+ *  old key to the new one, and return the salt to use. Idempotent once migrated. */
+export async function ensureEncKeySalt(password: string, auth: AuthRecord): Promise<string> {
+  if (auth.encKeySalt) return auth.encKeySalt;
+
+  const oldKey = await deriveKey(password, auth.salt);
+  const encKeySalt = randomSaltB64();
+  const newKey = await deriveKey(password, encKeySalt);
+
+  const entries = cloneBlocklist(await blocklistItem.getValue());
+  const reencrypted: BlockEntry[] = [];
+  for (const e of entries) {
+    if (!e.masked || !isEncryptedMaskedDomain(e.domain)) {
+      reencrypted.push(e);
+      continue;
+    }
+    const plaintext = await revealEntry(e, oldKey);
+    reencrypted.push({ ...e, domain: await maskDomain(plaintext, newKey) });
+  }
+
+  await Promise.all([
+    authItem.setValue({ ...auth, encKeySalt }),
+    blocklistItem.setValue(reencrypted),
+  ]);
+  return encKeySalt;
+}
 
 /** Verify password and derive the AES key used for masked entries. */
 export async function keyFromPassword(password: string): Promise<CryptoKey | null> {
   const auth = await authItem.getValue();
   if (!auth) return null;
   if (!(await verifyPassword(password, auth))) return null;
-  return deriveKey(password, auth.salt);
+  return deriveKey(password, await ensureEncKeySalt(password, auth));
 }
 
 /** Plaintext patterns for all masked entries that should be blocked this session. */
@@ -64,6 +92,14 @@ export async function hasBlockedPattern(
 /** Load blocklist from storage with defaults applied. */
 export async function loadBlocklist(): Promise<BlockEntry[]> {
   return cloneBlocklist(await blocklistItem.getValue());
+}
+
+/** Write a blocklist as a plain clone (never pass Svelte $state proxies to setValue)
+ *  and return the stored copy for the caller to mirror into local state. */
+export async function persistBlocklist(next: BlockEntry[]): Promise<BlockEntry[]> {
+  const plain = cloneBlocklist(next);
+  await blocklistItem.setValue(plain);
+  return plain;
 }
 
 /** Toggle enabled on an entry; persists blocklist. */

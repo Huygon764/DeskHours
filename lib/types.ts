@@ -35,9 +35,12 @@ export interface TempUnblock {
 export interface AuthRecord {
   /** base64 PBKDF2-HMAC-SHA256 output. */
   hash: string;
-  /** base64 random salt. */
+  /** base64 random salt for the verification hash. */
   salt: string;
   iterations: number;
+  /** base64 salt, independent of `salt`, used to derive the AES masking key so the
+   *  stored hash is never the key itself. Absent on legacy records (migrated on unlock). */
+  encKeySalt: string;
 }
 
 /** AES-GCM encrypted payload, all base64. */

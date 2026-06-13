@@ -20,30 +20,17 @@
     startTimer,
     stopTimerAlert,
   } from '@/lib/timer-controller';
-  import type { CountdownTimerState } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
   import TimerDurationInput from './TimerDurationInput.svelte';
+  import { useNow, useStored } from '@/lib/reactive.svelte';
   import { t } from '@/lib/i18n';
 
-  let state = $state<CountdownTimerState | null>(null);
-  let now = $state(Date.now());
   let editing = $state(false);
 
-  $effect(() => {
-    const unwatch = timerItem.watch((raw) => {
-      state = normalizeTimerState(raw);
-      now = Date.now();
-    });
-    void timerItem.getValue().then((raw) => {
-      state = normalizeTimerState(raw);
-      now = Date.now();
-    });
-    const id = setInterval(() => (now = Date.now()), 250);
-    return () => {
-      unwatch();
-      clearInterval(id);
-    };
-  });
+  const clock = useNow();
+  const stored = useStored(timerItem, { transform: normalizeTimerState, onChange: () => clock.sync() });
+  const state = $derived(stored.value);
+  const now = $derived(clock.value);
 
   const idle = $derived(state != null && isTimerIdle(state));
   const running = $derived(state != null && isTimerRunning(state) && !isTimerPaused(state));

@@ -35,6 +35,11 @@ export type OffscreenMessage =
     }
   | { type: typeof OFFSCREEN_MESSAGE.STOP_SOUND };
 
+/** Clamp a sound repeat count to the supported 1..10 range. */
+export function clampRepeats(repeats: number | undefined): number {
+  return Math.max(1, Math.min(10, Math.round(repeats ?? 1)));
+}
+
 export async function sendBg(msg: BgMessage): Promise<void> {
   await browser.runtime.sendMessage(msg);
 }

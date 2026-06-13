@@ -1,6 +1,6 @@
 import { syncBlocker, grantUnblock } from '@/lib/blocker-controller';
 import { maybeRedirectBlockedTab, rememberNavigationTarget } from '@/lib/keyword-navigation';
-import { peekPendingBlockUrl } from '@/lib/pending-block-url';
+import { peekPendingBlockUrl, clearPendingBlockUrl } from '@/lib/pending-block-url';
 import {
   onPhaseAlarm,
   pausePomodoro,
@@ -52,32 +52,52 @@ export default defineBackground(() => {
     guardTab(tabId);
   });
 
+  browser.tabs.onRemoved.addListener((tabId) => {
+    clearPendingBlockUrl(tabId);
+  });
+
   browser.webNavigation.onBeforeNavigate.addListener((details) => {
     if (details.frameId !== 0) return;
     rememberNavigationTarget(details.tabId, details.url);
   });
 
-  browser.runtime.onMessage.addListener((message: BgMessage, sender) => {
+  // Native Chrome MV3 onMessage ignores a returned Promise: async branches must
+  // `return true` and call sendResponse() later, sync branches respond inline.
+  browser.runtime.onMessage.addListener((message: BgMessage, sender, sendResponse) => {
+    // Keep the message channel (and the service worker) alive until the work
+    // settles, then answer the sender; log every failure instead of swallowing it.
+    const respond = (work: Promise<unknown>, label: string): true => {
+      void work.then(
+        () => sendResponse(null),
+        (err) => {
+          console.error(`[deskhours] ${label} failed:`, err);
+          sendResponse(null);
+        },
+      );
+      return true;
+    };
+
     switch (message.type) {
       case BG_MESSAGE.SYNC_BLOCKER:
-        return syncBlocker().catch((err) =>
-          console.error(`[deskhours] ${BG_MESSAGE.SYNC_BLOCKER} failed:`, err),
-        );
+        return respond(syncBlocker(), message.type);
       case BG_MESSAGE.GRANT_UNBLOCK:
-        return unblockMinutesItem.getValue().then((m) => grantUnblock(message.pattern, m));
+        return respond(
+          unblockMinutesItem.getValue().then((m) => grantUnblock(message.pattern, m)),
+          message.type,
+        );
       case BG_MESSAGE.GET_PENDING_BLOCKED_URL: {
         const tabId = sender.tab?.id;
-        if (tabId == null) return null;
-        return peekPendingBlockUrl(tabId);
+        sendResponse(tabId == null ? null : peekPendingBlockUrl(tabId));
+        return;
       }
       case BG_MESSAGE.POMODORO_START:
-        return startPomodoro();
+        return respond(startPomodoro(), message.type);
       case BG_MESSAGE.POMODORO_STOP:
-        return stopPomodoro();
+        return respond(stopPomodoro(), message.type);
       case BG_MESSAGE.POMODORO_PAUSE:
-        return pausePomodoro();
+        return respond(pausePomodoro(), message.type);
       case BG_MESSAGE.POMODORO_RESUME:
-        return resumePomodoro();
+        return respond(resumePomodoro(), message.type);
     }
   });
 });

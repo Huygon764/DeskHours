@@ -52,8 +52,8 @@ function browserMessage(name: string, substitutions: string[]): string {
   return browser.i18n.getMessage(name as never, substitutions) || name;
 }
 
-async function refreshLocaleCache(): Promise<void> {
-  loadedPreference = await localeItem.getValue();
+async function refreshLocaleCache(pref?: LocalePreference): Promise<void> {
+  loadedPreference = pref ?? (await localeItem.getValue());
   if (loadedPreference !== 'system') {
     await loadCatalog(loadedPreference);
   }
@@ -66,8 +66,11 @@ export async function initI18n(): Promise<void> {
 
 /** Re-render UI when the user changes language in settings. */
 export function watchLocale(onChange: () => void): () => void {
-  return localeItem.watch(() => {
-    void refreshLocaleCache().then(() => onChange());
+  return localeItem.watch((pref) => {
+    refreshLocaleCache(pref).then(onChange, (err) => {
+      console.error('[deskhours] locale switch failed:', err);
+      onChange();
+    });
   });
 }
 

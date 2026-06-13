@@ -1,4 +1,4 @@
-import { OFFSCREEN_MESSAGE, type OffscreenMessage } from './messages';
+import { OFFSCREEN_MESSAGE, type OffscreenMessage, clampRepeats } from './messages';
 
 const OFFSCREEN_URL = 'offscreen.html';
 const OFFSCREEN_WARMUP_MS = 150;
@@ -23,7 +23,7 @@ export async function playAlertSound(sound: AlertSound, repeats = 1): Promise<vo
   const msg: OffscreenMessage = {
     type: OFFSCREEN_MESSAGE.PLAY_SOUND,
     sound,
-    repeats: Math.max(1, Math.min(10, Math.round(repeats))),
+    repeats: clampRepeats(repeats),
   };
   let lastError: unknown;
   for (let attempt = 0; attempt < PLAY_RETRIES; attempt++) {

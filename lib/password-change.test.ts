@@ -27,7 +27,7 @@ describe('password change', () => {
   it('applyPasswordChange re-encrypts hidden entries and updates auth', async () => {
     const oldAuth = await hashPassword('Old-Horse-9!');
     await authItem.setValue(oldAuth);
-    const oldKey = await deriveKey('Old-Horse-9!', oldAuth.salt);
+    const oldKey = await deriveKey('Old-Horse-9!', oldAuth.encKeySalt);
     const entry: BlockEntry = {
       id: '1',
       domain: await maskDomain('secret.com', oldKey),

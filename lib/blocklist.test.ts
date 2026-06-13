@@ -4,11 +4,8 @@ import {
   hasKeywordPattern,
   hasPlainPattern,
   hostToRegexFilter,
-  hostToRequestDomain,
-  hostToUrlFilter,
   isPathPattern,
   keywordToRegexFilter,
-  keywordToUrlFilter,
   normalizeKeyword,
   normalizePattern,
   pathPatternFromUrl,
@@ -28,13 +25,6 @@ describe('normalizePattern', () => {
     expect(normalizePattern('||truyenqqko.com^')).toBe('truyenqqko.com');
     expect(normalizePattern('0.0.0.0 facebook.com')).toBe('facebook.com');
     expect(normalizePattern('https://truyenqqko.com/ ')).toBe('truyenqqko.com');
-  });
-});
-
-describe('hostToUrlFilter', () => {
-  it('builds a domain-anchored DNR filter', () => {
-    expect(hostToUrlFilter('truyenqqko.com')).toBe('||truyenqqko.com/');
-    expect(hostToUrlFilter('www.youtube.com')).toBe('||youtube.com/');
   });
 });
 
@@ -62,24 +52,9 @@ describe('normalizeKeyword', () => {
   });
 });
 
-describe('keywordToUrlFilter', () => {
-  it('escapes specials for DNR substring match', () => {
-    expect(keywordToUrlFilter('shorts')).toBe('shorts');
-    expect(keywordToUrlFilter('a*b')).toBe('a|*b');
-    expect(keywordToUrlFilter('foo^bar')).toBe('foo|^bar');
-  });
-});
-
 describe('hostToRegexFilter', () => {
   it('matches host-only patterns on the domain and subdomains', () => {
     expect(hostToRegexFilter('www.youtube.com')).toBe('^https?://([^/]*\\.)?youtube\\.com(/.*)?$');
-  });
-});
-
-describe('hostToRequestDomain', () => {
-  it('normalizes host-only patterns', () => {
-    expect(hostToRequestDomain('www.youtube.com')).toBe('youtube.com');
-    expect(hostToRequestDomain('Facebook.COM')).toBe('facebook.com');
   });
 });
 

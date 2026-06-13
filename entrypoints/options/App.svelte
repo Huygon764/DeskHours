@@ -1,16 +1,29 @@
 <script lang="ts">
   import PasswordSetup from './PasswordSetup.svelte';
-  import ThemeSettings from './ThemeSettings.svelte';
-  import LanguageSettings from './LanguageSettings.svelte';
+  import PreferenceRadioGroup from './PreferenceRadioGroup.svelte';
   import ScheduleEditor from './ScheduleEditor.svelte';
   import BlocklistEditor from './BlocklistEditor.svelte';
   import FocusTimerSettings from './FocusTimerSettings.svelte';
   import BackupSettings from './BackupSettings.svelte';
-  import { authItem, pomodoroItem, scheduleItem } from '@/lib/storage';
-  import { verifyPassword, deriveKey } from '@/lib/crypto';
+  import { authItem, localeItem, pomodoroItem, scheduleItem, themeItem } from '@/lib/storage';
+  import type { LocalePreference } from '@/lib/locale';
+  import type { ThemePreference } from '@/lib/theme';
+  import { verifyPassword } from '@/lib/crypto';
   import { isSiteBlockingEnabled } from '@/lib/schedule';
   import { syncBlockerSafe } from '@/lib/messages';
   import { t, watchLocale } from '@/lib/i18n';
+
+  const LANGUAGE_OPTIONS: { value: LocalePreference; labelKey: string; hintKey: string }[] = [
+    { value: 'system', labelKey: 'languageSystem', hintKey: 'languageSystemHint' },
+    { value: 'en', labelKey: 'languageEnglish', hintKey: 'languageEnglishHint' },
+    { value: 'vi', labelKey: 'languageVietnamese', hintKey: 'languageVietnameseHint' },
+  ];
+
+  const THEME_OPTIONS: { value: ThemePreference; labelKey: string; hintKey: string }[] = [
+    { value: 'system', labelKey: 'themeSystem', hintKey: 'themeSystemHint' },
+    { value: 'light', labelKey: 'themeLight', hintKey: 'themeLightHint' },
+    { value: 'dark', labelKey: 'themeDark', hintKey: 'themeDarkHint' },
+  ];
 
   type Tab = 'schedule' | 'sites' | 'focus-timer' | 'settings';
 
@@ -59,7 +72,8 @@
         unlockError = t('wrongPassword');
         return;
       }
-      await deriveKey(pw, auth.salt);
+      // This page only gates editing during a block; masked-entry enforcement lives
+      // in the editors, so no AES key needs deriving here.
       unlocked = true;
       pw = '';
       await syncBlockerSafe();
@@ -125,8 +139,20 @@
       {:else if activeTab === 'focus-timer'}
         <FocusTimerSettings />
       {:else}
-        <LanguageSettings />
-        <ThemeSettings />
+        <PreferenceRadioGroup
+          item={localeItem}
+          titleKey="languageTitle"
+          introKey="languageIntro"
+          ariaKey="ariaLanguage"
+          options={LANGUAGE_OPTIONS}
+        />
+        <PreferenceRadioGroup
+          item={themeItem}
+          titleKey="appearanceTitle"
+          introKey="appearanceIntro"
+          ariaKey="ariaTheme"
+          options={THEME_OPTIONS}
+        />
         <BackupSettings />
         <PasswordSetup />
       {/if}

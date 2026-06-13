@@ -1,48 +1,29 @@
 <script lang="ts">
   import { pomodoroItem } from '@/lib/storage';
-  import { isPaused, remainingMs, displaySecondsFromMs, matchesPreset, parseMinutesInput, POMODORO_PRESETS, withDurations } from '@/lib/pomodoro';
+  import { isPaused, remainingMs, displaySecondsFromMs, formatMmSs, matchesPreset, parseMinutesInput, POMODORO_PRESETS, withDurations } from '@/lib/pomodoro';
   import { pausePomodoro, resumePomodoro } from '@/lib/pomodoro-controller';
   import { BG_MESSAGE, sendBg } from '@/lib/messages';
-  import type { PomodoroState } from '@/lib/types';
+  import { useNow, useStored } from '@/lib/reactive.svelte';
   import { pomodoroPresetLabel, t } from '@/lib/i18n';
 
-  let state = $state<PomodoroState | null>(null);
-  let now = $state(Date.now());
   let editingField = $state<'workMinutes' | 'restMinutes' | null>(null);
   let fieldDraft = $state('');
 
-  $effect(() => {
-    const unwatch = pomodoroItem.watch((v) => {
-      state = v;
-      now = Date.now();
-    });
-    void pomodoroItem.getValue().then((v) => {
-      state = v;
-      now = Date.now();
-    });
-    const id = setInterval(() => (now = Date.now()), 250);
-    return () => {
-      unwatch();
-      clearInterval(id);
-    };
-  });
+  const clock = useNow();
+  const stored = useStored(pomodoroItem, { onChange: () => clock.sync() });
+  const state = $derived(stored.value);
+  const now = $derived(clock.value);
 
   const remaining = $derived(state ? remainingMs(state, now) : 0);
-  const mmss = $derived.by(() => {
-    const total = displaySecondsFromMs(remaining);
-    const m = String(Math.floor(total / 60)).padStart(2, '0');
-    const s = String(total % 60).padStart(2, '0');
-    return `${m}:${s}`;
-  });
+  const mmss = $derived(formatMmSs(displaySecondsFromMs(remaining)));
 
   const idle = $derived(state?.phase === 'idle');
   const running = $derived(state != null && state.phase !== 'idle');
   const paused = $derived(state != null && isPaused(state));
 
   async function setDurations(workMinutes: number, restMinutes: number) {
-    const current = await pomodoroItem.getValue();
-    if (current.phase !== 'idle') return;
-    await pomodoroItem.setValue(withDurations(current, workMinutes, restMinutes));
+    if (!idle) return;
+    await pomodoroItem.setValue(withDurations(workMinutes, restMinutes));
   }
 
   async function bump(field: 'workMinutes' | 'restMinutes', delta: number) {

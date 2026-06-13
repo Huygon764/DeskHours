@@ -79,6 +79,15 @@ describe('backup parse/validate', () => {
       }),
     ).toThrow(BackupError);
   });
+
+  it('rejects non-finite pomodoro/timer numbers', () => {
+    expect(() =>
+      validateBackupData({ ...SAMPLE_DATA, pomodoro: { workMinutes: NaN, restMinutes: 5 } }),
+    ).toThrow(BackupError);
+    expect(() =>
+      validateBackupData({ ...SAMPLE_DATA, timer: { durationSeconds: Infinity, soundEnabled: true } }),
+    ).toThrow(BackupError);
+  });
 });
 
 describe('backup export/import', () => {
@@ -97,7 +106,7 @@ describe('backup export/import', () => {
   });
 
   it('restores auth record', async () => {
-    const auth = { hash: 'h', salt: 's', iterations: 600_000 };
+    const auth = { hash: 'h', salt: 's', iterations: 600_000, encKeySalt: 'e' };
     await authItem.setValue(auth);
     const exported = await buildBackupFile();
     await authItem.setValue(null);

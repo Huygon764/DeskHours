@@ -1,13 +1,13 @@
 <script lang="ts">
   import { pomodoroItem, scheduleItem, timerItem } from '@/lib/storage';
-  import { isPaused, remainingMs, displaySecondsFromMs } from '@/lib/pomodoro';
+  import { isPaused, remainingMs, displaySecondsFromMs, formatMmSs } from '@/lib/pomodoro';
   import { formatHhMmSs, isTimerFinished, isTimerRunning, timerRemainingMs } from '@/lib/timer';
   import { isSiteBlockingEnabled } from '@/lib/schedule';
-  import type { CountdownTimerState, PomodoroState, ScheduleWindow } from '@/lib/types';
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
   import { t, watchLocale } from '@/lib/i18n';
+  import { useNow, useStored } from '@/lib/reactive.svelte';
   import AppLogo from '@/components/AppLogo.svelte';
 
   type PopupTab = 'block' | 'focus' | 'timer';
@@ -15,41 +15,24 @@
   let localeRevision = $state(0);
 
   let activeTab = $state<PopupTab>('block');
-  let pomodoroState = $state<PomodoroState | null>(null);
-  let countdownState = $state<CountdownTimerState | null>(null);
-  let scheduleState = $state<ScheduleWindow[] | null>(null);
-  let now = $state(Date.now());
+
+  const clock = useNow();
+  const pomo = useStored(pomodoroItem, { onChange: () => clock.sync() });
+  const timer = useStored(timerItem, { onChange: () => clock.sync() });
+  const schedule = useStored(scheduleItem, { onChange: () => clock.sync() });
+  const pomodoroState = $derived(pomo.value);
+  const countdownState = $derived(timer.value);
+  const scheduleState = $derived(schedule.value);
+  const now = $derived(clock.value);
 
   $effect(() => watchLocale(() => localeRevision++));
 
+  // Open straight to the Focus tab on first load if a session is already running.
+  let tabAutoSwitched = false;
   $effect(() => {
-    const unwatchPomodoro = pomodoroItem.watch((v) => {
-      pomodoroState = v;
-      now = Date.now();
-    });
-    const unwatchTimer = timerItem.watch((v) => {
-      countdownState = v;
-      now = Date.now();
-    });
-    const unwatchSchedule = scheduleItem.watch((v) => {
-      scheduleState = v;
-      now = Date.now();
-    });
-    void Promise.all([pomodoroItem.getValue(), timerItem.getValue(), scheduleItem.getValue()]).then(
-      ([pomo, timer, schedule]) => {
-        pomodoroState = pomo;
-        countdownState = timer;
-        scheduleState = schedule;
-        if (pomo.phase !== 'idle') activeTab = 'focus';
-      },
-    );
-    const id = setInterval(() => (now = Date.now()), 250);
-    return () => {
-      unwatchPomodoro();
-      unwatchTimer();
-      unwatchSchedule();
-      clearInterval(id);
-    };
+    if (tabAutoSwitched || !pomodoroState) return;
+    tabAutoSwitched = true;
+    if (pomodoroState.phase !== 'idle') activeTab = 'focus';
   });
 
   const blockingNow = $derived.by(() => {
@@ -66,12 +49,10 @@
   const focusLabel = $derived.by(() => {
     void localeRevision;
     if (!pomodoroState || pomodoroState.phase === 'idle') return '';
-    const total = displaySecondsFromMs(remainingMs(pomodoroState, now));
-    const m = String(Math.floor(total / 60)).padStart(2, '0');
-    const s = String(total % 60).padStart(2, '0');
+    const time = formatMmSs(displaySecondsFromMs(remainingMs(pomodoroState, now)));
     const phase = pomodoroState.phase === 'work' ? t('phaseFocus') : t('phaseRest');
     const suffix = isPaused(pomodoroState) ? t('pausedSuffix') : '';
-    return `${phase} ${m}:${s}${suffix}`;
+    return `${phase} ${time}${suffix}`;
   });
 
   const countdownLabel = $derived.by(() => {

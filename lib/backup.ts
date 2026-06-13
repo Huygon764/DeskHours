@@ -121,12 +121,15 @@ function isScheduleWindow(v: unknown): v is ScheduleWindow {
 
 function isPomodoroPrefs(v: unknown): v is PomodoroPrefs {
   if (!isRecord(v)) return false;
-  return typeof v.workMinutes === 'number' && typeof v.restMinutes === 'number';
+  return (
+    Number.isFinite(v.workMinutes) &&
+    Number.isFinite(v.restMinutes)
+  );
 }
 
 function isTimerPrefs(v: unknown): v is TimerPrefs {
   if (!isRecord(v)) return false;
-  return typeof v.durationSeconds === 'number' && typeof v.soundEnabled === 'boolean';
+  return Number.isFinite(v.durationSeconds) && typeof v.soundEnabled === 'boolean';
 }
 
 function entryKind(e: BlockEntry): BlockEntryKind {
@@ -209,6 +212,16 @@ export function validateBackupData(raw: unknown): BackupData {
   };
 }
 
+/** Bring an older backup payload up to the current schema before validation. v1 is the
+ *  only version so far, so there is nothing to translate yet; add per-version steps here
+ *  (e.g. `if (schemaVersion < 2) data = migrateV1ToV2(data)`) as the format evolves. */
+function migrateBackup(schemaVersion: number, data: unknown): unknown {
+  if (schemaVersion < 1) {
+    throw new BackupError('Unsupported backup schema version', 'invalid_format');
+  }
+  return data;
+}
+
 export function parseBackupJson(text: string): BackupFile {
   let parsed: unknown;
   try {
@@ -236,7 +249,7 @@ export function parseBackupJson(text: string): BackupFile {
     throw new BackupError('Missing export timestamp', 'invalid_format');
   }
 
-  const data = validateBackupData(parsed.data);
+  const data = validateBackupData(migrateBackup(schemaVersion, parsed.data));
   return {
     schemaVersion,
     app: BACKUP_APP_ID,

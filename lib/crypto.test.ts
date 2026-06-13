@@ -13,6 +13,17 @@ describe('password hashing', () => {
     expect(a.salt).not.toBe(b.salt);
     expect(a.hash).not.toBe(b.hash);
   });
+  it('derives the masking key from a salt independent of the auth hash', async () => {
+    const rec = await hashPassword('Correct-Horse-9!');
+    expect(rec.encKeySalt).toBeTruthy();
+    expect(rec.encKeySalt).not.toBe(rec.salt);
+    // Key whose raw bits equal the stored hash (the salt-derived key) must NOT
+    // decrypt masked data, so reading storage alone cannot reveal hidden domains.
+    const hashKey = await deriveKey('Correct-Horse-9!', rec.salt);
+    const maskKey = await deriveKey('Correct-Horse-9!', rec.encKeySalt);
+    const payload = await encrypt('facebook.com', maskKey);
+    await expect(decrypt(payload, hashKey)).rejects.toThrow();
+  });
 });
 
 describe('AES-GCM encrypt/decrypt', () => {

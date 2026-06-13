@@ -35,11 +35,17 @@ export function urlMatchesPattern(
   }
 }
 
-/** Most specific matching pattern for `url`, preferring longer patterns. */
+/** Most specific matching pattern for `url`: prefer site/path rules over keyword
+ *  matches, then the longest (most specific) pattern. */
 export function findMatchingPattern(url: string, patterns: BlockPattern[]): string | null {
   const matches = patterns.filter((p) => urlMatchesPattern(url, p.pattern, p.kind));
   if (matches.length === 0) return null;
-  matches.sort((a, b) => b.pattern.length - a.pattern.length);
+  matches.sort((a, b) => {
+    const aKeyword = (a.kind ?? 'site') === 'keyword' ? 1 : 0;
+    const bKeyword = (b.kind ?? 'site') === 'keyword' ? 1 : 0;
+    if (aKeyword !== bKeyword) return aKeyword - bKeyword;
+    return b.pattern.length - a.pattern.length;
+  });
   return matches[0].pattern;
 }
 

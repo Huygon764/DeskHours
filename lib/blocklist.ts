@@ -42,18 +42,6 @@ export function normalizeKeyword(raw: string): string {
   return ascii.length > MAX_KEYWORD_LENGTH ? ascii.slice(0, MAX_KEYWORD_LENGTH) : ascii;
 }
 
-/** Escape DNR urlFilter specials: * | ^ (prefix with |). */
-export function escapeUrlFilterLiteral(value: string): string {
-  return value.replace(/[*|^]/g, (c) => `|${c}`);
-}
-
-/** DNR urlFilter substring match for URLs containing `keyword`. */
-export function keywordToUrlFilter(keyword: string): string {
-  const escaped = escapeUrlFilterLiteral(keyword);
-  if (!escaped) throw new Error('keyword urlFilter must not be empty');
-  return escaped;
-}
-
 /** True when the pattern targets a URL path rather than a whole host. */
 export function isPathPattern(pattern: string): boolean {
   if (pattern.includes('*')) return true;
@@ -83,12 +71,6 @@ export function normalizePattern(raw: string): string {
   const slash = s.indexOf('/');
   if (slash === -1) return s.toLowerCase();
   return s.slice(0, slash).toLowerCase() + s.slice(slash);
-}
-
-/** DNR urlFilter for a host-only pattern (domain + subdomains, all paths). */
-export function hostToUrlFilter(host: string): string {
-  const h = host.replace(/^www\./, '').toLowerCase();
-  return `||${escapeUrlFilterLiteral(h)}/`;
 }
 
 /** Hostname from a URL, without www. */
@@ -135,11 +117,6 @@ function escapeRegexLiteral(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Registrable domain for DNR requestDomains (host-only patterns). */
-export function hostToRequestDomain(host: string): string {
-  return host.replace(/^www\./, '').toLowerCase();
-}
-
 /** DNR regexFilter for a host-only pattern (domain + subdomains, all paths). */
 export function hostToRegexFilter(host: string): string {
   const h = escapeRegexLiteral(host.replace(/^www\./, '').toLowerCase());
@@ -161,13 +138,4 @@ export function patternToRegexFilter(pattern: string): string {
 /** DNR regexFilter substring match for URLs containing `keyword`. */
 export function keywordToRegexFilter(keyword: string): string {
   return `^.*${escapeRegexLiteral(keyword)}.*$`;
-}
-
-/** Convert a stored pattern to a DNR urlFilter (path patterns only). */
-export function patternToUrlFilter(pattern: string): string {
-  const slash = pattern.indexOf('/');
-  if (slash === -1) throw new Error('host-only patterns use requestDomains');
-  const host = pattern.slice(0, slash).replace(/^www\./, '');
-  const path = pattern.slice(slash + 1);
-  return `*://*.${host}/${path}`;
 }

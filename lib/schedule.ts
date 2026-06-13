@@ -78,10 +78,38 @@ function toMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
+/** Minutes for a window end; "23:59"/"24:00" mean end-of-day (1440) so all-day
+ *  windows leave no unblocked gap in the final minute. */
+function endMinutes(hhmm: string): number {
+  if (hhmm === '23:59' || hhmm === '24:00') return 24 * 60;
+  return toMinutes(hhmm);
+}
+
 /** ISO weekday: Mon=1 ... Sun=7 (JS getDay() is Sun=0). */
 function isoWeekday(d: Date): number {
   const js = d.getDay();
   return js === 0 ? 7 : js;
+}
+
+/** Previous ISO weekday, wrapping Mon(1) back to Sun(7). */
+function prevIsoDay(day: number): number {
+  return day === 1 ? 7 : day - 1;
+}
+
+/** True when `minutes` on `day` falls inside one window. Start inclusive, end exclusive.
+ *  A window whose end is at or before its start wraps past midnight; its post-midnight
+ *  tail belongs to the window that opened on the previous day. */
+function windowActive(w: ScheduleWindow, day: number, minutes: number): boolean {
+  const start = toMinutes(w.start);
+  const end = endMinutes(w.end);
+  if (start < end) {
+    return w.days.includes(day) && minutes >= start && minutes < end;
+  }
+  if (start === end) return false; // zero-length window
+  return (
+    (w.days.includes(day) && minutes >= start) ||
+    (w.days.includes(prevIsoDay(day)) && minutes < end)
+  );
 }
 
 /** True if `at` falls inside any window. Start inclusive, end exclusive. */
@@ -89,12 +117,7 @@ export function isBlockingActive(schedule: ScheduleWindow[], at: number): boolea
   const d = new Date(at);
   const day = isoWeekday(d);
   const minutes = d.getHours() * 60 + d.getMinutes();
-  return schedule.some(
-    (w) =>
-      w.days.includes(day) &&
-      minutes >= toMinutes(w.start) &&
-      minutes < toMinutes(w.end),
-  );
+  return schedule.some((w) => windowActive(w, day, minutes));
 }
 
 /** True when the blocklist should be enforced (schedule window or focus work phase). */

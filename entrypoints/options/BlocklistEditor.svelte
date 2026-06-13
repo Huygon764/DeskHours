@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { blocklistItem } from '@/lib/storage';
   import { cloneBlocklist, normalizeKeyword, normalizePattern } from '@/lib/blocklist';
-  import { hasBlockedPattern, loadBlocklist, setEntryEnabled } from '@/lib/blocklist-session';
+  import { hasBlockedPattern, loadBlocklist, persistBlocklist, setEntryEnabled } from '@/lib/blocklist-session';
   import { syncBlockerSafe } from '@/lib/messages';
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
@@ -50,9 +50,7 @@
   );
 
   async function persist(next: BlockEntry[]): Promise<boolean> {
-    const plain = cloneBlocklist(next);
-    await blocklistItem.setValue(plain);
-    entries = plain;
+    entries = await persistBlocklist(next);
     return syncBlockerSafe();
   }
 
@@ -76,8 +74,10 @@
       }
 
       const id = crypto.randomUUID();
+      // Build on the freshly loaded list (not the possibly-stale $state) so a
+      // concurrent edit between the watch and this call is not dropped.
       const next = [
-        ...cloneBlocklist(entries),
+        ...cloneBlocklist(stored),
         { id, domain, masked: addAsHidden, enabled: true, kind: 'site' as const },
       ];
       const synced = await persist(next);
@@ -114,7 +114,7 @@
 
       const id = crypto.randomUUID();
       const next = [
-        ...cloneBlocklist(entries),
+        ...cloneBlocklist(stored),
         { id, domain: keyword, masked: addKeywordAsHidden, enabled: true, kind: 'keyword' as const },
       ];
       const synced = await persist(next);

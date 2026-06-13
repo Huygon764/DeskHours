@@ -816,6 +816,9 @@
   "backupImportDoneReload": {
     "message": "Settings restored. Reload the extension if blocking rules look out of date."
   },
+  "backupImportHiddenNote": {
+    "message": "Hidden entries stay unenforced until you unlock them once with your password."
+  },
   "backupImportFailed": {
     "message": "Import failed."
   },

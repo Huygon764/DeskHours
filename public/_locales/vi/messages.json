@@ -816,6 +816,9 @@
   "backupImportDoneReload": {
     "message": "Đã khôi phục. Tải lại extension nếu quy tắc chặn chưa khớp."
   },
+  "backupImportHiddenNote": {
+    "message": "Mục ẩn chưa được áp dụng cho tới khi bạn mở khóa một lần bằng mật khẩu."
+  },
   "backupImportFailed": {
     "message": "Nhập sao lưu thất bại."
   },
