@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { authItem } from '@/lib/storage';
+  import { authItem, unblockTimestampsItem } from '@/lib/storage';
   import { verifyPassword } from '@/lib/crypto';
+  import { todayUnblockCount, waitSeconds } from '@/lib/unblock-wait';
   import { grantUnblockSafe, getPendingBlockedUrlSafe } from '@/lib/messages';
   import { BLOCKED_URL_PARAM, matchingBlockedPattern } from '@/lib/keyword-navigation';
   import { t } from '@/lib/i18n';
@@ -33,10 +34,11 @@
   let password = $state('');
   let error = $state('');
   let busy = $state(false);
+  // Escalating wait: grows with how many unblocks were already granted today.
+  // Resolved once on load so a page refresh can't shorten an in-progress wait.
+  let waitSecondsValue = $state(waitSeconds(0));
 
   const locale = useLocaleRevision();
-
-  const WAIT_SECONDS = 30;
 
   const headline = $derived.by(() => {
     void locale.value;
@@ -50,6 +52,15 @@
     }
     return t('siteBlocked');
   });
+
+  $effect(() => {
+    void resolveWait();
+  });
+
+  async function resolveWait() {
+    const history = await unblockTimestampsItem.getValue();
+    waitSecondsValue = waitSeconds(todayUnblockCount(history, Date.now()));
+  }
 
   $effect(() => {
     void resolvePageUrl();
@@ -84,7 +95,7 @@
 
   function startCountdown() {
     confirmed = true;
-    countdown = WAIT_SECONDS;
+    countdown = waitSecondsValue;
     const id = setInterval(() => {
       countdown -= 1;
       if (countdown <= 0) clearInterval(id);
@@ -159,7 +170,7 @@
             <button type="button" class="btn btn-outline btn-block" onclick={startCountdown}>
               {t('stillNeedAccess')}
             </button>
-            <p class="step-hint">{t('waitCountdown', String(WAIT_SECONDS))}</p>
+            <p class="step-hint">{t('waitCountdown', String(waitSecondsValue))}</p>
           {:else if countdown > 0}
             <p class="countdown">{t('waitCountdown', String(countdown))}</p>
           {:else}

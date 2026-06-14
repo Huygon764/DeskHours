@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
 import { syncBlocker, pruneExpired } from './blocker-controller';
-import { blocklistItem, pomodoroItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
+import {
+  blocklistItem,
+  pomodoroItem,
+  tempUnblocksItem,
+  unblockTimestampsItem,
+  unmaskedDomainsItem,
+} from './storage';
 import { DEFAULT_POMODORO } from './pomodoro';
 import { getDynamicRulesForTest, setupDnrMock } from './test-setup';
 
@@ -165,5 +171,19 @@ describe('grantUnblock', () => {
     expect(await tempUnblocksItem.getValue()).toEqual([
       { pattern: 'facebook.com', expiresAt: MON_1030 + 5 * 60_000 },
     ]);
+  });
+
+  it('records the grant time in the unblock history', async () => {
+    const { grantUnblock } = await import('./blocker-controller');
+    await grantUnblock('facebook.com', 5);
+    expect(await unblockTimestampsItem.getValue()).toEqual([MON_1030]);
+  });
+
+  it('appends to history while dropping prior-day timestamps', async () => {
+    const { grantUnblock } = await import('./blocker-controller');
+    const yesterday = new Date(2026, 5, 7, 9, 0).getTime();
+    await unblockTimestampsItem.setValue([yesterday]);
+    await grantUnblock('facebook.com', 5);
+    expect(await unblockTimestampsItem.getValue()).toEqual([MON_1030]);
   });
 });

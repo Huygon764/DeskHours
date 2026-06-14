@@ -33,6 +33,12 @@ export const tempUnblocksItem = storage.defineItem<TempUnblock[]>('local:tempUnb
   fallback: [],
 });
 
+/** Epoch-ms of each successful unblock grant; drives the escalating wait. Pruned to
+ *  the current local day so the wait resets at midnight. */
+export const unblockTimestampsItem = storage.defineItem<number[]>('local:unblockTimestamps', {
+  fallback: [],
+});
+
 export const authItem = storage.defineItem<AuthRecord | null>('local:auth', {
   fallback: null,
 });

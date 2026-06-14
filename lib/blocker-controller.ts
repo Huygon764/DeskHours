@@ -1,4 +1,12 @@
-import { blocklistItem, pomodoroItem, scheduleItem, tempUnblocksItem, unmaskedDomainsItem } from './storage';
+import {
+  blocklistItem,
+  pomodoroItem,
+  scheduleItem,
+  tempUnblocksItem,
+  unblockTimestampsItem,
+  unmaskedDomainsItem,
+} from './storage';
+import { pruneToToday } from './unblock-wait';
 import { isSiteBlockingEnabled } from './schedule';
 import { BLOCKED_PAGE_PATH, buildRedirectRules } from './dnr-rules';
 import { entryToBlockPattern, normalizeEntry, type BlockPattern } from './blocklist';
@@ -125,4 +133,13 @@ export async function grantUnblock(pattern: string, minutes: number): Promise<vo
     await tempUnblocksItem.setValue(list);
     throw err;
   }
+  await recordUnblockGrant();
+}
+
+/** Append the current time to the unblock history (pruned to today) so the next
+ *  blocked-page visit escalates the wait. Only called after a grant succeeds. */
+async function recordUnblockGrant(): Promise<void> {
+  const now = Date.now();
+  const history = await unblockTimestampsItem.getValue();
+  await unblockTimestampsItem.setValue([...pruneToToday(history, now), now]);
 }
