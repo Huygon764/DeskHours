@@ -1,5 +1,6 @@
 import { storage } from '#imports';
 import type {
+  AlarmItem,
   AuthRecord,
   BlockEntry,
   CountdownTimerState,
@@ -27,6 +28,10 @@ export const pomodoroItem = storage.defineItem<PomodoroState>('local:pomodoro', 
 
 export const timerItem = storage.defineItem<CountdownTimerState>('local:countdownTimer', {
   fallback: DEFAULT_TIMER,
+});
+
+export const alarmsItem = storage.defineItem<AlarmItem[]>('local:alarms', {
+  fallback: [],
 });
 
 export const tempUnblocksItem = storage.defineItem<TempUnblock[]>('local:tempUnblocks', {

@@ -74,3 +74,24 @@ export interface CountdownTimerState {
   pausedRemainingMs: number | null;
   soundEnabled: boolean;
 }
+
+/** A user-defined reminder that fires at a wall-clock time. */
+export interface AlarmItem {
+  id: string;
+  /** Custom label shown in the notification. */
+  label: string;
+  /** "HH:MM" 24h, local time. */
+  time: string;
+  /** 'once' fires on `date`; 'weekly' fires on each weekday in `days`. */
+  repeat: 'once' | 'weekly';
+  /** ISO weekday numbers Mon=1..Sun=7. Used only when repeat='weekly'. */
+  days: number[];
+  /** "YYYY-MM-DD" local date. Used only when repeat='once'. */
+  date: string | null;
+  /** When false the alarm stays in the list but never fires. */
+  enabled: boolean;
+  soundEnabled: boolean;
+  /** "YYYY-MM-DD HH:MM" of the last fire; dedupes within a minute and across
+   *  service-worker restarts. Null until first fire. */
+  lastFiredKey: string | null;
+}

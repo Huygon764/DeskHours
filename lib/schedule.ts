@@ -86,7 +86,7 @@ function endMinutes(hhmm: string): number {
 }
 
 /** ISO weekday: Mon=1 ... Sun=7 (JS getDay() is Sun=0). */
-function isoWeekday(d: Date): number {
+export function isoWeekday(d: Date): number {
   const js = d.getDay();
   return js === 0 ? 7 : js;
 }
