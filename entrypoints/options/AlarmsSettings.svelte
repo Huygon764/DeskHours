@@ -4,6 +4,7 @@
   import { newAlarm, normalizeAlarm, MAX_ALARMS } from '@/lib/alarm';
   import type { AlarmItem } from '@/lib/types';
   import { t } from '@/lib/i18n';
+  import Toggle from '@/components/Toggle.svelte';
 
   let alarms = $state<AlarmItem[]>([]);
   let loaded = $state(false);
@@ -74,13 +75,11 @@
             placeholder={t('alarmLabelPlaceholder')}
             oninput={(e) => patch(a.id, { label: (e.currentTarget as HTMLInputElement).value })}
           />
-          <label class="switch">
-            <input
-              type="checkbox"
-              checked={a.enabled}
-              onchange={(e) => patch(a.id, { enabled: (e.currentTarget as HTMLInputElement).checked })}
-            />
-          </label>
+          <Toggle
+            checked={a.enabled}
+            ariaLabel={t('ariaToggleAlarm')}
+            onchange={(enabled) => patch(a.id, { enabled })}
+          />
           <button
             type="button"
             class="btn-icon"
@@ -125,15 +124,6 @@
               {/each}
             </div>
           {/if}
-
-          <label class="sound-toggle">
-            <input
-              type="checkbox"
-              checked={a.soundEnabled}
-              onchange={(e) => patch(a.id, { soundEnabled: (e.currentTarget as HTMLInputElement).checked })}
-            />
-            {t('alarmSound')}
-          </label>
         </div>
       </div>
     {/each}
@@ -198,13 +188,6 @@
   .seg.selected {
     background: var(--preset-selected-bg);
     color: var(--text-strong);
-  }
-  .sound-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-muted);
   }
   .actions {
     display: flex;

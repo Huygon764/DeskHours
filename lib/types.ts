@@ -90,7 +90,6 @@ export interface AlarmItem {
   date: string | null;
   /** When false the alarm stays in the list but never fires. */
   enabled: boolean;
-  soundEnabled: boolean;
   /** "YYYY-MM-DD HH:MM" of the last fire; dedupes within a minute and across
    *  service-worker restarts. Null until first fire. */
   lastFiredKey: string | null;

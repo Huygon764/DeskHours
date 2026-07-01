@@ -17,7 +17,6 @@ function weekly(over: Partial<AlarmItem> = {}): AlarmItem {
     days: [1, 2, 3, 4, 5],
     date: null,
     enabled: true,
-    soundEnabled: true,
     lastFiredKey: null,
     ...over,
   };
@@ -71,14 +70,6 @@ describe('checkAlarms', () => {
     const [stored] = await alarmsItem.getValue();
     expect(stored.enabled).toBe(false);
     expect(stored.lastFiredKey).toBe('2026-06-08 09:00');
-  });
-
-  it('does not play sound when soundEnabled is false', async () => {
-    const sendSpy = vi.spyOn(browser.runtime, 'sendMessage');
-    await alarmsItem.setValue([weekly({ soundEnabled: false })]);
-    await checkAlarms(MON_9);
-    const soundMsg = sendSpy.mock.calls.map((c) => c[0]).find((m: any) => m.sound);
-    expect(soundMsg).toBeUndefined();
   });
 
   it('does nothing when no alarm is due', async () => {

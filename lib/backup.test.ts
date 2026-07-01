@@ -143,7 +143,6 @@ describe('backup export/import', () => {
       days: [1, 2, 3, 4, 5],
       date: null,
       enabled: true,
-      soundEnabled: true,
       lastFiredKey: null,
     };
     await alarmsItem.setValue([alarm]);

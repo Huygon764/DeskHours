@@ -4,6 +4,7 @@
   import type { AlarmItem } from '@/lib/types';
   import { t } from '@/lib/i18n';
   import { useStored, useNow, useLocaleRevision } from '@/lib/reactive.svelte';
+  import Toggle from '@/components/Toggle.svelte';
 
   const stored = useStored(alarmsItem, { transform: (raw) => raw.map(normalizeAlarm) });
   const now = useNow(30_000);
@@ -28,8 +29,8 @@
     return `${day} ${hh}:${mm}`;
   }
 
-  async function toggle(a: AlarmItem) {
-    const next = alarms.map((x) => (x.id === a.id ? { ...x, enabled: !x.enabled } : x));
+  async function setEnabled(a: AlarmItem, enabled: boolean) {
+    const next = alarms.map((x) => (x.id === a.id ? { ...x, enabled } : x));
     await alarmsItem.setValue(next.map(normalizeAlarm));
   }
 </script>
@@ -47,9 +48,11 @@
               <span class="alarm-label">{item.alarm.label || t('alarmDefaultLabel')}</span>
               <span class="alarm-next">{t('alarmNextAt', formatNext(item.at))}</span>
             </div>
-            <label class="switch">
-              <input type="checkbox" checked={item.alarm.enabled} onchange={() => toggle(item.alarm)} />
-            </label>
+            <Toggle
+              checked={item.alarm.enabled}
+              ariaLabel={t('ariaToggleAlarm')}
+              onchange={(enabled) => setEnabled(item.alarm, enabled)}
+            />
           </li>
         {/each}
       </ul>

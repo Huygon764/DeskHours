@@ -16,7 +16,6 @@ export async function checkAlarms(now: number): Promise<void> {
 
   const key = fireKey(now);
   const fallbackLabel = await translate('alarmDefaultLabel');
-  let anySound = false;
 
   for (const a of due) {
     await notify({
@@ -24,11 +23,10 @@ export async function checkAlarms(now: number): Promise<void> {
       titleKey: 'alarmNotificationTitle',
       message: a.label.trim() || fallbackLabel,
     });
-    if (a.soundEnabled) anySound = true;
   }
 
   // Play once even if several alarms fire together, to avoid overlapping playback.
-  if (anySound) void playAlertSound(ALARM_ALERT_SOUND, ALARM_ALERT_REPEATS);
+  void playAlertSound(ALARM_ALERT_SOUND, ALARM_ALERT_REPEATS);
 
   const dueIds = new Set(due.map((a) => a.id));
   const updated = alarms.map((a) => {

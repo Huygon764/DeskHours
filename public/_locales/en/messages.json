@@ -687,6 +687,9 @@
   "ariaRemoveAlarm": {
     "message": "Remove alarm"
   },
+  "ariaToggleAlarm": {
+    "message": "Enable or disable alarm"
+  },
   "pomodoroBackToWorkTitle": {
     "message": "Back to work"
   },

@@ -687,6 +687,9 @@
   "ariaRemoveAlarm": {
     "message": "Xoa bao thuc"
   },
+  "ariaToggleAlarm": {
+    "message": "Bat/tat bao thuc"
+  },
   "pomodoroBackToWorkTitle": {
     "message": "Quay lại làm việc"
   },

@@ -9,7 +9,6 @@ export const DEFAULT_ALARM: Omit<AlarmItem, 'id' | 'date'> = {
   repeat: 'once',
   days: [],
   enabled: true,
-  soundEnabled: true,
   lastFiredKey: null,
 };
 
@@ -54,7 +53,6 @@ export function normalizeAlarm(raw: Partial<AlarmItem>): AlarmItem {
     days: Array.isArray(raw.days) ? raw.days.filter((n) => n >= 1 && n <= 7) : [],
     date: typeof raw.date === 'string' ? raw.date : null,
     enabled: raw.enabled ?? true,
-    soundEnabled: raw.soundEnabled ?? true,
     lastFiredKey: typeof raw.lastFiredKey === 'string' ? raw.lastFiredKey : null,
   };
 }

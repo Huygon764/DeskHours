@@ -25,7 +25,6 @@ function weekly(over: Partial<AlarmItem> = {}): AlarmItem {
     days: [1, 2, 3, 4, 5],
     date: null,
     enabled: true,
-    soundEnabled: true,
     lastFiredKey: null,
     ...over,
   };
@@ -40,7 +39,6 @@ function once(over: Partial<AlarmItem> = {}): AlarmItem {
     days: [],
     date: '2026-06-08',
     enabled: true,
-    soundEnabled: true,
     lastFiredKey: null,
     ...over,
   };
@@ -64,7 +62,6 @@ describe('normalizeAlarm', () => {
     expect(a.repeat).toBe('once');
     expect(a.days).toEqual([]);
     expect(a.enabled).toBe(true);
-    expect(a.soundEnabled).toBe(true);
     expect(a.lastFiredKey).toBeNull();
   });
 });
