@@ -16,11 +16,9 @@
     pauseTimer,
     resetTimer,
     resumeTimer,
-    setTimerSoundEnabled,
     startTimer,
     stopTimerAlert,
   } from '@/lib/timer-controller';
-  import Toggle from '@/components/Toggle.svelte';
   import TimerDurationInput from './TimerDurationInput.svelte';
   import { useNow, useStored } from '@/lib/reactive.svelte';
   import { t } from '@/lib/i18n';
@@ -129,15 +127,6 @@
     </div>
   {/if}
 
-  {#if idle}
-    <div class="sound-row">
-      <Toggle
-        checked={state.soundEnabled}
-        label={t('sound')}
-        onchange={(enabled) => void setTimerSoundEnabled(enabled)}
-      />
-    </div>
-  {/if}
 {/if}
 
 <style>
@@ -220,11 +209,5 @@
 
   .active-actions .btn-block + .btn-block {
     margin-top: 8px;
-  }
-
-  .sound-row {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-variant);
   }
 </style>

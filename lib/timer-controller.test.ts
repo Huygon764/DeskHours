@@ -94,13 +94,14 @@ describe('timer controller', () => {
     );
   });
 
-  it('alarm skips sound when disabled', async () => {
+  it('alarm always plays sound even when soundEnabled is false', async () => {
     const current = await timerItem.getValue();
     await timerItem.setValue({ ...current, soundEnabled: false });
     await startTimer();
-    vi.mocked(browser.runtime.sendMessage).mockClear();
     await onTimerAlarm();
     expect(browser.notifications.create).toHaveBeenCalled();
-    expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
+    expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ sound: 'rest-start', repeats: 5 }),
+    );
   });
 });

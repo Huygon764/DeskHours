@@ -1,5 +1,6 @@
 import { storage } from '#imports';
 import type {
+  AlarmItem,
   AuthRecord,
   BlockEntry,
   CountdownTimerState,
@@ -27,6 +28,17 @@ export const pomodoroItem = storage.defineItem<PomodoroState>('local:pomodoro', 
 
 export const timerItem = storage.defineItem<CountdownTimerState>('local:countdownTimer', {
   fallback: DEFAULT_TIMER,
+});
+
+export const alarmsItem = storage.defineItem<AlarmItem[]>('local:alarms', {
+  fallback: [],
+});
+
+/** Ids of alarms that have fired and not yet been dismissed. Drives the icon
+ *  badge and the popup ringing banner. Transient runtime state — never added to
+ *  AlarmItem and never backed up. */
+export const ringingAlarmsItem = storage.defineItem<string[]>('local:ringingAlarms', {
+  fallback: [],
 });
 
 export const tempUnblocksItem = storage.defineItem<TempUnblock[]>('local:tempUnblocks', {

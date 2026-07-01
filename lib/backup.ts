@@ -1,3 +1,4 @@
+import { normalizeAlarm } from './alarm';
 import { cloneBlocklist } from './blocklist';
 import { cloneSchedule } from './schedule';
 import { DEFAULT_POMODORO } from './pomodoro';
@@ -5,6 +6,7 @@ import { DEFAULT_TIMER, normalizeTimerState } from './timer';
 import { POMODORO_ALARM } from './pomodoro-controller';
 import { TIMER_ALARM } from './timer-controller';
 import {
+  alarmsItem,
   authItem,
   blocklistItem,
   localeItem,
@@ -19,6 +21,7 @@ import {
 import type { LocalePreference } from './locale';
 import type { ThemePreference } from './theme';
 import type {
+  AlarmItem,
   AuthRecord,
   BlockEntry,
   BlockEntryKind,
@@ -30,7 +33,7 @@ import type {
 export const BACKUP_APP_ID = 'deskhours';
 /** Pre-rebrand exports; still accepted on import. */
 export const LEGACY_BACKUP_APP_ID = 'site-blocker';
-export const BACKUP_SCHEMA_VERSION = 1;
+export const BACKUP_SCHEMA_VERSION = 2;
 
 export interface PomodoroPrefs {
   workMinutes: number;
@@ -51,6 +54,7 @@ export interface BackupData {
   locale: LocalePreference;
   pomodoro: PomodoroPrefs;
   timer: TimerPrefs;
+  alarms: AlarmItem[];
 }
 
 export interface BackupFile {
@@ -195,6 +199,8 @@ export function validateBackupData(raw: unknown): BackupData {
     throw new BackupError('Invalid timer settings in backup', 'invalid_data');
   }
 
+  const alarms = Array.isArray(raw.alarms) ? (raw.alarms as Partial<AlarmItem>[]).map(normalizeAlarm) : [];
+
   const hasMasked = blocklist.some((e) => e.masked);
   if (hasMasked && auth == null) {
     throw new BackupError('Backup contains hidden entries but no password record', 'masked_without_auth');
@@ -209,15 +215,18 @@ export function validateBackupData(raw: unknown): BackupData {
     locale: locale as LocalePreference,
     pomodoro: raw.pomodoro as PomodoroPrefs,
     timer: raw.timer as TimerPrefs,
+    alarms,
   };
 }
 
-/** Bring an older backup payload up to the current schema before validation. v1 is the
- *  only version so far, so there is nothing to translate yet; add per-version steps here
- *  (e.g. `if (schemaVersion < 2) data = migrateV1ToV2(data)`) as the format evolves. */
+/** Bring an older backup payload up to the current schema before validation.
+ *  v2 added `alarms`; older payloads are backfilled with an empty list. */
 function migrateBackup(schemaVersion: number, data: unknown): unknown {
   if (schemaVersion < 1) {
     throw new BackupError('Unsupported backup schema version', 'invalid_format');
+  }
+  if (schemaVersion < 2 && isRecord(data) && !('alarms' in data)) {
+    return { ...data, alarms: [] };
   }
   return data;
 }
@@ -279,7 +288,7 @@ function timerFromPrefs(prefs: TimerPrefs): CountdownTimerState {
 }
 
 export async function buildBackupFile(): Promise<BackupFile> {
-  const [blocklist, schedule, auth, unblockMinutes, theme, locale, pomodoro, timer] =
+  const [blocklist, schedule, auth, unblockMinutes, theme, locale, pomodoro, timer, alarms] =
     await Promise.all([
       blocklistItem.getValue(),
       scheduleItem.getValue(),
@@ -289,6 +298,7 @@ export async function buildBackupFile(): Promise<BackupFile> {
       localeItem.getValue(),
       pomodoroItem.getValue(),
       timerItem.getValue(),
+      alarmsItem.getValue(),
     ]);
 
   const normalizedTimer = normalizeTimerState(timer);
@@ -312,6 +322,7 @@ export async function buildBackupFile(): Promise<BackupFile> {
         durationSeconds: normalizedTimer.durationSeconds,
         soundEnabled: normalizedTimer.soundEnabled,
       },
+      alarms: alarms.map(normalizeAlarm),
     },
   };
 }
@@ -343,6 +354,7 @@ export async function applyBackupData(data: BackupData): Promise<void> {
     localeItem.setValue(data.locale),
     pomodoroItem.setValue(pomodoroFromPrefs(data.pomodoro)),
     timerItem.setValue(timerFromPrefs(data.timer)),
+    alarmsItem.setValue(data.alarms.map(normalizeAlarm)),
     tempUnblocksItem.setValue([]),
     unmaskedDomainsItem.setValue([]),
     clearActiveTimers(),

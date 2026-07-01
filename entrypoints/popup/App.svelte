@@ -6,6 +6,8 @@
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
+  import AlarmsPanel from './AlarmsPanel.svelte';
+  import AlarmRingingBanner from './AlarmRingingBanner.svelte';
   import { t } from '@/lib/i18n';
   import { useNow, useStored, useLocaleRevision } from '@/lib/reactive.svelte';
   import AppLogo from '@/components/AppLogo.svelte';
@@ -78,6 +80,8 @@
     {/if}
   </header>
 
+  <AlarmRingingBanner />
+
   <nav class="popup-tabs" aria-label={t('ariaPopupSections')}>
     <button
       type="button"
@@ -114,6 +118,7 @@
       <FocusPanel />
     {:else}
       <TimerPanel />
+      <AlarmsPanel />
     {/if}
   </div>
 

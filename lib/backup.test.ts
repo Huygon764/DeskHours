@@ -9,7 +9,7 @@ import {
   summarizeBackupData,
   validateBackupData,
 } from './backup';
-import { blocklistItem, scheduleItem, authItem } from './storage';
+import { blocklistItem, scheduleItem, authItem, alarmsItem } from './storage';
 import { DEFAULT_SCHEDULE } from './schedule';
 
 const SAMPLE_DATA = {
@@ -88,6 +88,26 @@ describe('backup parse/validate', () => {
       validateBackupData({ ...SAMPLE_DATA, timer: { durationSeconds: Infinity, soundEnabled: true } }),
     ).toThrow(BackupError);
   });
+
+  it('migrates a v1 backup by defaulting alarms to an empty list', () => {
+    const v1 = {
+      app: 'deskhours',
+      schemaVersion: 1,
+      exportedAt: '2026-06-01T00:00:00.000Z',
+      data: {
+        blocklist: [],
+        schedule: [],
+        auth: null,
+        unblockMinutes: 5,
+        theme: 'system',
+        locale: 'system',
+        pomodoro: { workMinutes: 25, restMinutes: 5 },
+        timer: { durationSeconds: 300, soundEnabled: true },
+      },
+    };
+    const parsed = parseBackupJson(JSON.stringify(v1));
+    expect(parsed.data.alarms).toEqual([]);
+  });
 });
 
 describe('backup export/import', () => {
@@ -112,5 +132,28 @@ describe('backup export/import', () => {
     await authItem.setValue(null);
     await applyBackupData(exported.data);
     expect(await authItem.getValue()).toEqual(auth);
+  });
+
+  it('round-trips alarms through build and apply', async () => {
+    const alarm = {
+      id: 'a1',
+      label: 'Break',
+      time: '15:00',
+      repeat: 'weekly' as const,
+      days: [1, 2, 3, 4, 5],
+      date: null,
+      enabled: true,
+      lastFiredKey: null,
+    };
+    await alarmsItem.setValue([alarm]);
+
+    const file = await buildBackupFile();
+    expect(file.schemaVersion).toBe(2);
+    expect(file.data.alarms).toHaveLength(1);
+
+    await alarmsItem.setValue([]);
+    await applyBackupData(file.data);
+    const restored = await alarmsItem.getValue();
+    expect(restored[0]).toMatchObject({ id: 'a1', time: '15:00', repeat: 'weekly' });
   });
 });

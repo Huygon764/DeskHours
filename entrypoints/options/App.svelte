@@ -4,6 +4,7 @@
   import ScheduleEditor from './ScheduleEditor.svelte';
   import BlocklistEditor from './BlocklistEditor.svelte';
   import FocusTimerSettings from './FocusTimerSettings.svelte';
+  import AlarmsSettings from './AlarmsSettings.svelte';
   import BackupSettings from './BackupSettings.svelte';
   import { authItem, localeItem, pomodoroItem, scheduleItem, themeItem } from '@/lib/storage';
   import type { LocalePreference } from '@/lib/locale';
@@ -137,6 +138,7 @@
         <BlocklistEditor {locked} />
       {:else if activeTab === 'focus-timer'}
         <FocusTimerSettings />
+        <AlarmsSettings />
       {:else}
         <PreferenceRadioGroup
           item={localeItem}

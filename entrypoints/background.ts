@@ -17,6 +17,7 @@ import {
 } from '@/lib/timer-controller';
 import { unblockMinutesItem } from '@/lib/storage';
 import { BG_MESSAGE, type BgMessage } from '@/lib/messages';
+import { checkAlarms, refreshAlarmBadge, dismissAlarm } from '@/lib/alarm-controller';
 
 const SCHEDULER_ALARM = 'blocker-scheduler';
 
@@ -28,12 +29,18 @@ function guardTab(tabId: number, url?: string): void {
 
 export default defineBackground(() => {
   void syncBlocker().catch((err) => console.error('[deskhours] initial sync failed:', err));
+  void refreshAlarmBadge().catch((err) =>
+    console.error('[deskhours] alarm badge init failed:', err),
+  );
 
   browser.alarms.create(SCHEDULER_ALARM, { periodInMinutes: 1 });
 
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SCHEDULER_ALARM) {
       void syncBlocker().catch((err) => console.error('[deskhours] scheduled sync failed:', err));
+      void checkAlarms(Date.now()).catch((err) =>
+        console.error('[deskhours] alarm check failed:', err),
+      );
     }
     else if (alarm.name === POMODORO_ALARM) void onPhaseAlarm();
     else if (alarm.name === TIMER_ALARM) void onTimerAlarm();
@@ -41,6 +48,11 @@ export default defineBackground(() => {
 
   browser.notifications.onClicked.addListener((notificationId) => {
     if (notificationId === TIMER_NOTIFICATION_ID) void onTimerNotificationClick();
+    else if (notificationId.startsWith('alarm-')) {
+      void dismissAlarm(notificationId.slice('alarm-'.length)).catch((err) =>
+        console.error('[deskhours] alarm dismiss failed:', err),
+      );
+    }
   });
 
   browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
