@@ -199,7 +199,7 @@ export function validateBackupData(raw: unknown): BackupData {
     throw new BackupError('Invalid timer settings in backup', 'invalid_data');
   }
 
-  const alarms = Array.isArray(raw.alarms) ? (raw.alarms as unknown[]).map(normalizeAlarm) : [];
+  const alarms = Array.isArray(raw.alarms) ? (raw.alarms as Partial<AlarmItem>[]).map(normalizeAlarm) : [];
 
   const hasMasked = blocklist.some((e) => e.masked);
   if (hasMasked && auth == null) {

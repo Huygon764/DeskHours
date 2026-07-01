@@ -41,7 +41,7 @@ describe('checkAlarms', () => {
     await checkAlarms(MON_9);
 
     expect(notifySpy).toHaveBeenCalledTimes(1);
-    const [, payload] = notifySpy.mock.calls[0];
+    const payload = notifySpy.mock.calls[0][1] as unknown as { message: string };
     expect(payload.message).toBe('Stand up');
     // Sound goes out via runtime.sendMessage to the offscreen doc.
     const soundMsg = sendSpy.mock.calls.map((c) => c[0]).find((m: any) => m.sound);
