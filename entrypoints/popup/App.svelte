@@ -6,6 +6,7 @@
   import CurrentPage from './CurrentPage.svelte';
   import FocusPanel from './FocusPanel.svelte';
   import TimerPanel from './TimerPanel.svelte';
+  import AlarmsPanel from './AlarmsPanel.svelte';
   import { t } from '@/lib/i18n';
   import { useNow, useStored, useLocaleRevision } from '@/lib/reactive.svelte';
   import AppLogo from '@/components/AppLogo.svelte';
@@ -114,6 +115,7 @@
       <FocusPanel />
     {:else}
       <TimerPanel />
+      <AlarmsPanel />
     {/if}
   </div>
 
