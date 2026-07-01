@@ -74,3 +74,8 @@ export const themeItem = storage.defineItem<ThemePreference>('local:theme', {
 export const localeItem = storage.defineItem<LocalePreference>('local:locale', {
   fallback: 'system',
 });
+
+/** Last-open options page tab, so reopening options returns to it. */
+export const optionsTabItem = storage.defineItem<string>('local:optionsTab', {
+  fallback: 'schedule',
+});
