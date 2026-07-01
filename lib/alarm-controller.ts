@@ -19,6 +19,11 @@ export async function checkAlarms(now: number): Promise<void> {
   const fallbackLabel = await translate('alarmDefaultLabel');
 
   for (const a of due) {
+    // Clear any prior notification for this alarm id first. Chrome does not
+    // re-alert (banner/sound) when create() reuses an id that still exists, so a
+    // repeat fire of the same alarm would otherwise update silently. Mirrors the
+    // countdown timer, which clears its notification id before re-notifying.
+    await browser.notifications.clear(`alarm-${a.id}`);
     await notify({
       id: `alarm-${a.id}`,
       titleKey: 'alarmNotificationTitle',
@@ -61,6 +66,7 @@ export async function dismissAlarm(id: string): Promise<void> {
   const ringing = await ringingAlarmsItem.getValue();
   const next = ringing.filter((r) => r !== id);
   await ringingAlarmsItem.setValue(next);
+  await browser.notifications.clear(`alarm-${id}`);
   if (next.length === 0) await stopAlertSound();
   await refreshAlarmBadge();
 }

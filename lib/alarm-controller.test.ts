@@ -106,6 +106,15 @@ describe('checkAlarms', () => {
 
     expect(await ringingAlarmsItem.getValue()).toEqual(['a1']);
   });
+
+  it('clears any stale notification for the alarm before firing so it re-alerts', async () => {
+    const clearSpy = vi.spyOn(browser.notifications, 'clear');
+    await alarmsItem.setValue([weekly()]);
+
+    await checkAlarms(MON_9);
+
+    expect(clearSpy).toHaveBeenCalledWith('alarm-a1');
+  });
 });
 
 describe('dismissAlarm', () => {
@@ -141,6 +150,15 @@ describe('dismissAlarm', () => {
     expect(await ringingAlarmsItem.getValue()).toEqual(['a2']);
     const stopMsg = sendSpy.mock.calls.map((c) => c[0]).find((m: any) => m.type === 'STOP_SOUND');
     expect(stopMsg).toBeUndefined();
+  });
+
+  it('clears the system notification for the dismissed alarm', async () => {
+    const clearSpy = vi.spyOn(browser.notifications, 'clear');
+    await ringingAlarmsItem.setValue(['a1']);
+
+    await dismissAlarm('a1');
+
+    expect(clearSpy).toHaveBeenCalledWith('alarm-a1');
   });
 });
 
