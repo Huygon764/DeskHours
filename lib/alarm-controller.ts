@@ -64,9 +64,13 @@ export async function refreshAlarmBadge(): Promise<void> {
  *  if nothing else is ringing, and refresh the badge. */
 export async function dismissAlarm(id: string): Promise<void> {
   const ringing = await ringingAlarmsItem.getValue();
+  const wasRinging = ringing.includes(id);
   const next = ringing.filter((r) => r !== id);
   await ringingAlarmsItem.setValue(next);
   await browser.notifications.clear(`alarm-${id}`);
-  if (next.length === 0) await stopAlertSound();
+  // Only silence the shared audio when this call actually cleared the last
+  // ringing alarm; dismissing a non-ringing id (e.g. deleting an idle alarm)
+  // must not cut off a concurrently-playing timer alert on the same channel.
+  if (wasRinging && next.length === 0) await stopAlertSound();
   await refreshAlarmBadge();
 }

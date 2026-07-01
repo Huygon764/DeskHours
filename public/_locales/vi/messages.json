@@ -613,7 +613,7 @@
     "message": "Hết thời gian"
   },
   "timerNotificationMessage": {
-    "message": "Chạm để tắt cảnh báo, rồi đặt lại hẹn giờ."
+    "message": "Chạm để đặt lại hẹn giờ."
   },
   "alarmNotificationTitle": {
     "message": "Bao thuc"

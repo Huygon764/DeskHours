@@ -613,7 +613,7 @@
     "message": "Time's up"
   },
   "timerNotificationMessage": {
-    "message": "Tap to stop the alert, then reset the timer."
+    "message": "Tap to reset the timer."
   },
   "alarmNotificationTitle": {
     "message": "Alarm"

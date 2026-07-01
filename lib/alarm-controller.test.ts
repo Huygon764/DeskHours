@@ -160,6 +160,16 @@ describe('dismissAlarm', () => {
 
     expect(clearSpy).toHaveBeenCalledWith('alarm-a1');
   });
+
+  it('does not stop the shared sound when dismissing a non-ringing id', async () => {
+    const sendSpy = vi.spyOn(browser.runtime, 'sendMessage');
+    await ringingAlarmsItem.setValue([]);
+
+    await dismissAlarm('not-ringing');
+
+    const stopMsg = sendSpy.mock.calls.map((c) => c[0]).find((m: any) => m.type === 'STOP_SOUND');
+    expect(stopMsg).toBeUndefined();
+  });
 });
 
 describe('refreshAlarmBadge', () => {

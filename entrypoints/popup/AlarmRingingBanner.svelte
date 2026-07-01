@@ -21,7 +21,7 @@
     {#each ringing as a (a.id)}
       <div class="ringing-row">
         <span class="ringing-icon" aria-hidden="true">&#x23F0;</span>
-        <span class="ringing-label">{a.label || t('alarmDefaultLabel')}</span>
+        <span class="ringing-label">{a.label.trim() || t('alarmDefaultLabel')}</span>
         <button
           type="button"
           class="btn btn-sm btn-primary"

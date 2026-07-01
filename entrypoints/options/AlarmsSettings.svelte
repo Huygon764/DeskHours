@@ -82,7 +82,7 @@
             type="text"
             value={a.label}
             placeholder={t('alarmLabelPlaceholder')}
-            oninput={(e) => patch(a.id, { label: (e.currentTarget as HTMLInputElement).value })}
+            onchange={(e) => patch(a.id, { label: (e.currentTarget as HTMLInputElement).value })}
           />
           <Toggle
             checked={a.enabled}

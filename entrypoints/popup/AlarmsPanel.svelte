@@ -45,7 +45,7 @@
         {#each upcoming as item (item.alarm.id)}
           <li class="alarm-item">
             <div class="alarm-text">
-              <span class="alarm-label">{item.alarm.label || t('alarmDefaultLabel')}</span>
+              <span class="alarm-label">{item.alarm.label.trim() || t('alarmDefaultLabel')}</span>
               <span class="alarm-next">{t('alarmNextAt', formatNext(item.at))}</span>
             </div>
             <Toggle
