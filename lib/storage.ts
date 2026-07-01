@@ -34,6 +34,13 @@ export const alarmsItem = storage.defineItem<AlarmItem[]>('local:alarms', {
   fallback: [],
 });
 
+/** Ids of alarms that have fired and not yet been dismissed. Drives the icon
+ *  badge and the popup ringing banner. Transient runtime state — never added to
+ *  AlarmItem and never backed up. */
+export const ringingAlarmsItem = storage.defineItem<string[]>('local:ringingAlarms', {
+  fallback: [],
+});
+
 export const tempUnblocksItem = storage.defineItem<TempUnblock[]>('local:tempUnblocks', {
   fallback: [],
 });

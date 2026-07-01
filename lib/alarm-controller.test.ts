@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
-import { checkAlarms, ALARM_ALERT_SOUND, ALARM_ALERT_REPEATS } from './alarm-controller';
-import { alarmsItem } from './storage';
+import {
+  checkAlarms,
+  dismissAlarm,
+  refreshAlarmBadge,
+  ALARM_ALERT_SOUND,
+  ALARM_ALERT_REPEATS,
+  ALARM_BADGE_COLOR,
+} from './alarm-controller';
+import { alarmsItem, ringingAlarmsItem } from './storage';
 import type { AlarmItem } from './types';
 import { setupI18nMock, setupOffscreenMock } from './test-setup';
 
@@ -77,5 +84,75 @@ describe('checkAlarms', () => {
     await alarmsItem.setValue([weekly({ time: '10:00' })]);
     await checkAlarms(MON_9);
     expect(notifySpy).not.toHaveBeenCalled();
+  });
+
+  it('records fired alarm ids as ringing and sets the badge count', async () => {
+    const badgeSpy = vi.spyOn(browser.action, 'setBadgeText');
+    await alarmsItem.setValue([weekly()]);
+
+    await checkAlarms(MON_9);
+
+    expect(await ringingAlarmsItem.getValue()).toEqual(['a1']);
+    expect(badgeSpy).toHaveBeenCalledWith({ text: '1' });
+  });
+
+  it('does not duplicate an id already ringing', async () => {
+    await ringingAlarmsItem.setValue(['a1']);
+    await alarmsItem.setValue([weekly()]);
+
+    await checkAlarms(MON_9);
+
+    expect(await ringingAlarmsItem.getValue()).toEqual(['a1']);
+  });
+});
+
+describe('dismissAlarm', () => {
+  beforeEach(() => {
+    // Same spy-leakage concern as the checkAlarms block above: vi.spyOn on an
+    // already-spied method returns the same mock, so call history from a
+    // previous test in this block would otherwise leak into the next one.
+    vi.restoreAllMocks();
+    fakeBrowser.reset();
+    setupI18nMock();
+    setupOffscreenMock();
+  });
+
+  it('removes the id, stops the sound, and clears the badge when none remain', async () => {
+    const badgeSpy = vi.spyOn(browser.action, 'setBadgeText');
+    const sendSpy = vi.spyOn(browser.runtime, 'sendMessage');
+    await ringingAlarmsItem.setValue(['a1']);
+
+    await dismissAlarm('a1');
+
+    expect(await ringingAlarmsItem.getValue()).toEqual([]);
+    const stopMsg = sendSpy.mock.calls.map((c) => c[0]).find((m: any) => m.type === 'STOP_SOUND');
+    expect(stopMsg).toBeTruthy();
+    expect(badgeSpy).toHaveBeenCalledWith({ text: '' });
+  });
+
+  it('keeps the sound when other alarms are still ringing', async () => {
+    const sendSpy = vi.spyOn(browser.runtime, 'sendMessage');
+    await ringingAlarmsItem.setValue(['a1', 'a2']);
+
+    await dismissAlarm('a1');
+
+    expect(await ringingAlarmsItem.getValue()).toEqual(['a2']);
+    const stopMsg = sendSpy.mock.calls.map((c) => c[0]).find((m: any) => m.type === 'STOP_SOUND');
+    expect(stopMsg).toBeUndefined();
+  });
+});
+
+describe('refreshAlarmBadge', () => {
+  beforeEach(() => {
+    fakeBrowser.reset();
+    setupI18nMock();
+    setupOffscreenMock();
+  });
+
+  it('clears the badge text when nothing is ringing', async () => {
+    const badgeSpy = vi.spyOn(browser.action, 'setBadgeText');
+    await ringingAlarmsItem.setValue([]);
+    await refreshAlarmBadge();
+    expect(badgeSpy).toHaveBeenCalledWith({ text: '' });
   });
 });
