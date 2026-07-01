@@ -84,7 +84,7 @@ describe('timer controller', () => {
     );
   });
 
-  it('notification click stops alert', async () => {
+  it('notification click resets the timer and stops the alert', async () => {
     await startTimer();
     await onTimerAlarm();
     vi.mocked(browser.runtime.sendMessage).mockClear();
@@ -92,6 +92,9 @@ describe('timer controller', () => {
     expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'STOP_SOUND' }),
     );
+    const state = await timerItem.getValue();
+    expect(state.active).toBe(false);
+    expect(state.finished).toBe(false);
   });
 
   it('alarm always plays sound even when soundEnabled is false', async () => {

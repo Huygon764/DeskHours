@@ -101,9 +101,9 @@ export async function onTimerAlarm(): Promise<void> {
   void playAlertSound(ALERT_SOUND, ALERT_REPEATS);
 }
 
-/** Notification click: silence the repeating alert. */
+/** Notification click: reset the timer (which also silences the alert). */
 export async function onTimerNotificationClick(): Promise<void> {
-  await stopTimerAlert();
+  await resetTimer();
 }
 
 async function showNotification(): Promise<void> {
