@@ -690,6 +690,9 @@
   "ariaToggleAlarm": {
     "message": "Bat/tat bao thuc"
   },
+  "alarmDismiss": {
+    "message": "Tat"
+  },
   "pomodoroBackToWorkTitle": {
     "message": "Quay lại làm việc"
   },
