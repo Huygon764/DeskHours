@@ -624,6 +624,69 @@
   "timerNotificationMessage": {
     "message": "Tap to stop the alert, then reset the timer."
   },
+  "alarmNotificationTitle": {
+    "message": "Alarm"
+  },
+  "alarmDefaultLabel": {
+    "message": "Time's up"
+  },
+  "alarmsSectionTitle": {
+    "message": "Alarms"
+  },
+  "alarmsSectionHint": {
+    "message": "Get a reminder at a set time. One-off or weekly."
+  },
+  "alarmLabelPlaceholder": {
+    "message": "Label (e.g. Take a break)"
+  },
+  "alarmRepeatOnce": {
+    "message": "One time"
+  },
+  "alarmRepeatWeekly": {
+    "message": "Weekly"
+  },
+  "alarmSound": {
+    "message": "Sound"
+  },
+  "addAlarm": {
+    "message": "Add alarm"
+  },
+  "alarmsFull": {
+    "message": "You can have up to 20 alarms."
+  },
+  "alarmModeOnce": {
+    "message": "Once - $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Jul 1"
+      }
+    }
+  },
+  "alarmModeWeekly": {
+    "message": "Weekly - $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Mon, Tue"
+      }
+    }
+  },
+  "alarmNextAt": {
+    "message": "Next: $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "Mon 09:00"
+      }
+    }
+  },
+  "alarmNoneUpcoming": {
+    "message": "No upcoming alarms."
+  },
+  "ariaRemoveAlarm": {
+    "message": "Remove alarm"
+  },
   "pomodoroBackToWorkTitle": {
     "message": "Back to work"
   },

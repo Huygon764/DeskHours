@@ -17,6 +17,7 @@ import {
 } from '@/lib/timer-controller';
 import { unblockMinutesItem } from '@/lib/storage';
 import { BG_MESSAGE, type BgMessage } from '@/lib/messages';
+import { checkAlarms } from '@/lib/alarm-controller';
 
 const SCHEDULER_ALARM = 'blocker-scheduler';
 
@@ -34,6 +35,9 @@ export default defineBackground(() => {
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SCHEDULER_ALARM) {
       void syncBlocker().catch((err) => console.error('[deskhours] scheduled sync failed:', err));
+      void checkAlarms(Date.now()).catch((err) =>
+        console.error('[deskhours] alarm check failed:', err),
+      );
     }
     else if (alarm.name === POMODORO_ALARM) void onPhaseAlarm();
     else if (alarm.name === TIMER_ALARM) void onTimerAlarm();

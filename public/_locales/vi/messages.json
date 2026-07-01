@@ -624,6 +624,69 @@
   "timerNotificationMessage": {
     "message": "Chạm để tắt cảnh báo, rồi đặt lại hẹn giờ."
   },
+  "alarmNotificationTitle": {
+    "message": "Bao thuc"
+  },
+  "alarmDefaultLabel": {
+    "message": "Het gio"
+  },
+  "alarmsSectionTitle": {
+    "message": "Bao thuc"
+  },
+  "alarmsSectionHint": {
+    "message": "Nhac ban vao gio da dat. Mot lan hoac hang tuan."
+  },
+  "alarmLabelPlaceholder": {
+    "message": "Nhan (vd Nghi giai lao)"
+  },
+  "alarmRepeatOnce": {
+    "message": "Mot lan"
+  },
+  "alarmRepeatWeekly": {
+    "message": "Hang tuan"
+  },
+  "alarmSound": {
+    "message": "Am thanh"
+  },
+  "addAlarm": {
+    "message": "Them bao thuc"
+  },
+  "alarmsFull": {
+    "message": "Toi da 20 bao thuc."
+  },
+  "alarmModeOnce": {
+    "message": "Mot lan - $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "1 Th7"
+      }
+    }
+  },
+  "alarmModeWeekly": {
+    "message": "Hang tuan - $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "T2, T3"
+      }
+    }
+  },
+  "alarmNextAt": {
+    "message": "Ke tiep: $1$",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "T2 09:00"
+      }
+    }
+  },
+  "alarmNoneUpcoming": {
+    "message": "Khong co bao thuc sap toi."
+  },
+  "ariaRemoveAlarm": {
+    "message": "Xoa bao thuc"
+  },
   "pomodoroBackToWorkTitle": {
     "message": "Quay lại làm việc"
   },
