@@ -1,6 +1,7 @@
 <script lang="ts">
   import { alarmsItem } from '@/lib/storage';
   import { newAlarm, normalizeAlarm, MAX_ALARMS } from '@/lib/alarm';
+  import { dismissAlarm } from '@/lib/alarm-controller';
   import type { AlarmItem } from '@/lib/types';
   import { t } from '@/lib/i18n';
   import Toggle from '@/components/Toggle.svelte';
@@ -42,6 +43,9 @@
   function removeAlarm(id: string) {
     alarms = alarms.filter((a) => a.id !== id);
     void persist();
+    // Also drop it from the ringing set (clears a stuck badge / lingering
+    // notification if the alarm is deleted while it is still ringing).
+    void dismissAlarm(id);
   }
 
   function patch(id: string, change: Partial<AlarmItem>) {
