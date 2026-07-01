@@ -26,12 +26,18 @@
   const scheduleState = $derived(schedule.value);
   const now = $derived(clock.value);
 
-  // Open straight to the Focus tab on first load if a session is already running.
+  // On first load (once both states are known), open the most relevant tab: a
+  // live timer (running or just finished) wins over a running focus session;
+  // otherwise stay on Block.
   let tabAutoSwitched = false;
   $effect(() => {
-    if (tabAutoSwitched || !pomodoroState) return;
+    if (tabAutoSwitched || !pomodoroState || !countdownState) return;
     tabAutoSwitched = true;
-    if (pomodoroState.phase !== 'idle') activeTab = 'focus';
+    if (isTimerRunning(countdownState) || isTimerFinished(countdownState)) {
+      activeTab = 'timer';
+    } else if (pomodoroState.phase !== 'idle') {
+      activeTab = 'focus';
+    }
   });
 
   const blockingNow = $derived.by(() => {
