@@ -37,7 +37,7 @@ export function fireKey(now: number): string {
 export function newAlarm(now: number): AlarmItem {
   const d = new Date(now);
   return {
-    id: `alarm-${now}-${Math.floor((now % 1000) * 1000)}`,
+    id: crypto.randomUUID(),
     ...DEFAULT_ALARM,
     date: localDateKey(d),
   };
