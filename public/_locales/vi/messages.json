@@ -603,9 +603,6 @@
   "reset": {
     "message": "Đặt lại"
   },
-  "sound": {
-    "message": "Âm thanh"
-  },
   "ariaEditDuration": {
     "message": "Chỉnh thời lượng hẹn giờ"
   },
@@ -644,9 +641,6 @@
   },
   "alarmRepeatWeekly": {
     "message": "Hang tuan"
-  },
-  "alarmSound": {
-    "message": "Am thanh"
   },
   "addAlarm": {
     "message": "Them bao thuc"

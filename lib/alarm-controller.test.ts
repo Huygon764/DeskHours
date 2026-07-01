@@ -88,12 +88,14 @@ describe('checkAlarms', () => {
 
   it('records fired alarm ids as ringing and sets the badge count', async () => {
     const badgeSpy = vi.spyOn(browser.action, 'setBadgeText');
+    const colorSpy = vi.spyOn(browser.action, 'setBadgeBackgroundColor');
     await alarmsItem.setValue([weekly()]);
 
     await checkAlarms(MON_9);
 
     expect(await ringingAlarmsItem.getValue()).toEqual(['a1']);
     expect(badgeSpy).toHaveBeenCalledWith({ text: '1' });
+    expect(colorSpy).toHaveBeenCalledWith({ color: ALARM_BADGE_COLOR });
   });
 
   it('does not duplicate an id already ringing', async () => {

@@ -603,9 +603,6 @@
   "reset": {
     "message": "Reset"
   },
-  "sound": {
-    "message": "Sound"
-  },
   "ariaEditDuration": {
     "message": "Edit timer duration"
   },
@@ -644,9 +641,6 @@
   },
   "alarmRepeatWeekly": {
     "message": "Weekly"
-  },
-  "alarmSound": {
-    "message": "Sound"
   },
   "addAlarm": {
     "message": "Add alarm"

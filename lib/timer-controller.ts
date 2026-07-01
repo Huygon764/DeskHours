@@ -86,11 +86,6 @@ export async function resumeTimer(): Promise<void> {
   if (resumed.endsAt) await scheduleAlarm(resumed.endsAt);
 }
 
-export async function setTimerSoundEnabled(enabled: boolean): Promise<void> {
-  const current = await readTimer();
-  await timerItem.setValue({ ...current, soundEnabled: enabled });
-}
-
 /** Called when the countdown alarm fires. */
 export async function onTimerAlarm(): Promise<void> {
   const current = await readTimer();
