@@ -594,12 +594,6 @@
   "startTimer": {
     "message": "Bắt đầu hẹn giờ"
   },
-  "stopAlertHint": {
-    "message": "Chạm thông báo để tắt cảnh báo."
-  },
-  "stopAlert": {
-    "message": "Tắt cảnh báo"
-  },
   "reset": {
     "message": "Đặt lại"
   },
