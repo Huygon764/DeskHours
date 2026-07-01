@@ -36,7 +36,7 @@
 </script>
 
 <section class="alarms-panel">
-  <h3 class="text-label">{t('alarmsSectionTitle')}</h3>
+  <h3 class="text-headline-md alarms-title">{t('alarmsSectionTitle')}</h3>
   {#key rev.value}
     {#if upcoming.length === 0}
       <p class="text-body-muted">{t('alarmNoneUpcoming')}</p>
@@ -65,6 +65,9 @@
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--border);
+  }
+  .alarms-title {
+    margin: 0 0 8px;
   }
   .alarm-list {
     list-style: none;

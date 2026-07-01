@@ -103,7 +103,7 @@ export async function onTimerAlarm(): Promise<void> {
     pausedRemainingMs: null,
   });
   await showNotification();
-  if (current.soundEnabled) void playAlertSound(ALERT_SOUND, ALERT_REPEATS);
+  void playAlertSound(ALERT_SOUND, ALERT_REPEATS);
 }
 
 /** Notification click: silence the repeating alert. */
