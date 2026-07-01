@@ -6,7 +6,14 @@
   import FocusTimerSettings from './FocusTimerSettings.svelte';
   import AlarmsSettings from './AlarmsSettings.svelte';
   import BackupSettings from './BackupSettings.svelte';
-  import { authItem, localeItem, pomodoroItem, scheduleItem, themeItem } from '@/lib/storage';
+  import {
+    authItem,
+    localeItem,
+    optionsTabItem,
+    pomodoroItem,
+    scheduleItem,
+    themeItem,
+  } from '@/lib/storage';
   import type { LocalePreference } from '@/lib/locale';
   import type { ThemePreference } from '@/lib/theme';
   import { verifyPassword } from '@/lib/crypto';
@@ -39,8 +46,18 @@
   let unlocking = $state(false);
   let activeTab = $state<Tab>('schedule');
 
+  function selectTab(tab: Tab) {
+    activeTab = tab;
+    void optionsTabItem.setValue(tab);
+  }
+
   $effect(() => {
     void init();
+    void optionsTabItem.getValue().then((v) => {
+      if (v === 'schedule' || v === 'sites' || v === 'focus-timer' || v === 'settings') {
+        activeTab = v;
+      }
+    });
     const unwatchPomodoro = pomodoroItem.watch(() => void refreshBlocking());
     const id = setInterval(() => void refreshBlocking(), 15_000);
     return () => {
@@ -118,16 +135,16 @@
       {/if}
 
       <nav class="tabs" aria-label={t('ariaSettingsSections')}>
-        <button class="tab" class:active={activeTab === 'schedule'} onclick={() => (activeTab = 'schedule')}>
+        <button class="tab" class:active={activeTab === 'schedule'} onclick={() => selectTab('schedule')}>
           {t('tabSchedule')}
         </button>
-        <button class="tab" class:active={activeTab === 'sites'} onclick={() => (activeTab = 'sites')}>
+        <button class="tab" class:active={activeTab === 'sites'} onclick={() => selectTab('sites')}>
           {t('tabBlockedSites')}
         </button>
-        <button class="tab" class:active={activeTab === 'focus-timer'} onclick={() => (activeTab = 'focus-timer')}>
+        <button class="tab" class:active={activeTab === 'focus-timer'} onclick={() => selectTab('focus-timer')}>
           {t('tabFocusTimer')}
         </button>
-        <button class="tab" class:active={activeTab === 'settings'} onclick={() => (activeTab = 'settings')}>
+        <button class="tab" class:active={activeTab === 'settings'} onclick={() => selectTab('settings')}>
           {t('tabSettings')}
         </button>
       </nav>

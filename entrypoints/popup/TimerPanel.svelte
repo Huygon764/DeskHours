@@ -17,7 +17,6 @@
     resetTimer,
     resumeTimer,
     startTimer,
-    stopTimerAlert,
   } from '@/lib/timer-controller';
   import TimerDurationInput from './TimerDurationInput.svelte';
   import { useNow, useStored } from '@/lib/reactive.svelte';
@@ -103,10 +102,6 @@
       {t('startTimer')}
     </button>
   {:else if finished}
-    <p class="done-hint">{t('stopAlertHint')}</p>
-    <button class="btn btn-outline btn-block" onclick={() => void stopTimerAlert()}>
-      {t('stopAlert')}
-    </button>
     <button class="btn btn-primary btn-block reset-done-btn" onclick={() => void resetTimer()}>
       {t('reset')}
     </button>
@@ -194,13 +189,6 @@
 
   .quick-adds .btn {
     flex: 1;
-  }
-
-  .done-hint {
-    margin: 0 0 12px;
-    font-size: 13px;
-    color: var(--text-muted);
-    text-align: center;
   }
 
   .reset-done-btn {

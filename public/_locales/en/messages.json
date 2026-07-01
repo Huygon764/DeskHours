@@ -594,12 +594,6 @@
   "startTimer": {
     "message": "Start timer"
   },
-  "stopAlertHint": {
-    "message": "Tap the notification to stop the alert."
-  },
-  "stopAlert": {
-    "message": "Stop alert"
-  },
   "reset": {
     "message": "Reset"
   },
