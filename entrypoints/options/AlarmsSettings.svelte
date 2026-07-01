@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { alarmsItem } from '@/lib/storage';
   import { newAlarm, normalizeAlarm, MAX_ALARMS } from '@/lib/alarm';
   import type { AlarmItem } from '@/lib/types';
@@ -14,14 +13,20 @@
 
   const atCap = $derived(alarms.length >= MAX_ALARMS);
 
-  onMount(async () => {
-    try {
-      alarms = (await alarmsItem.getValue()).map(normalizeAlarm);
-    } catch (err) {
-      console.error('load alarms failed:', err);
-    } finally {
+  // Seed from storage and stay live: the background disables one-time alarms
+  // after they fire, so the list must reflect external writes, not just a
+  // one-time load. Local mutations persist and echo back through this watch.
+  $effect(() => {
+    const apply = (raw: AlarmItem[]) => {
+      alarms = raw.map(normalizeAlarm);
       loaded = true;
-    }
+    };
+    const unwatch = alarmsItem.watch(apply);
+    void alarmsItem.getValue().then(apply, (err) => {
+      console.error('load alarms failed:', err);
+      loaded = true;
+    });
+    return () => unwatch();
   });
 
   async function persist() {
