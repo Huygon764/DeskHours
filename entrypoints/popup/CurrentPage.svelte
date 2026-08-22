@@ -169,9 +169,7 @@
 
 <style>
   .current-page {
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-variant);
+    margin: 0;
   }
 
   .section-label {

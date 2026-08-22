@@ -157,12 +157,16 @@
 </div>
 
 <style>
-  .popup {
+  /* Extension popup window already frames the UI — no nested card chrome. */
+  :global(html),
+  :global(body) {
     width: 320px;
     background: var(--surface);
-    border: 1px solid var(--border-variant);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-card);
+  }
+
+  .popup {
+    width: 100%;
+    background: var(--surface);
     overflow: hidden;
   }
 
@@ -237,7 +241,7 @@
   }
 
   .popup-footer {
-    padding: 12px 20px 16px;
+    padding: 10px 20px 12px;
     text-align: center;
     border-top: 1px solid var(--border-variant);
   }
