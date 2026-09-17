@@ -37,6 +37,17 @@ export function normalizeTimerState(
 }
 
 export type TimerTimeParts = { hours: string; minutes: string; seconds: string };
+export type TimerSegment = 'hours' | 'minutes' | 'seconds';
+
+/** Zero units larger than `segment`; keep the active field and smaller units. */
+export function clearHigherTimerUnits(
+  parts: TimerTimeParts,
+  segment: TimerSegment,
+): TimerTimeParts {
+  if (segment === 'seconds') return { ...parts, hours: '00', minutes: '00' };
+  if (segment === 'minutes') return { ...parts, hours: '00' };
+  return { ...parts };
+}
 
 export function splitHhMmSs(totalSeconds: number): TimerTimeParts {
   const total = Math.max(0, Math.round(totalSeconds));

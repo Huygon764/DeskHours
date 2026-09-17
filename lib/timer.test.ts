@@ -8,6 +8,7 @@ import {
   normalizeTimerState,
   parseHhMmSs,
   splitHhMmSs,
+  clearHigherTimerUnits,
   resumeTimerState,
   timerRemainingMs,
   withDurationSeconds,
@@ -64,7 +65,30 @@ describe('formatHhMmSs / parseHhMmSs', () => {
     expect(parseHhMmSs('10', '10', '10')).toBe(36_610);
     expect(parseHhMmSs('00', '02', '60')).toBeNull();
   });
+});
 
+describe('clearHigherTimerUnits', () => {
+  const parts = { hours: '01', minutes: '05', seconds: '30' };
+
+  it('zeros hours and minutes when editing seconds', () => {
+    expect(clearHigherTimerUnits(parts, 'seconds')).toEqual({
+      hours: '00',
+      minutes: '00',
+      seconds: '30',
+    });
+  });
+
+  it('zeros hours only when editing minutes', () => {
+    expect(clearHigherTimerUnits(parts, 'minutes')).toEqual({
+      hours: '00',
+      minutes: '05',
+      seconds: '30',
+    });
+  });
+
+  it('keeps minutes and seconds when editing hours', () => {
+    expect(clearHigherTimerUnits(parts, 'hours')).toEqual(parts);
+  });
 });
 
 describe('normalizeTimerState', () => {

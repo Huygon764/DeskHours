@@ -1,8 +1,8 @@
 <script lang="ts">
   import { t } from '@/lib/i18n';
-  import { parseHhMmSs, splitHhMmSs } from '@/lib/timer';
+  import { clearHigherTimerUnits, parseHhMmSs, splitHhMmSs, type TimerSegment } from '@/lib/timer';
 
-  type Segment = 'seconds' | 'minutes' | 'hours';
+  type Segment = TimerSegment;
 
   const NEXT: Record<Segment, Segment | null> = {
     seconds: 'minutes',
@@ -70,16 +70,13 @@
 
   /** Zero segments to the left of the active field on first keystroke. */
   function resetOnFirstInput(segment: Segment) {
-    if (segment === 'seconds') {
-      editHours = '00';
-      editMinutes = '00';
-    } else if (segment === 'minutes') {
-      editHours = '00';
-      editSeconds = '00';
-    } else {
-      editMinutes = '00';
-      editSeconds = '00';
-    }
+    const next = clearHigherTimerUnits(
+      { hours: editHours, minutes: editMinutes, seconds: editSeconds },
+      segment,
+    );
+    editHours = next.hours;
+    editMinutes = next.minutes;
+    editSeconds = next.seconds;
   }
 
   function focusSegmentEl(segment: Segment, select = false) {
