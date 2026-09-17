@@ -2,5 +2,8 @@ node_modules
 .wxt
 .output
 *.zip
-docs
 web-ext.config.ts
+
+# Harness core maintenance binary
+scripts/bin/harness
+scripts/bin/harness.exe
