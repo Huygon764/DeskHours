@@ -27,16 +27,16 @@
   const now = $derived(clock.value);
 
   // On first load (once both states are known), open the most relevant tab: a
-  // live timer (running or just finished) wins over a running focus session;
+  // running focus session wins over a live timer (running or just finished);
   // otherwise stay on Block.
   let tabAutoSwitched = false;
   $effect(() => {
     if (tabAutoSwitched || !pomodoroState || !countdownState) return;
     tabAutoSwitched = true;
-    if (isTimerRunning(countdownState) || isTimerFinished(countdownState)) {
-      activeTab = 'timer';
-    } else if (pomodoroState.phase !== 'idle') {
+    if (pomodoroState.phase !== 'idle') {
       activeTab = 'focus';
+    } else if (isTimerRunning(countdownState) || isTimerFinished(countdownState)) {
+      activeTab = 'timer';
     }
   });
 
