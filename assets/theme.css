@@ -1,82 +1,89 @@
-/* C1 Soft Sand — light theme (default) */
+/* Receipt Tape — thermal slip under desk light */
 :root,
 [data-theme='light'] {
-  --bg: #fafaf9;
-  --surface: #ffffff;
-  --surface-low: #faf2eb;
-  --surface-muted: #f4ede6;
-  --surface-step: rgba(250, 242, 235, 0.3);
-  --border: #e7e5e4;
-  --border-variant: #cfc4bd;
-  --text: #57534e;
-  --text-strong: #1e1b17;
-  --text-muted: #78716c;
-  --text-subtle: #a8a29e;
-  --primary: #78716c;
-  --primary-hover: #6b6560;
-  --on-primary: #ffffff;
-  --amber: #f59e0b;
-  --amber-bg: #fef3c7;
-  --amber-text: #92400e;
-  --amber-border: rgba(245, 158, 11, 0.2);
-  --amber-ring: rgba(245, 158, 11, 0.15);
-  --secondary: #855300;
-  --error: #ba1a1a;
-  --error-bg: #ffdad6;
-  --success: #059669;
-  --preset-selected-bg: color-mix(in srgb, var(--primary) 12%, var(--surface-low));
-  --toggle-track: #e7e5e4;
-  --toggle-track-border: #d6d3d1;
-  --toggle-knob: #ffffff;
-  --toggle-on: #34c759;
-  --toggle-on-border: #2eb04e;
-  --strength-bar-empty: rgba(207, 196, 189, 0.4);
-  --link-underline: rgba(133, 83, 0, 0.3);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.03);
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --bg: #f3efe6;
+  --surface: #f3efe6;
+  --surface-low: #eae6d9;
+  --surface-muted: #e4dfd2;
+  --surface-step: rgba(234, 230, 217, 0.45);
+  --border: #c1bdb4;
+  --border-variant: #b7b5ae;
+  --text: #3a3834;
+  --text-strong: #151515;
+  --text-muted: #5c5954;
+  --text-subtle: #84807a;
+  --primary: #151515;
+  --primary-hover: #2a2826;
+  --on-primary: #f3efe6;
+  --amber: #b42318;
+  --amber-bg: color-mix(in srgb, #b42318 12%, var(--surface));
+  --amber-text: #b42318;
+  --amber-border: color-mix(in srgb, #b42318 35%, var(--surface));
+  --amber-ring: color-mix(in srgb, #b42318 22%, transparent);
+  --secondary: #b42318;
+  --error: #b42318;
+  --error-bg: color-mix(in srgb, #b42318 12%, var(--surface));
+  --success: #3d4f3a;
+  --preset-selected-bg: color-mix(in srgb, var(--text-strong) 8%, var(--surface-low));
+  --toggle-track: #d4cfc4;
+  --toggle-track-border: #c1bdb4;
+  --toggle-knob: #f3efe6;
+  --toggle-on: #151515;
+  --toggle-on-border: #151515;
+  --strength-bar-empty: rgba(193, 189, 180, 0.5);
+  --link-underline: rgba(180, 35, 24, 0.35);
+  --shadow-card: none;
+  --font: 'Overpass', 'Kulim Park', system-ui, sans-serif;
+  --font-figures: 'Overpass Mono', ui-monospace, monospace;
+  --paper: url('./plates/paper.png');
+  --tape: url('./plates/page-strip.png');
+  --tape-edge: url('./plates/tape-edge.png');
   color-scheme: light;
 }
 
 [data-theme='dark'] {
-  --bg: #1c1917;
-  --surface: #292524;
-  --surface-low: #231f1e;
-  --surface-muted: #35302e;
-  --surface-step: rgba(41, 37, 36, 0.6);
-  --border: #44403c;
-  --border-variant: #57534e;
-  --text: #d6d3d1;
-  --text-strong: #fafaf9;
-  --text-muted: #a8a29e;
-  --text-subtle: #78716c;
-  --primary: #78716c;
-  --primary-hover: #8b8580;
-  --on-primary: #ffffff;
-  --amber: #fbbf24;
-  --amber-bg: rgba(251, 191, 36, 0.14);
-  --amber-text: #fbbf24;
-  --amber-border: rgba(251, 191, 36, 0.25);
-  --amber-ring: rgba(251, 191, 36, 0.25);
-  --secondary: #fbbf24;
-  --error: #f87171;
-  --error-bg: rgba(248, 113, 113, 0.12);
-  --success: #34d399;
-  --preset-selected-bg: rgba(251, 191, 36, 0.1);
-  --toggle-track: #44403c;
-  --toggle-track-border: #57534e;
-  --toggle-knob: #fafaf9;
-  --toggle-on: #34c759;
-  --toggle-on-border: #2eb04e;
-  --strength-bar-empty: rgba(87, 83, 78, 0.5);
-  --link-underline: rgba(251, 191, 36, 0.35);
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --bg: #1a1814;
+  --surface: #1a1814;
+  --surface-low: #24211c;
+  --surface-muted: #2c2923;
+  --surface-step: rgba(36, 33, 28, 0.7);
+  --border: #4a4540;
+  --border-variant: #5c574f;
+  --text: #d8d2c6;
+  --text-strong: #f3efe6;
+  --text-muted: #a39c90;
+  --text-subtle: #7a7468;
+  --primary: #f3efe6;
+  --primary-hover: #e4dfd2;
+  --on-primary: #1a1814;
+  --amber: #e24a1a;
+  --amber-bg: rgba(226, 74, 26, 0.14);
+  --amber-text: #e24a1a;
+  --amber-border: rgba(226, 74, 26, 0.35);
+  --amber-ring: rgba(226, 74, 26, 0.28);
+  --secondary: #e24a1a;
+  --error: #e24a1a;
+  --error-bg: rgba(226, 74, 26, 0.12);
+  --success: #8a9a6a;
+  --preset-selected-bg: rgba(243, 239, 230, 0.08);
+  --toggle-track: #3a3630;
+  --toggle-track-border: #5c574f;
+  --toggle-knob: #f3efe6;
+  --toggle-on: #f3efe6;
+  --toggle-on-border: #f3efe6;
+  --strength-bar-empty: rgba(92, 87, 79, 0.5);
+  --link-underline: rgba(226, 74, 26, 0.4);
+  --shadow-card: none;
+  --paper: none;
+  --tape: none;
+  --tape-edge: none;
   color-scheme: dark;
 }
 
 :root {
-  --radius-sm: 6px;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 0;
+  --radius: 0;
+  --radius-lg: 0;
 }
 
 *,
@@ -89,12 +96,21 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--paper);
+  background-repeat: repeat;
   color: var(--text-strong);
   font-family: var(--font);
   font-size: 14px;
   line-height: 1.43;
+  caret-color: var(--amber);
+  scrollbar-color: var(--border-variant) var(--surface);
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, #b42318 28%, var(--surface));
+  color: var(--text-strong);
 }
 
 button,
@@ -143,9 +159,10 @@ textarea {
 
 .text-timer {
   font-size: 48px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+  font-family: var(--font-figures);
   font-variant-numeric: tabular-nums;
   color: var(--text-strong);
 }
@@ -160,21 +177,34 @@ textarea {
 /* Layout */
 .page {
   min-height: 100vh;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--paper);
+  background-repeat: repeat;
+  overflow: visible;
 }
 
 .page-inner {
   max-width: 640px;
   margin: 0 auto;
   padding: 32px 20px 48px;
+  overflow: visible;
 }
 
 .card {
-  background: var(--surface);
+  background-color: var(--surface-low);
+  background-image: var(--tape);
+  background-size: 180px auto;
+  background-repeat: repeat;
+  background-blend-mode: multiply;
   border: 1px solid var(--border-variant);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
+  border-radius: 0;
+  box-shadow: none;
   padding: 24px;
+}
+
+[data-theme='dark'] .card {
+  background-image: none;
+  background-blend-mode: normal;
 }
 
 .card + .card {
@@ -244,6 +274,26 @@ textarea {
   font-size: 12px;
 }
 
+.btn-unlock {
+  min-height: 48px;
+  background: transparent;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  border-radius: 0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.btn-unlock:hover:not(:disabled) {
+  background: var(--amber-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+}
+
 .btn-icon {
   padding: 8px;
   border-radius: var(--radius-sm);
@@ -310,16 +360,17 @@ textarea {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .badge-on {
-  background: var(--amber-bg);
-  color: var(--amber);
+  background: transparent;
+  color: var(--text-strong);
+  border: 1px solid var(--text-strong);
 }
 
 .badge-off {
@@ -330,7 +381,7 @@ textarea {
 .tag {
   display: inline-block;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -344,12 +395,11 @@ textarea {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  border-radius: var(--radius);
-  background: var(--amber-bg);
-  border: 1px solid var(--amber-border);
-  color: var(--amber-text);
-  margin-bottom: 24px;
+  padding: 18px 20px 20px;
+  background: none;
+  border: none;
+  color: var(--text-strong);
+  margin: 0;
 }
 
 .banner-lock p {
@@ -374,7 +424,7 @@ textarea {
 .tabs {
   display: flex;
   gap: 24px;
-  border-bottom: 1px solid var(--border-variant);
+  border-bottom: 1px solid var(--text-strong);
   margin-bottom: 24px;
 }
 
@@ -396,8 +446,8 @@ textarea {
 }
 
 .tab.active {
-  color: var(--secondary);
-  border-bottom-color: var(--amber);
+  color: var(--text-strong);
+  border-bottom-color: var(--text-strong);
   font-weight: 700;
 }
 
@@ -411,7 +461,7 @@ textarea {
 .day-pill {
   width: 40px;
   height: 40px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border-variant);
   background: transparent;
   color: var(--text-muted);
@@ -449,7 +499,7 @@ textarea {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
@@ -570,11 +620,12 @@ textarea {
   background: none;
   border: none;
   padding: 0;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text-muted);
-  text-decoration: underline;
-  text-decoration-color: var(--link-underline);
+  text-decoration: none;
   cursor: pointer;
 }
 

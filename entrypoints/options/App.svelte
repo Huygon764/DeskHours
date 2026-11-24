@@ -21,6 +21,8 @@
   import { syncBlockerSafe } from '@/lib/messages';
   import { t } from '@/lib/i18n';
   import { useLocaleRevision } from '@/lib/reactive.svelte';
+  import AppLogo from '@/components/AppLogo.svelte';
+  import Tape from '@/components/Tape.svelte';
 
   const LANGUAGE_OPTIONS: { value: LocalePreference; labelKey: string; hintKey: string }[] = [
     { value: 'system', labelKey: 'languageSystem', hintKey: 'languageSystemHint' },
@@ -111,27 +113,35 @@
   <div class="page-inner">
     {#if !hasPassword}
       <header class="page-header">
-        <h1 class="text-headline-lg">{t('appName')}</h1>
+        <div class="brand-row">
+          <AppLogo size={28} />
+          <h1 class="text-headline-lg">{t('appName')}</h1>
+        </div>
         <p class="text-body-muted">{t('setupSubtitle')}</p>
       </header>
       <PasswordSetup onset={init} />
     {:else}
       <header class="page-header">
-        <h1 class="text-headline-lg">{t('settingsTitle')}</h1>
+        <div class="brand-row">
+          <AppLogo size={28} />
+          <h1 class="text-headline-lg">{t('settingsTitle')}</h1>
+        </div>
         <p class="text-body-muted">{t('settingsSubtitle')}</p>
       </header>
 
       {#if showUnlockBanner}
-        <div class="banner-lock">
-          <p>{t('blockingUnlockBanner')}</p>
-          <form class="banner-lock-actions" onsubmit={onUnlockSubmit}>
-            <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
-            <button type="submit" class="btn btn-primary btn-sm" disabled={unlocking}>
-              {unlocking ? t('unlocking') : t('unlock')}
-            </button>
-          </form>
-          {#if unlockError}<p class="msg-error banner-error">{unlockError}</p>{/if}
-        </div>
+        <Tape rest="-0.45deg">
+          <div class="banner-lock">
+            <p>{t('blockingUnlockBanner')}</p>
+            <form class="banner-lock-actions" onsubmit={onUnlockSubmit}>
+              <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
+              <button type="submit" class="btn btn-unlock btn-sm" disabled={unlocking}>
+                {unlocking ? t('unlocking') : t('unlock')}
+              </button>
+            </form>
+            {#if unlockError}<p class="msg-error banner-error">{unlockError}</p>{/if}
+          </div>
+        </Tape>
       {/if}
 
       <nav class="tabs" aria-label={t('ariaSettingsSections')}>
@@ -184,8 +194,15 @@
     margin-bottom: 24px;
   }
 
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
   .page-header h1 {
-    margin: 0 0 4px;
+    margin: 0;
   }
 
   .page-header p {

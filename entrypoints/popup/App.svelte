@@ -76,7 +76,7 @@
   {#key locale.value}
   <header class="popup-header">
     <div class="brand">
-      <AppLogo size={22} />
+      <AppLogo size={28} />
       <span class="brand-name">{t('appName')}</span>
     </div>
     {#if blockingNow}
@@ -161,21 +161,23 @@
   :global(html),
   :global(body) {
     width: 320px;
-    background: var(--surface);
+    background-color: var(--surface);
+    background-image: var(--paper);
   }
 
   .popup {
     width: 100%;
-    background: var(--surface);
-    overflow: hidden;
+    background: transparent;
+    overflow: visible;
   }
 
   .popup-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-variant);
+    gap: 8px;
+    padding: 20px 16px 14px;
+    text-align: center;
   }
 
   .brand {
@@ -185,15 +187,16 @@
   }
 
   .brand-name {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-strong);
+    letter-spacing: -0.02em;
   }
 
   .popup-tabs {
     display: flex;
-    padding: 0 12px;
-    border-bottom: 1px solid var(--border-variant);
+    padding: 0 16px;
+    border-bottom: 1px solid var(--text-strong);
   }
 
   .popup-tabs .tab {
@@ -210,12 +213,12 @@
     right: 8px;
     width: 6px;
     height: 6px;
-    border-radius: 999px;
-    background: var(--amber);
+    border-radius: 0;
+    background: var(--text-strong);
   }
 
   .popup-body {
-    padding: 20px;
+    padding: 16px;
   }
 
   .timer-hints {
@@ -241,9 +244,9 @@
   }
 
   .popup-footer {
-    padding: 10px 20px 12px;
+    padding: 14px 16px 16px;
     text-align: center;
-    border-top: 1px solid var(--border-variant);
+    border-top: 1px solid var(--text-strong);
   }
 
   .timer-hints + .popup-footer {

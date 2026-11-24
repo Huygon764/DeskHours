@@ -64,7 +64,7 @@
     width: 44px;
     height: 26px;
     flex-shrink: 0;
-    border-radius: 999px;
+    border-radius: 0;
     background: var(--toggle-track);
     border: 1px solid var(--toggle-track-border);
     transition: background 0.2s ease, border-color 0.2s ease;
@@ -76,7 +76,7 @@
     left: 2px;
     width: 20px;
     height: 20px;
-    border-radius: 999px;
+    border-radius: 0;
     background: var(--toggle-knob);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
     transition: transform 0.2s ease;

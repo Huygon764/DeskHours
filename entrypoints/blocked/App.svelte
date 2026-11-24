@@ -7,6 +7,8 @@
   import { t } from '@/lib/i18n';
   import { useLocaleRevision } from '@/lib/reactive.svelte';
   import AppLogo from '@/components/AppLogo.svelte';
+  import Tape from '@/components/Tape.svelte';
+  import { formatMmSs } from '@/lib/pomodoro';
 
   function blockedUrlFromLocation(): string {
     try {
@@ -149,59 +151,53 @@
 
 <div class="page">
   {#key locale.value}
-  <div class="intercept-card">
-    <div class="hero">
-      <AppLogo size={112} />
+  <div class="slip">
+    <header class="slip-brand">
+      <AppLogo size={36} />
+      <span class="brand-name">{t('appName')}</span>
+    </header>
+
+    <h1 class="headline">{headline}</h1>
+    <p class="text-body-muted subtext">{t('blockedSubtext')}</p>
+
+    <div class="wait-block">
+      {#if !confirmed}
+        <button type="button" class="btn btn-outline btn-block" onclick={startCountdown}>
+          {t('stillNeedAccess')}
+        </button>
+        <p class="step-hint">{t('waitCountdown', String(waitSecondsValue))}</p>
+      {:else if countdown > 0}
+        {#key confirmed}
+        <Tape rest="-0.6deg">
+          <div class="wait-row">
+            <span class="wait-word">{t('waitPeriod')}</span>
+            <span class="wait-figures">{formatMmSs(countdown)}</span>
+          </div>
+        </Tape>
+        {/key}
+      {:else}
+        <p class="step-hint done">{t('waitComplete')}</p>
+      {/if}
     </div>
 
-    <div class="content">
-      <h1 class="headline">{headline}</h1>
-      <p class="text-body-muted subtext">
-        {t('blockedSubtext')}
-      </p>
-
-      <div class="steps">
-        <div class="step" class:step-done={confirmed}>
-          <div class="step-header">
-            <span class="text-label">{t('step1')}</span>
-            <span class="step-tag">{t('waitPeriod')}</span>
+    <div class="auth-block" class:is-disabled={!confirmed || countdown > 0}>
+      {#if confirmed && countdown <= 0}
+        <form class="unblock-form" onsubmit={onUnblockSubmit}>
+          <div class="field">
+            <label class="field-label" for="unblock-pw">{t('masterPasswordLabel')}</label>
+            <input id="unblock-pw" class="input" type="password" bind:value={password} />
           </div>
-          {#if !confirmed}
-            <button type="button" class="btn btn-outline btn-block" onclick={startCountdown}>
-              {t('stillNeedAccess')}
-            </button>
-            <p class="step-hint">{t('waitCountdown', String(waitSecondsValue))}</p>
-          {:else if countdown > 0}
-            <p class="countdown">{t('waitCountdown', String(countdown))}</p>
-          {:else}
-            <p class="step-hint done">{t('waitComplete')}</p>
-          {/if}
-        </div>
-
-        <div class="step" class:step-active={confirmed && countdown <= 0} class:step-disabled={!confirmed || countdown > 0}>
-          <div class="step-header">
-            <span class="text-label">{t('step2')}</span>
-            <span class="step-tag">{t('authentication')}</span>
-          </div>
-          {#if confirmed && countdown <= 0}
-            <form class="unblock-form" onsubmit={onUnblockSubmit}>
-              <div class="field">
-                <label class="field-label" for="unblock-pw">{t('masterPasswordLabel')}</label>
-                <input id="unblock-pw" class="input" type="password" bind:value={password} />
-              </div>
-              <button type="submit" class="btn btn-primary btn-block" disabled={busy}>
-                {t('unblockPattern', blockPattern || t('temporarily'))}
-              </button>
-              <p class="step-hint italic">{t('blockingResumes')}</p>
-            </form>
-          {:else}
-            <p class="step-placeholder">{t('completeStep1First')}</p>
-          {/if}
-        </div>
-      </div>
-
-      {#if error}<p class="msg-error">{error}</p>{/if}
+          <button type="submit" class="btn btn-unlock btn-block" disabled={busy}>
+            {t('unblockPattern', blockPattern || t('temporarily'))}
+          </button>
+          <p class="step-hint">{t('blockingResumes')}</p>
+        </form>
+      {:else}
+        <p class="step-placeholder">{t('completeStep1First')}</p>
+      {/if}
     </div>
+
+    {#if error}<p class="msg-error">{error}</p>{/if}
   </div>
   {/key}
 </div>
@@ -215,26 +211,25 @@
     min-height: 100vh;
   }
 
-  .intercept-card {
+  .slip {
     width: 100%;
-    max-width: 480px;
-    background: var(--surface);
-    border: 1px solid var(--border-variant);
-    border-radius: 24px;
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
+    max-width: 420px;
     text-align: center;
   }
 
-  .hero {
-    padding: 32px 24px 28px;
-    background: var(--surface-low);
+  .slip-brand {
     display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 10px;
+    margin-bottom: 28px;
   }
 
-  .content {
-    padding: 32px 24px 40px;
+  .brand-name {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
   }
 
   .headline {
@@ -248,47 +243,51 @@
   }
 
   .subtext {
-    margin: 0 0 24px;
+    margin: 0 0 32px;
   }
 
-  .steps {
+  .wait-block {
+    margin-bottom: 28px;
+  }
+
+  .wait-row {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    justify-content: center;
     gap: 16px;
+    padding: 22px 18px 24px;
+  }
+
+  .wait-word {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+
+  .wait-figures {
+    font-size: 48px;
+    font-weight: 700;
+    font-family: var(--font-figures);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: var(--text-strong);
+    line-height: 1;
+  }
+
+  .auth-block {
+    padding-top: 20px;
+    border-top: 1px solid var(--text-strong);
     text-align: left;
   }
 
-  .step {
-    padding: 18px;
-    border: 1px solid var(--border-variant);
-    border-radius: var(--radius);
-    background: var(--surface-step);
-  }
-
-  .step-disabled {
+  .auth-block.is-disabled {
     opacity: 0.45;
     pointer-events: none;
   }
 
-  .step-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  .step-tag {
-    font-size: 10px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--surface-muted);
-    color: var(--text-muted);
-    text-transform: capitalize;
-  }
-
   .step-hint {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     font-size: 12px;
     color: var(--text-muted);
     font-weight: 500;
@@ -298,17 +297,6 @@
     color: var(--success);
   }
 
-  .step-hint.italic {
-    font-style: italic;
-  }
-
-  .countdown {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--amber-text);
-  }
-
   .unblock-form {
     display: flex;
     flex-direction: column;
@@ -316,7 +304,7 @@
     margin: 0;
   }
 
-  .step-disabled .step-placeholder {
+  .step-placeholder {
     margin: 0;
     font-size: 13px;
     color: var(--text-muted);

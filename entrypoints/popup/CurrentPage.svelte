@@ -12,6 +12,7 @@
   import { cloneBlocklist, normalizeEntry } from '@/lib/blocklist';
   import type { BlockEntry } from '@/lib/types';
   import Toggle from '@/components/Toggle.svelte';
+  import Tape from '@/components/Tape.svelte';
   import { t } from '@/lib/i18n';
 
   let { blockingNow = false }: { blockingNow?: boolean } = $props();
@@ -43,10 +44,26 @@
   async function load() {
     loading = true;
     try {
-      const [tabs] = await browser.tabs.query({ active: true, currentWindow: true });
+      const query = browser.tabs?.query;
+      if (typeof query !== 'function') {
+        tabUrl = '';
+        entries = [];
+        status = { kind: 'none' };
+        return;
+      }
+      const [tabs] = await Promise.race([
+        query({ active: true, currentWindow: true }),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('tabs query timeout')), 400);
+        }),
+      ]);
       tabUrl = tabs?.url && tabs.url.startsWith('http') ? tabs.url : '';
       entries = cloneBlocklist(await blocklistItem.getValue()).map(normalizeEntry);
       await refreshStatus();
+    } catch {
+      tabUrl = '';
+      entries = [];
+      status = { kind: 'none' };
     } finally {
       loading = false;
     }
@@ -114,19 +131,39 @@
 </script>
 
 <section class="current-page">
-  <h2 class="text-label section-label">{t('thisPage')}</h2>
+  <Tape>
+    <div class="tape-ink-row">
+      {#if !loading && tabUrl}
+        <svg class="tape-link" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93M14 11a5 5 0 0 0-7.07 0L5.52 12.4a5 5 0 0 0 7.07 7.07L14 18.07"
+          />
+        </svg>
+      {/if}
+      <div class="tape-copy">
+        <h2 class="tape-title">{t('thisPage')}</h2>
+        {#if loading}
+          <p class="tape-line">{t('loadingTab')}</p>
+        {:else if !tabUrl}
+          <p class="tape-line tape-empty">{t('openWebsiteTab')}</p>
+        {:else}
+          <p class="tape-line" title={tabUrl}>
+            {domainPattern}{new URL(tabUrl).pathname === '/' ? '' : new URL(tabUrl).pathname}
+          </p>
+        {/if}
+      </div>
+    </div>
+  </Tape>
 
-  {#if loading}
-    <p class="msg-muted">{t('loadingTab')}</p>
-  {:else if !tabUrl}
-    <p class="msg-muted">{t('openWebsiteTab')}</p>
-  {:else}
-    <p class="page-url" title={tabUrl}>{domainPattern}{new URL(tabUrl).pathname}</p>
-
+  {#if !loading && tabUrl}
     {#if locked}
       <form class="lock-row" onsubmit={onUnlockSubmit}>
         <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
-        <button type="submit" class="btn btn-primary btn-sm">{t('unlock')}</button>
+        <button type="submit" class="btn btn-unlock btn-block">{t('unlock')}</button>
       </form>
       {#if unlockError}<p class="msg-error">{unlockError}</p>{/if}
     {/if}
@@ -172,37 +209,64 @@
     margin: 0;
   }
 
-  .section-label {
-    margin: 0 0 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+  .tape-ink-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 76px;
+    padding: 18px 22px 20px 16px;
   }
 
-  .page-url {
-    margin: 0 0 12px;
+  .tape-link {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    color: var(--text-strong);
+  }
+
+  .tape-copy {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .tape-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+  }
+
+  .tape-line {
+    margin: 3px 0 0;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.3;
     color: var(--text-strong);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  .tape-empty {
+    font-weight: 500;
+    color: var(--text);
+    white-space: normal;
+  }
+
   .lock-row {
     display: flex;
+    flex-direction: column;
     gap: 8px;
     margin-bottom: 8px;
     margin-top: 0;
   }
 
-  .lock-row .input {
-    flex: 1;
-  }
-
   .status-on {
     margin: 0 0 8px;
     font-size: 13px;
-    color: var(--amber-text);
+    color: var(--text-strong);
   }
 
   .status-off {
