@@ -95,9 +95,11 @@
     void unlock();
   }
 
-  async function withAuth(action: () => Promise<void>) {
+  // Adding a block only tightens the list, so it never needs the password;
+  // pausing an entry loosens it and stays gated while blocking is on.
+  async function run(action: () => Promise<void>, needsUnlock: boolean) {
     actionError = '';
-    if (locked) {
+    if (needsUnlock && locked) {
       actionError = t('enterPasswordToEdit');
       return;
     }
@@ -116,17 +118,17 @@
   }
 
   async function blockDomain() {
-    await withAuth(() => addPattern(domainPattern, false, cryptoKey));
+    await run(() => addPattern(domainPattern, false, cryptoKey), false);
   }
 
   async function blockPath() {
     if (!pathPattern) return;
-    await withAuth(() => addPattern(pathPattern, false, cryptoKey));
+    await run(() => addPattern(pathPattern, false, cryptoKey), false);
   }
 
   async function flipEnabled(enabled: boolean) {
     if (status.kind !== 'listed-disabled' && status.kind !== 'listed-enabled') return;
-    await withAuth(() => toggleEntry(status.entry.id, enabled));
+    await run(() => toggleEntry(status.entry.id, enabled), true);
   }
 </script>
 
@@ -160,7 +162,7 @@
   </Tape>
 
   {#if !loading && tabUrl}
-    {#if locked}
+    {#if locked && status.kind !== 'none'}
       <form class="lock-row" onsubmit={onUnlockSubmit}>
         <input class="input" type="password" bind:value={pw} placeholder={t('passwordPlaceholder')} />
         <button type="submit" class="btn btn-unlock btn-block">{t('unlock')}</button>
@@ -189,11 +191,11 @@
     {:else}
       <p class="status-off">{t('notOnBlocklist')}</p>
       <div class="actions">
-        <button type="button" class="btn btn-primary btn-sm" disabled={locked || busy} onclick={blockDomain}>
+        <button type="button" class="btn btn-primary btn-sm" disabled={busy} onclick={blockDomain}>
           {t('blockPattern', domainPattern)}
         </button>
         {#if pathPattern}
-          <button type="button" class="btn btn-outline btn-sm" disabled={locked || busy} onclick={blockPath}>
+          <button type="button" class="btn btn-outline btn-sm" disabled={busy} onclick={blockPath}>
             {t('blockPattern', pathPattern)}
           </button>
         {/if}

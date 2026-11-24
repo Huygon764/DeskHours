@@ -247,7 +247,7 @@
     "message": "Blocked sites"
   },
   "blocklistLockedHint": {
-    "message": "Blocklist is locked while a schedule window is active. Enter your password above to add or remove sites."
+    "message": "Blocklist is locked while a schedule window is active. You can still add sites; enter your password above to pause or remove them."
   },
   "loadingBlocklist": {
     "message": "Loading blocklist…"
@@ -288,9 +288,6 @@
   "addToHidden": {
     "message": "Add to hidden list (name hidden in options)"
   },
-  "addUnlockRequired": {
-    "message": "Add (unlock required)"
-  },
   "unlockToEditBlocklist": {
     "message": "Unlock with your password above to edit the blocklist."
   },
@@ -325,7 +322,7 @@
     "message": "Block any page whose URL contains the text (path, query, etc.)."
   },
   "keywordsLockedHint": {
-    "message": "Keywords are locked while a schedule window is active. Enter your password above to edit."
+    "message": "Keywords are locked while a schedule window is active. You can still add keywords; enter your password above to pause or remove them."
   },
   "noKeywords": {
     "message": "No URL keywords yet."

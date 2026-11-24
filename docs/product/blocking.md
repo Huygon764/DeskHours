@@ -66,5 +66,7 @@ temp-unblock write is rolled back. A successful grant appends to
 
 ## Options lock
 
-While blocking is on and the options page is not unlocked, blocklist/schedule
-edits are password-gated (`entrypoints/options/App.svelte`).
+While blocking is on and the options page is not unlocked, schedule edits and
+blocklist pause/remove are password-gated (`entrypoints/options/App.svelte`).
+Adding a site or keyword is not gated, in options or the popup: it only
+tightens the list.

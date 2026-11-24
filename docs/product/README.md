@@ -13,6 +13,7 @@ files after actual product domains, such as `overview.md`, `billing.md`,
 DeskHours living docs (current behavior, not the stale 2026-06-07 spec):
 
 - `overview.md` — product surface and non-goals
+- `features.md` — UI inventory by surface (popup, options, blocked page)
 - `blocking.md` — schedule, patterns, DNR, temp unblock
 - `timers.md` — pomodoro, countdown, wall-clock alarms
 - `security.md` — password, masking, privacy

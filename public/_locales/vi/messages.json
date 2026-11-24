@@ -247,7 +247,7 @@
     "message": "Trang bị chặn"
   },
   "blocklistLockedHint": {
-    "message": "Danh sách chặn bị khóa khi lịch đang hoạt động. Nhập mật khẩu ở trên để thêm hoặc xóa trang."
+    "message": "Danh sách chặn bị khóa khi lịch đang hoạt động. Bạn vẫn thêm trang được; nhập mật khẩu ở trên để tạm dừng hoặc xóa."
   },
   "loadingBlocklist": {
     "message": "Đang tải danh sách chặn…"
@@ -288,9 +288,6 @@
   "addToHidden": {
     "message": "Thêm vào danh sách ẩn (tên ẩn trong cài đặt)"
   },
-  "addUnlockRequired": {
-    "message": "Thêm (cần mở khóa)"
-  },
   "unlockToEditBlocklist": {
     "message": "Mở khóa bằng mật khẩu ở trên để chỉnh danh sách chặn."
   },
@@ -325,7 +322,7 @@
     "message": "Chặn mọi trang có chứa chuỗi này trong URL (đường dẫn, query, v.v.)."
   },
   "keywordsLockedHint": {
-    "message": "Từ khóa bị khóa khi lịch đang hoạt động. Nhập mật khẩu ở trên để chỉnh."
+    "message": "Từ khóa bị khóa khi lịch đang hoạt động. Bạn vẫn thêm từ khóa được; nhập mật khẩu ở trên để tạm dừng hoặc xóa."
   },
   "noKeywords": {
     "message": "Chưa có từ khóa URL."

@@ -44,10 +44,6 @@
   async function add() {
     addError = '';
     addNotice = '';
-    if (locked) {
-      addError = t('unlockToEditBlocklist');
-      return;
-    }
     const domain = normalizePattern(newDomain);
     if (!domain) {
       addError = t('enterDomainError');
@@ -83,10 +79,6 @@
   async function addKeyword() {
     addError = '';
     addNotice = '';
-    if (locked) {
-      addError = t('unlockToEditBlocklist');
-      return;
-    }
     const keyword = normalizeKeyword(newKeyword);
     if (!keyword) {
       addError = t('enterKeywordError');
@@ -119,6 +111,10 @@
   async function remove(id: string) {
     addError = '';
     addNotice = '';
+    if (locked) {
+      addError = t('unlockToEditBlocklist');
+      return;
+    }
     try {
       const next = cloneBlocklist(entries).filter((e) => e.id !== id);
       const synced = await persist(next);
@@ -206,17 +202,15 @@
   <form class="add-form" onsubmit={onAddSiteSubmit}>
     <div class="field">
       <label class="field-label" for="new-domain">{t('addSite')}</label>
-      <input id="new-domain" class="input" bind:value={newDomain} placeholder={t('addSitePlaceholder')} disabled={locked} />
+      <input id="new-domain" class="input" bind:value={newDomain} placeholder={t('addSitePlaceholder')} />
     </div>
 
     <label class="hidden-check">
-      <input type="checkbox" bind:checked={addAsHidden} disabled={locked} />
+      <input type="checkbox" bind:checked={addAsHidden} />
       <span>{t('addToHidden')}</span>
     </label>
 
-    <button type="submit" class="btn btn-primary" disabled={locked}>
-      {locked ? t('addUnlockRequired') : t('addSite')}
-    </button>
+    <button type="submit" class="btn btn-primary">{t('addSite')}</button>
   </form>
 
   {#if addError}<p class="msg-error">{addError}</p>{/if}
@@ -275,17 +269,14 @@
         class="input"
         bind:value={newKeyword}
         placeholder={t('addKeywordPlaceholder')}
-        disabled={locked}
       />
     </div>
     <label class="hidden-check">
-      <input type="checkbox" bind:checked={addKeywordAsHidden} disabled={locked} />
+      <input type="checkbox" bind:checked={addKeywordAsHidden} />
       <span>{t('addToHidden')}</span>
     </label>
 
-    <button type="submit" class="btn btn-primary" disabled={locked}>
-      {locked ? t('addUnlockRequired') : t('addKeyword')}
-    </button>
+    <button type="submit" class="btn btn-primary">{t('addKeyword')}</button>
   </form>
 </section>
 
